@@ -56,7 +56,7 @@ venv-clean:
 
 # --- App Store listing (fastlane deliver) ---
 
-.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta
+.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta docs-sync-screenshots docs-serve
 
 ## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile)
 appstore-bootstrap:
@@ -76,10 +76,23 @@ appstore-pull:
 	cd iOS && bundle exec fastlane pull_metadata
 
 ## Regenerate the App Store screenshot deck (every scene × every locale).
-## Writes PNGs into iOS/fastlane/screenshots/<locale>/iPhone-6.9/.
-## See .claude/skills/appstore-screenshots/SKILL.md for what's covered.
-appstore-screenshots:
+## Writes PNGs into iOS/fastlane/screenshots/<locale>/iPhone-6.9/, then
+## copies the curated subset into docs/assets/screenshots/ so the marketing
+## site stays in lock-step. CI fails (.github/workflows/screenshots-sync-
+## check.yml) if the two drift.
+appstore-screenshots: _capture-screenshots docs-sync-screenshots
+
+_capture-screenshots:
 	bash .claude/skills/appstore-screenshots/scripts/capture.sh
+
+## Copy curated screenshots into docs/assets/screenshots/ (see docs/scripts).
+docs-sync-screenshots:
+	bash docs/scripts/sync-screenshots.sh
+
+## Serve the marketing site locally on http://127.0.0.1:4000/.
+## One-time: cd docs && bundle install. Pinned to the same gem GH Pages runs.
+docs-serve:
+	cd docs && bundle exec jekyll serve --livereload
 
 ## Build a Release archive and upload it to TestFlight.
 ## Auto-bumps the build number from the latest TestFlight build and uses
