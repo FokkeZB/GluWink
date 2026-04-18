@@ -12,7 +12,7 @@ It's open source. Your data stays on your device (HealthKit) or on the Nightscou
 
 ## What it does
 
-1. **Glucose and carbs visible everywhere.** Widgets in every size for Home Screen, Lock Screen and StandBy. Complications on every watch face. An optional glucose number on the app icon badge. A check-in shield on every unlock.
+1. **Glucose and carbs visible everywhere.** Widgets in every size for Home Screen, Lock Screen and StandBy. Complications on every watch face. An optional glucose number on the app icon badge.
 2. **Clear status at a glance.** Green = looks good. Red = needs attention (high/low glucose, stale sensor, missing carb entry). Same simple language across the app, widgets, and watch.
 
    <p>
@@ -20,7 +20,7 @@ It's open source. Your data stays on your device (HealthKit) or on the Nightscou
      &nbsp;
      <img src="icons/iOS-red.png" alt="Red status icon" width="80" />
    </p>
-3. **Other apps blocked only when needed.** When the face is red, GluWink blocks other apps until you check in. When it's green, your phone is just your phone. (Or set the check-in to every unlock — your call.)
+3. **Optional app blocking.** Block other apps at configurable intervals — always, or only when something needs your attention. When blocking is on and the face is red, GluWink locks other apps until you check in. Otherwise, your phone is just your phone.
 
 ## Who it's for
 

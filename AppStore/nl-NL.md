@@ -16,15 +16,9 @@ GluWink
 ## Subtitle (30)
 
 ```
-Hulpmiddel voor diabetes
+Van afleider naar bondgenoot
 ```
-*(24 / 30)*
-
-Alternatieven als een andere toon gewenst is:
-
-- `Diabetes op elk scherm` *(22 / 30)*
-- `Glucose overal, focus mag ook` *(29 / 30)*
-- `Diabetes eerst, de rest daarna` *(30 / 30)*
+*(28 / 30)*
 
 > In het Nederlands volstaat "diabetes" — de toevoeging "type 1" voelt klinisch in marketingcopy. Behouden we wel in zoekwoorden (mensen die zoeken gebruiken het) en in de doelgroepregel voor volwassenen (waar de standaardaanname type 2 is).
 
@@ -42,11 +36,11 @@ Maak van je iPhone en Apple Watch een hulpmiddel voor diabetes — niet een afle
 
 GluWink doet drie dingen, en niets meer:
 
-1. Glucose en koolhydraten overal zichtbaar. Widgets voor beginscherm, toegangsscherm en StandBy in alle formaten. Complicaties op elke Apple Watch-wijzerplaat. Optioneel de glucosewaarde als badge op het app-icoon. En een vriendelijk check-in-schild bij elke ontgrendeling.
+1. Glucose en koolhydraten overal zichtbaar. Widgets voor beginscherm, toegangsscherm en StandBy in alle formaten. Complicaties op elke Apple Watch-wijzerplaat. Optioneel de glucosewaarde als badge op het app-icoon.
 
 2. Status in één oogopslag. Een groen gezichtje betekent: alles ziet er goed uit. Een rood gezichtje betekent: er is iets dat aandacht vraagt — glucose te hoog of te laag, sensor verouderd, of koolhydraten van een maaltijd nog niet ingevoerd. Overal in de app, widgets en op de watch dezelfde eenvoudige taal.
 
-3. Andere apps worden alleen geblokkeerd als iets je aandacht vraagt. Bij rood blokkeert GluWink andere apps totdat de check-in is gedaan. Bij groen is je telefoon gewoon je telefoon. (Je kunt ook kiezen voor een check-in bij elke ontgrendeling, of blokkeren helemaal uitzetten — jij bepaalt.)
+3. Apps blokkeren is optioneel — jij bepaalt. Kies om andere apps op instelbare intervallen te blokkeren: altijd, of alleen als iets je aandacht vraagt. Als blokkeren aanstaat en het gezichtje rood is, houdt GluWink andere apps op slot totdat de check-in is gedaan. Bij groen — of als je blokkeren helemaal uitzet — is je telefoon gewoon je telefoon.
 
 — Voor twee doelgroepen —
 
@@ -131,7 +125,7 @@ Scènevolgorde komt overeen met de tabel in `README.md` → Screenshots.
 
 | # | Caption |
 |---|---|
-| 1 | Het schild dat elke ontgrendeling een check-in maakt. |
+| 1 | Het schild dat verschijnt als je een andere app wil openen. |
 | 2 | Rood als er iets aandacht nodig heeft. |
 | 3 | Glucose en koolhydraten op elk scherm. |
 | 4 | Het ouderscherm: status, instellingen, rust. |
