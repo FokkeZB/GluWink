@@ -125,12 +125,12 @@ Scènevolgorde komt overeen met de tabel in `README.md` → Screenshots.
 
 | # | Caption |
 |---|---|
-| 1 | Het schild dat verschijnt als je een andere app wil openen. |
-| 2 | Rood als er iets aandacht nodig heeft. |
+| 1 | Goed bezig. Glucose en koolhydraten in één blik. |
+| 2 | Actie nodig? Volg de lijst, terug naar groen. |
 | 3 | Glucose en koolhydraten op elk scherm. |
-| 4 | Het ouderscherm: status, instellingen, rust. |
+| 4 | Stel alerts in, kies een bron, regel het schild — jouw keuze. |
 | 5 | Glucose en koolhydraten op elke wijzerplaat. |
-| 6 *(optioneel)* | Apple Gezondheid, Nightscout of demo — kies één. |
+| 6 | Apple Gezondheid, Nightscout of demo — kies één. |
 
 ### Apple Watch (45mm)
 

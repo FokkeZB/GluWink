@@ -85,7 +85,7 @@ Deliver every locale in the **same order** so screenshot #1 is always the same c
 | 3 | **Home Screen widgets** — small + medium + large in a stack, mix of green and red. |
 | 4 | **Settings** — parent / main-app chrome: Attention Rules, Shielding On, data sources, glucose unit. |
 | 5 | **Apple Watch + complications** — watch face with glucose + carbs complications, plus the Watch app. |
-| 6 *(optional)* | **Setup checklist** — Apple Health + Nightscout + demo data choices. |
+| 6 | **Setup checklist** — Apple Health + Nightscout + demo data choices. |
 
 ### Apple Watch scenes (45mm)
 
