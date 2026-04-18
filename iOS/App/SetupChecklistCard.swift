@@ -29,15 +29,31 @@ struct SetupChecklistCard: View {
     @State private var healthKitStatus: HKAuthorizationStatus
     @State private var hasPassphrase: Bool
     @State private var shieldingEnabled: Bool
+    /// Mirror of `SharedDataManager.nightscoutEnabled` so SwiftUI actually
+    /// re-renders this card when Nightscout flips on/off. Without this the
+    /// data-source group keeps showing all three rows after the user
+    /// connects Nightscout from a sheet (no observed @State changes →
+    /// no body recompute → stale layout).
+    @State private var nightscoutEnabled: Bool
+    /// Mirror of `SharedDataManager.isMockModeEnabled` for the same reason
+    /// as `nightscoutEnabled`.
+    @State private var isMockModeEnabled: Bool
+    /// Mirror of `SharedDataManager.healthKitEverDelivered` for the same
+    /// reason as `nightscoutEnabled`.
+    @State private var healthKitEverDelivered: Bool
     @State private var showHideConfirmation = false
 
     init(refreshToken: Binding<Int>) {
         _refreshToken = refreshToken
+        let data = SharedDataManager.shared
         _healthKitStatus = State(
             initialValue: HKHealthStore().authorizationStatus(for: HKQuantityType(.bloodGlucose))
         )
         _hasPassphrase = State(initialValue: KeychainManager.shared.hasPassphrase)
-        _shieldingEnabled = State(initialValue: SharedDataManager.shared.shieldingEnabled)
+        _shieldingEnabled = State(initialValue: data.shieldingEnabled)
+        _nightscoutEnabled = State(initialValue: data.nightscoutEnabled)
+        _isMockModeEnabled = State(initialValue: data.isMockModeEnabled)
+        _healthKitEverDelivered = State(initialValue: data.healthKitEverDelivered)
     }
 
     var body: some View {
@@ -80,12 +96,13 @@ struct SetupChecklistCard: View {
     /// data-source group disappears in this case — Health/Nightscout/Demo are
     /// alternatives, not stacking steps.
     ///
-    /// Reads through `SharedDataManager` so this view shares its definition
-    /// with `ShieldingSettingsView` and `ShieldManager.disableIfNoDataSource()`.
-    /// The locally-tracked `@State` properties (`healthKitStatus` etc.) are
-    /// what trigger re-renders when the underlying values change.
+    /// Mirrors `SharedDataManager.hasAnyDataSource` but reads from local
+    /// @State so SwiftUI re-renders when any of the underlying flags
+    /// (`nightscoutEnabled`, `isMockModeEnabled`, `healthKitEverDelivered`)
+    /// changes. Reading the manager directly here would skip re-render
+    /// because the body wouldn't observe those flags.
     private var hasAnyDataSource: Bool {
-        SharedDataManager.shared.hasAnyDataSource
+        nightscoutEnabled || isMockModeEnabled || healthKitEverDelivered
     }
 
     private var dataSourceRows: [ChecklistRow] {
@@ -272,9 +289,13 @@ struct SetupChecklistCard: View {
     }
 
     private func refresh() {
+        let data = SharedDataManager.shared
         healthKitStatus = HKHealthStore().authorizationStatus(for: HKQuantityType(.bloodGlucose))
         hasPassphrase = KeychainManager.shared.hasPassphrase
-        shieldingEnabled = SharedDataManager.shared.shieldingEnabled
+        shieldingEnabled = data.shieldingEnabled
+        nightscoutEnabled = data.nightscoutEnabled
+        isMockModeEnabled = data.isMockModeEnabled
+        healthKitEverDelivered = data.healthKitEverDelivered
         Task {
             let settings = await UNUserNotificationCenter.current().notificationSettings()
             await MainActor.run { notificationStatus = settings.authorizationStatus }
@@ -285,9 +306,29 @@ struct SetupChecklistCard: View {
     private func requestNotifications() async {
         isRequestingNotifications = true
         defer { isRequestingNotifications = false }
-        _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
+        let granted = (try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])) ?? false
         let settings = await UNUserNotificationCenter.current().notificationSettings()
         notificationStatus = settings.authorizationStatus
+
+        // The user just granted permission *from the setup checklist* —
+        // they're explicitly opting in here, so flip on the glucose-on-
+        // the-icon badge they were really asking for. Default to
+        // "only when attention": least noisy and matches the app's
+        // overall "quiet until something needs your eyes" stance.
+        //
+        // Gate on (1) the badge bit actually being granted (user can
+        // deny badges while allowing alerts) and (2) the badge mode
+        // still sitting at its `.off` default — they reach this row
+        // only during onboarding, before they've had a chance to
+        // deliberately pick `.off` in Settings, so treating `.off`
+        // here as "untouched default" is safe.
+        let data = SharedDataManager.shared
+        if granted, settings.badgeSetting == .enabled, data.glucoseBadgeMode == .off {
+            data.glucoseBadgeMode = .onlyWhenAttention
+            data.flush()
+            data.refreshAttentionBadge()
+        }
+
         refreshToken &+= 1
     }
 
