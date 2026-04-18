@@ -120,141 +120,54 @@ struct AccessoryInlineView: View {
 }
 
 // MARK: - Home Screen widgets
+//
+// The visual body of each tile lives in `SharedKit/WidgetTileViews.swift` so
+// the App's screenshot showcase can render an identical picture without
+// duplicating layout code. This file keeps only the WidgetKit-specific
+// wrapping: `containerBackground(for: .widget)` which WidgetKit uses to
+// colour the tile chrome beyond the padded body.
 
 struct SmallWidgetView: View {
     let entry: StatusEntry
-    private var c: ShieldContent { entry.content }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            // Glucose
-            Text(glucoseLabel(c))
-                .font(.system(.title, design: .rounded).bold())
-                .minimumScaleFactor(0.5)
-                .lineLimit(1)
-            relativeAgoText(from: entry.glucoseDate, hasData: c.glucoseValue > 0)
-                .font(.caption)
-                .opacity(0.7)
-
-            Spacer(minLength: 2)
-
-            // Carbs
-            Text(carbsLabel(c))
-                .font(.system(.title, design: .rounded).bold())
-                .minimumScaleFactor(0.5)
-                .lineLimit(1)
-            relativeAgoText(from: entry.carbDate, hasData: c.carbGrams != nil)
-                .font(.caption)
-                .opacity(0.7)
-        }
-        .foregroundStyle(.white)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        SmallWidgetTile(content: WidgetTileContent(
+            shieldContent: entry.content,
+            glucoseDate: entry.glucoseDate,
+            carbDate: entry.carbDate
+        ))
         .containerBackground(for: .widget) {
-            c.needsAttention ? Color.red : Color.green
+            entry.content.needsAttention ? Color.red : Color.green
         }
     }
 }
 
 struct MediumWidgetView: View {
     let entry: StatusEntry
-    private var c: ShieldContent { entry.content }
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Glucose column
-            VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "widget.glucose"))
-                    .font(.caption.bold())
-                    .opacity(0.7)
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(glucoseValue(c))
-                        .font(.system(size: 44, weight: .bold, design: .rounded))
-                        .minimumScaleFactor(0.5)
-                        .lineLimit(1)
-                    Text(c.glucoseUnit.shortLabel)
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .opacity(0.7)
-                }
-                relativeAgoText(from: entry.glucoseDate, hasData: c.glucoseValue > 0)
-                    .font(.subheadline)
-                    .opacity(0.7)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            // Carbs column
-            VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "widget.carbs"))
-                    .font(.caption.bold())
-                    .opacity(0.7)
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(carbsValue(c))
-                        .font(.system(size: 44, weight: .bold, design: .rounded))
-                        .minimumScaleFactor(0.5)
-                        .lineLimit(1)
-                    Text("g")
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .opacity(0.7)
-                }
-                relativeAgoText(from: entry.carbDate, hasData: c.carbGrams != nil)
-                    .font(.subheadline)
-                    .opacity(0.7)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .foregroundStyle(.white)
-        .frame(maxHeight: .infinity)
-        .padding()
+        MediumWidgetTile(content: WidgetTileContent(
+            shieldContent: entry.content,
+            glucoseDate: entry.glucoseDate,
+            carbDate: entry.carbDate
+        ))
         .containerBackground(for: .widget) {
-            c.needsAttention ? Color.red : Color.green
+            entry.content.needsAttention ? Color.red : Color.green
         }
     }
 }
 
 struct LargeWidgetView: View {
     let entry: StatusEntry
-    private var c: ShieldContent { entry.content }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Glucose section
-            VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "widget.glucose"))
-                    .font(.subheadline.bold())
-                    .opacity(0.7)
-                Text(glucoseLabel(c))
-                    .font(.system(size: 64, weight: .bold, design: .rounded))
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(1)
-                relativeAgoText(from: entry.glucoseDate, hasData: c.glucoseValue > 0)
-                    .font(.subheadline)
-                    .opacity(0.7)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            Spacer(minLength: 8)
-
-            // Carbs section
-            VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "widget.carbs"))
-                    .font(.subheadline.bold())
-                    .opacity(0.7)
-                Text(carbsLabel(c))
-                    .font(.system(size: 52, weight: .bold, design: .rounded))
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(1)
-                relativeAgoText(from: entry.carbDate, hasData: c.carbGrams != nil)
-                    .font(.subheadline)
-                    .opacity(0.7)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .foregroundStyle(.white)
-        .padding()
+        LargeWidgetTile(content: WidgetTileContent(
+            shieldContent: entry.content,
+            glucoseDate: entry.glucoseDate,
+            carbDate: entry.carbDate
+        ))
         .containerBackground(for: .widget) {
-            c.needsAttention ? Color.red : Color.green
+            entry.content.needsAttention ? Color.red : Color.green
         }
     }
 }
