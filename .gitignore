@@ -17,5 +17,10 @@ iOS/fastlane/metadata/
 iOS/fastlane/screenshots/
 iOS/fastlane/report.xml
 iOS/fastlane/README.md
+# `make appstore-beta` leftovers: gym (build_app) generates a preview HTML
+# and a temp working dir alongside the Fastfile. The .ipa + .xcarchive land
+# in iOS/build/ (already ignored above).
+iOS/fastlane/Preview.html
+iOS/fastlane/tmp/
 iOS/vendor/bundle/
 iOS/.bundle/

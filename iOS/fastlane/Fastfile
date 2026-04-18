@@ -143,6 +143,60 @@ platform :ios do
     end
   end
 
+  desc "Build a Release archive and upload it to TestFlight."
+  desc "Uses Xcode-managed signing (-allowProvisioningUpdates) and auto-bumps"
+  desc "CURRENT_PROJECT_VERSION from the latest TestFlight build so successive"
+  desc "runs never collide. Requires private/asc-api-key.json and being signed"
+  desc "into Xcode with an Apple ID on team Y39937U7XN."
+  lane :beta do
+    api_key_path = require_api_key!
+
+    # Next build number = (latest on TestFlight) + 1. No `version:` filter so
+    # we pick up the overall max across marketing versions — safer than
+    # per-version, because it can't collide with a leftover build left under
+    # a prior version during a release transition. initial_build_number: 0
+    # covers the first-ever upload where ASC returns nothing.
+    next_build_number = latest_testflight_build_number(
+      api_key_path: api_key_path,
+      initial_build_number: 0,
+    ) + 1
+    UI.message("Next TestFlight build number: #{next_build_number}")
+
+    # Thread the build number through xcargs instead of mutating the
+    # xcodeproj with `increment_build_number` — keeps git clean between runs
+    # and matches the "TestFlight is the source of truth for build numbers"
+    # model above. -allowProvisioningUpdates lets Xcode-managed signing
+    # fetch / renew the App Store profile on its own during archive.
+    build_app(
+      project: "App.xcodeproj",
+      scheme: "App",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "build",
+      output_name: "App.ipa",
+      clean: true,
+      xcargs: "CURRENT_PROJECT_VERSION=#{next_build_number} -allowProvisioningUpdates",
+    )
+
+    # dSYM upload to a third-party crash reporter goes here once we wire
+    # one up (Sentry, Crashlytics, etc.). pilot already uploads dSYMs to
+    # App Store Connect as part of the .ipa, so Apple-side symbolication
+    # is covered without any extra step.
+    # upload_symbols_to_sentry(dsym_path: lane_context[SharedValues::DSYM_OUTPUT_PATH])
+
+    upload_to_testflight(
+      api_key_path: api_key_path,
+      # Don't block the lane on ASC's post-upload processing. The build
+      # shows up under TestFlight → Builds within a few minutes on its own.
+      # Flip this to false once we start passing a `changelog:` — the
+      # release notes can only be applied after processing completes.
+      skip_waiting_for_build_processing: true,
+      # No auto-distribute: internal testers see the build once ASC finishes
+      # processing; external distribution is a conscious click in ASC until
+      # we decide on a tester-group strategy.
+    )
+  end
+
   desc "Download current App Store metadata into fastlane/metadata/ (read-only)."
   desc "Useful to inspect what Apple has, or to bootstrap a new locale."
   lane :pull_metadata do
