@@ -16,15 +16,9 @@ GluWink
 ## Subtitle (30)
 
 ```
-A phone that helps with T1
+From distraction to ally
 ```
-*(26 / 30)*
-
-Alternates if the team prefers a different tone:
-
-- `Diabetes-first screen time` *(26 / 30)*
-- `Glucose everywhere, focus too` *(29 / 30)*
-- `Diabetes tool, not distraction` *(30 / 30)*
+*(24 / 30)*
 
 ## Promotional text (170)
 
@@ -40,11 +34,11 @@ Make your iPhone and Apple Watch a tool for diabetes — not a distraction from 
 
 GluWink does three things, and nothing more:
 
-1. Glucose and carbs visible everywhere. Home Screen, Lock Screen and StandBy widgets in every size. Complications on every Apple Watch face. An optional glucose number on the app icon badge. A friendly check-in shield on every unlock.
+1. Glucose and carbs visible everywhere. Home Screen, Lock Screen and StandBy widgets in every size. Complications on every Apple Watch face. An optional glucose number on the app icon badge.
 
 2. Clear status at a glance. A green face means everything looks good. A red face means something needs attention — glucose is high or low, the sensor is stale, or carbs were never entered for that meal. Every surface speaks the same simple language.
 
-3. Other apps blocked only when something needs your attention. When the face is red, GluWink blocks other apps until the check-in is done. When everything is green, your phone is just your phone. (You can also choose to have the check-in on every unlock, or turn blocking off entirely — the choice is yours.)
+3. Optional app blocking — your call. Choose to block other apps at configurable intervals, either always or only when something needs your attention. While blocking is active and the face is red, GluWink locks other apps until the check-in is done. When everything is green — or you've turned blocking off entirely — your phone is just your phone.
 
 — Built for two audiences —
 
@@ -129,7 +123,7 @@ Scene order matches the table in `README.md` → Screenshots.
 
 | # | Caption |
 |---|---|
-| 1 | The shield that turns every unlock into a check-in. |
+| 1 | The shield that greets you when you reach for another app. |
 | 2 | Red when something needs attention. |
 | 3 | Glucose and carbs on every screen. |
 | 4 | The parent view: status, settings, peace of mind. |
