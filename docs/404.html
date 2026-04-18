@@ -1,0 +1,16 @@
+---
+layout: default
+id: notfound
+permalink: /404.html
+sitemap: false
+---
+{%- assign data = site.data.en -%}
+<section class="section section--notfound">
+  <div class="wrap notfound">
+    <h1 class="notfound__title">{{ data.not_found.title }}</h1>
+    <p class="notfound__body">{{ data.not_found.body }}</p>
+    <p>
+      <a class="btn btn--primary" href="{{ '/' | relative_url }}">{{ data.not_found.home_label }}</a>
+    </p>
+  </div>
+</section>

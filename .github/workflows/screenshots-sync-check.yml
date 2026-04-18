@@ -1,0 +1,34 @@
+# Fail the PR if docs/assets/screenshots/ has drifted from the canonical
+# App Store deck at iOS/fastlane/screenshots/. The deck is generated
+# deterministically from real Swift code (ScreenshotHarness.swift) and we
+# want both the App Store listing and the marketing site to use the same
+# pixels.
+#
+# The fix is always: run `make appstore-screenshots` locally (or just
+# `bash docs/scripts/sync-screenshots.sh` if the App Store deck is fine and
+# only the docs copy is stale) and commit the result.
+
+name: Screenshots sync check
+
+on:
+  pull_request:
+    paths:
+      - "iOS/fastlane/screenshots/**"
+      - "docs/assets/screenshots/**"
+      - "docs/scripts/sync-screenshots.sh"
+      - ".github/workflows/screenshots-sync-check.yml"
+  push:
+    branches: [main]
+    paths:
+      - "iOS/fastlane/screenshots/**"
+      - "docs/assets/screenshots/**"
+      - "docs/scripts/sync-screenshots.sh"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify docs/assets/screenshots/ matches the App Store deck
+        run: bash docs/scripts/sync-screenshots.sh --check

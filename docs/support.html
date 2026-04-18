@@ -1,0 +1,23 @@
+---
+layout: page
+id: support
+permalink: /support/
+title: "Support"
+meta_title: "Support — GluWink"
+meta_description: "Get help with GluWink. Common questions answered, plus a link to open an issue on GitHub."
+---
+{%- assign s = site.data.en.support_page -%}
+<p class="prose__lede">{{ s.intro }}</p>
+<p>
+  <a class="btn btn--primary" href="{{ s.cta_url }}" rel="noopener">{{ s.cta_label }}</a>
+</p>
+
+<h2>{{ s.faq_heading }}</h2>
+<div class="faq">
+  {%- for item in s.faqs -%}
+    <details class="faq__item">
+      <summary>{{ item.q }}</summary>
+      <p>{{ item.a }}</p>
+    </details>
+  {%- endfor -%}
+</div>

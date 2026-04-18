@@ -1,0 +1,147 @@
+# Nederlandse copy voor de marketingsite. Loopt parallel met AppStore/nl-NL.md
+# en de README. Bij wijzigingen aan App Store copy ook hier bijwerken
+# (zie AGENTS.md → "Marketing Copy (keep in sync)").
+locale: nl-NL
+lang: nl
+dir: ltr
+
+meta:
+  title: "GluWink — diabetesstatus overal op je iPhone en Apple Watch"
+  description: "GluWink verandert je iPhone en Apple Watch van je grootste afleider in je beste hulpmiddel voor diabetes. Glucose en koolhydraten overal. Apps blokkeren als iets je aandacht vraagt."
+  og_image: /assets/og-nl.png
+
+nav:
+  privacy: Privacy
+  support: Hulp
+  github: GitHub
+  switch_lang_label: "English"
+  switch_lang_url: /
+
+hero:
+  eyebrow: "Diabetes type 1, op elk scherm"
+  title: "Van afleider naar bondgenoot."
+  subtitle: "Maak van je iPhone en Apple Watch een hulpmiddel voor diabetes — niet een afleiding ervan."
+  body: "Glucose en koolhydraten overal — beginscherm, toegangsscherm, StandBy en elke Apple Watch-wijzerplaat. Een vriendelijk groen gezichtje als alles er goed uitziet, een rood gezichtje als iets je aandacht vraagt. Andere apps blijven op slot tot je dat diabetes-dingetje hebt gedaan."
+  cta_primary_label_pre_launch: "Binnenkort in de App Store"
+  cta_primary_label_post_launch: "Download in de App Store"
+  cta_secondary_label: "Volg het project op GitHub"
+  cta_app_store_url: "https://apps.apple.com/app/gluwink/id0000000000" # placeholder, update at launch
+  cta_repo_url: "https://github.com/FokkeZB/GluWink"
+
+three_things:
+  title: "GluWink doet drie dingen, en niets meer."
+  items:
+    - heading: "Glucose en koolhydraten overal zichtbaar."
+      body: "Widgets in alle formaten voor het beginscherm, het toegangsscherm en StandBy. Complicaties op elke Apple Watch-wijzerplaat. Optioneel de glucosewaarde als badge op het app-icoon."
+    - heading: "Status in één oogopslag."
+      body: "Een groen gezichtje betekent: alles ziet er goed uit. Een rood gezichtje betekent: er is iets dat aandacht vraagt — glucose te hoog of te laag, sensor verouderd, of koolhydraten van een maaltijd nog niet ingevoerd. Overal in de app, widgets en op de watch dezelfde eenvoudige taal."
+    - heading: "Apps blokkeren is optioneel — jij bepaalt."
+      body: "Kies om andere apps op instelbare intervallen te blokkeren: altijd, of alleen als iets je aandacht vraagt. Als blokkeren aanstaat en het gezichtje rood is, houdt GluWink andere apps op slot totdat de check-in is gedaan. Bij groen is je telefoon gewoon je telefoon."
+
+audiences:
+  title: "Voor twee doelgroepen."
+  items:
+    - tag: "Voor ouders"
+      heading: "Kinderen met diabetes, op een iPhone via Delen met gezin."
+      bullets:
+        - "Eenmalig instellen op de iPhone van het kind via Delen met gezin."
+        - "Kies welke apps vrij blijven (de CGM-app, schoolapps, telefoon, berichten)."
+        - "Een wachtwoord dat alleen de ouder kent beschermt de instellingen."
+        - "Het kind kan de app niet verwijderen en de check-in niet overslaan."
+        - "Even op de badge of widget kijken laat direct zien hoe het gaat."
+    - tag: "Voor volwassenen"
+      heading: "Volwassenen met diabetes type 1, op je eigen iPhone."
+      bullets:
+        - "Autoriseer GluWink voor jezelf — Delen met gezin is niet nodig."
+        - "Laat een partner of vriend(in) het wachtwoord zetten. Die wrijving is precies de bedoeling."
+        - "Je kunt de app altijd verwijderen — daar is GluWink eerlijk over. Het duwt, het sluit niet op."
+
+data_sources:
+  title: "Waar de data vandaan komt."
+  intro: "GluWink leest wat al op je telefoon staat. Geen accounts. Kies de bron die bij je past."
+  items:
+    - heading: "Apple Gezondheid"
+      body: "De meeste CGM-apps (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS en andere) schrijven glucose en koolhydraten al naar Apple Gezondheid. Doet die van jou dat ook, dan is GluWink in één tik verbonden."
+    - heading: "Nightscout"
+      body: "Verbind je eigen Nightscout-site — handig als een ouder op afstand meekijkt, of als jouw diabetessysteem wel naar Nightscout schrijft maar niet naar Apple Gezondheid. Beide bronnen kunnen tegelijk aanstaan; de meest recente meting wint."
+    - heading: "Demo-modus"
+      body: "Eerst even proberen? In de demo-modus zie je realistische glucose- en koolhydratenwaarden zonder sensor."
+  privacy_promise: "Je gegevens blijven op je toestel (via HealthKit) of op je eigen Nightscout-site. Geen accounts, geen servers van ons, geen tracking, geen advertenties."
+
+screenshots:
+  title: "Op elk scherm dat de telefoon heeft."
+  intro: "Direct uit de app — geen mockups."
+  alt:
+    green: "GluWink check-in-schild met groen gezichtje: glucose en koolhydraten in één blik."
+    red: "GluWink check-in-schild met rood gezichtje: actie nodig, volg de lijst, terug naar groen."
+    widgets: "GluWink-widgets in drie formaten op het beginscherm van de iPhone."
+    settings: "GluWink-instellingen: stel alerts in, kies een bron, regel het schild."
+
+disclaimer:
+  title: "Geen medisch hulpmiddel."
+  body: "GluWink vervangt je CGM, je pomp, je internist en je eigen oordeel niet. Het neemt geen behandelbeslissingen. Het laat informatie zien die al op je telefoon staat en stelt één vraag: heb je dat diabetes-dingetje al gedaan?"
+
+open_source:
+  title: "Open source."
+  body: "GluWink is open source onder de PolyForm Noncommercial License. Je mag de code lezen, voor je eigen toestellen bouwen, builds delen met privé-testers en bijdragen terug doen."
+  cta_label: "Bekijk op GitHub"
+
+footer:
+  tagline: "Diabetes type 1 stopt nooit. Je telefoon hoeft daar niet aan mee te doen."
+  copyright: "© 2026 Fokke Zandbergen"
+  links:
+    - { label: "Privacy", url: /nl/privacy/ }
+    - { label: "Hulp", url: /nl/support/ }
+    - { label: "GitHub", url: "https://github.com/FokkeZB/GluWink" }
+    - { label: "Licentie", url: "https://github.com/FokkeZB/GluWink/blob/main/LICENSE" }
+
+privacy_page:
+  meta_title: "Privacybeleid — GluWink"
+  meta_description: "GluWink verzamelt geen gegevens. HealthKit-data blijft op je toestel. Nightscout-data wordt rechtstreeks van je eigen server gelezen."
+  title: "Privacybeleid"
+  last_updated: "Laatst bijgewerkt: 18 april 2026"
+  intro: "GluWink is zo gebouwd dat er niets te verzamelen valt. Deze pagina bestaat omdat de App Store een privacybeleid vereist, niet omdat we gegevens te melden hebben."
+  sections:
+    - heading: "Wat we verzamelen"
+      body: "Niets. GluWink heeft geen servers, geen accounts, geen analytics en geen third-party SDK's. De standaard, geanonimiseerde crash-rapporten van Apple via App Store Connect zijn er — wij draaien geen extra crash reporter."
+    - heading: "Wat op je toestel blijft"
+      body: "Glucose- en koolhydratengegevens uit Apple HealthKit verlaten je toestel niet. Instellingen (uitgesloten apps, glucosedrempels, glucose-eenheid, badge-modus, de koolhydraten-coulance) worden opgeslagen in de iOS App Group op je telefoon. Je wachtwoord ligt versleuteld (SHA-256 met willekeurig zout) in de iOS Keychain op je telefoon."
+    - heading: "Nightscout-verbindingen"
+      body: "Als je Nightscout als databron kiest, praat GluWink rechtstreeks vanaf je iPhone met de URL die je hebt opgegeven. Je glucose-, koolhydraten- en andere Nightscout-data wordt alleen tussen je iPhone en je Nightscout-server uitgewisseld. Er zit geen door GluWink beheerde server tussen."
+    - heading: "Apple Watch"
+      body: "Als de Apple Watch-app geïnstalleerd is, leest de watch HealthKit op de watch zelf. Er wordt niets ergens heen geüpload; de telefoon en de watch wisselen alleen via Apple's standaard WatchConnectivity-framework gegevens uit als de watch in de buurt is."
+    - heading: "Gegevens van kinderen (Delen met gezin)"
+      body: "Wanneer GluWink op het toestel van een kind wordt ingesteld via Delen met gezin, gelden dezelfde regels: er verlaat niets het toestel van het kind buiten wat HealthKit en (optioneel) Nightscout normaal al doen. De rol van de ouder is configureren, niet verzamelen."
+    - heading: "Cookies en trackers op deze site"
+      body: "Deze marketingsite gebruikt nul cookies en nul third-party scripts of trackers. Lettertypen en afbeeldingen worden alleen vanaf dit domein geserveerd."
+    - heading: "Wijzigingen van dit beleid"
+      body: "Als een toekomstige versie van GluWink een functie krijgt waarvoor wel gegevens verzameld moeten worden (bijvoorbeeld pushmeldingen via APNs), werken we eerst deze pagina bij en linken we ernaar vanuit de release-notities van de app. De versie van het beleid is de datum bovenaan."
+    - heading: "Contact"
+      body: "Vragen of zorgen? Open een issue op GitHub: https://github.com/FokkeZB/GluWink/issues."
+
+support_page:
+  meta_title: "Hulp — GluWink"
+  meta_description: "Hulp bij GluWink. Veelgestelde vragen, plus een link om een issue op GitHub te openen."
+  title: "Hulp"
+  intro: "GluWink is een klein, open-source project. De snelste route naar hulp is een GitHub-issue openen — zo wordt elk bug-rapport en elke feature-aanvraag bijgehouden."
+  cta_label: "Open een issue op GitHub"
+  cta_url: "https://github.com/FokkeZB/GluWink/issues/new/choose"
+  faq_heading: "Veelgestelde vragen"
+  faqs:
+    - q: "Waar kan ik de app downloaden?"
+      a: "De App Store-release is nog niet live. Tot die tijd kun je GluWink zelf bouwen vanuit de broncode — zie de README op GitHub voor de iOS-setup-walkthrough. We werken deze pagina (en de homepage) bij zodra de app in de App Store staat."
+    - q: "Werkt het met mijn CGM?"
+      a: "GluWink leest glucose- en koolhydratengegevens uit Apple Gezondheid. Als jouw CGM-app (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS en de meeste andere) naar Apple Gezondheid schrijft, ben je klaar. Alternatief: verbind een Nightscout-site — beide bronnen kunnen tegelijk aanstaan."
+    - q: "Waarom werkt het schild niet in de iOS Simulator?"
+      a: "Apple's Screen Time en Family Controls API's werken alleen op een fysiek toestel. De Simulator kan de app draaien voor layout- en widget-previews, maar kan andere apps niet blokkeren."
+    - q: "Hoe stel ik dit in voor mijn kind?"
+      a: "Installeer GluWink op de iPhone van het kind en autoriseer Family Controls als daarom wordt gevraagd (hiervoor moet Delen met gezin zijn ingesteld met jou als organisator). Beheer Schermtijd voor het kind vanaf je eigen iPhone via Instellingen → Familie → [kind] → Schermtijd. Schakel \"Verwijderen van apps\" en \"Installeren van apps\" uit zodat het kind het schild niet kan omzeilen. Volledige voorwaarden staan in AGENTS.md op GitHub."
+    - q: "Ik ben mijn wachtwoord vergeten. Wat nu?"
+      a: "Verwijder GluWink en installeer het opnieuw. Het wachtwoord ligt in de iOS Keychain en wordt gewist als de app wordt verwijderd. Bij het opnieuw doorlopen van de setup maak je een nieuw wachtwoord aan. (Op kindertoestellen vereist het verwijderen van de app het Apple-ID van de ouder, wat de bedoeling is.)"
+    - q: "Is GluWink een medisch hulpmiddel?"
+      a: "Nee. GluWink vervangt je CGM, je pomp, je internist en je eigen oordeel niet. Het laat informatie zien die al op je telefoon staat en stelt één vraag: heb je dat diabetes-dingetje al gedaan?"
+
+not_found:
+  title: "Sensor kwijt."
+  body: "Die pagina staat hier niet. Ga terug naar de homepage of open een issue als je een link volgde die zou moeten werken."
+  home_label: "Terug naar home"

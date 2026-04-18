@@ -1,0 +1,88 @@
+---
+layout: default
+id: home
+permalink: /
+---
+{%- assign data = site.data.en -%}
+<section class="hero">
+  <div class="wrap hero__inner">
+    <p class="hero__eyebrow">{{ data.hero.eyebrow }}</p>
+    <h1 class="hero__title">{{ data.hero.title }}</h1>
+    <p class="hero__subtitle">{{ data.hero.subtitle }}</p>
+    <p class="hero__body">{{ data.hero.body }}</p>
+    {%- include cta.html -%}
+  </div>
+</section>
+
+<section class="section section--three" aria-labelledby="three-things">
+  <div class="wrap">
+    <h2 id="three-things" class="section__title">{{ data.three_things.title }}</h2>
+    <ol class="three">
+      {%- for item in data.three_things.items -%}
+        <li class="three__item">
+          <span class="three__num" aria-hidden="true">{{ forloop.index }}</span>
+          <h3>{{ item.heading }}</h3>
+          <p>{{ item.body }}</p>
+        </li>
+      {%- endfor -%}
+    </ol>
+  </div>
+</section>
+
+<section class="section section--audiences" aria-labelledby="audiences">
+  <div class="wrap">
+    <h2 id="audiences" class="section__title">{{ data.audiences.title }}</h2>
+    <div class="audiences">
+      {%- for item in data.audiences.items -%}
+        <article class="audience">
+          <p class="audience__tag">{{ item.tag }}</p>
+          <h3 class="audience__heading">{{ item.heading }}</h3>
+          <ul class="audience__bullets">
+            {%- for b in item.bullets -%}<li>{{ b }}</li>{%- endfor -%}
+          </ul>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<section class="section section--data" aria-labelledby="data-sources">
+  <div class="wrap">
+    <h2 id="data-sources" class="section__title">{{ data.data_sources.title }}</h2>
+    <p class="section__intro">{{ data.data_sources.intro }}</p>
+    <div class="cards">
+      {%- for item in data.data_sources.items -%}
+        <article class="card">
+          <h3>{{ item.heading }}</h3>
+          <p>{{ item.body }}</p>
+        </article>
+      {%- endfor -%}
+    </div>
+    <p class="privacy-promise">{{ data.data_sources.privacy_promise }}</p>
+  </div>
+</section>
+
+<section class="section section--screens" aria-labelledby="screens">
+  <div class="wrap">
+    <h2 id="screens" class="section__title">{{ data.screenshots.title }}</h2>
+    <p class="section__intro">{{ data.screenshots.intro }}</p>
+    {%- include screenshot-grid.html -%}
+  </div>
+</section>
+
+<section class="section section--disclaimer" aria-labelledby="disclaimer">
+  <div class="wrap disclaimer">
+    <h2 id="disclaimer" class="disclaimer__title">{{ data.disclaimer.title }}</h2>
+    <p>{{ data.disclaimer.body }}</p>
+  </div>
+</section>
+
+<section class="section section--oss" aria-labelledby="open-source">
+  <div class="wrap oss">
+    <h2 id="open-source" class="section__title">{{ data.open_source.title }}</h2>
+    <p>{{ data.open_source.body }}</p>
+    <p>
+      <a class="btn btn--secondary" href="https://github.com/FokkeZB/GluWink" rel="noopener">{{ data.open_source.cta_label }}</a>
+    </p>
+  </div>
+</section>

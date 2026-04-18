@@ -1,0 +1,147 @@
+# English copy for the marketing site. Mirrors AppStore/en-US.md and the
+# repo README. When updating App Store copy, propagate matching changes here
+# (see AGENTS.md → "Marketing Copy (keep in sync)").
+locale: en-US
+lang: en
+dir: ltr
+
+meta:
+  title: "GluWink — diabetes status everywhere on your iPhone and Apple Watch"
+  description: "GluWink turns your iPhone and Apple Watch from your biggest distraction into your best tool for diabetes. Glucose and carbs everywhere. Apps blocked when something needs your attention."
+  og_image: /assets/og-en.png
+
+nav:
+  privacy: Privacy
+  support: Support
+  github: GitHub
+  switch_lang_label: "Nederlands"
+  switch_lang_url: /nl/
+
+hero:
+  eyebrow: "Type 1 diabetes, on every screen"
+  title: "From distraction to ally."
+  subtitle: "Make your iPhone and Apple Watch a tool for diabetes — not a distraction from it."
+  body: "Glucose and carbs everywhere — Home Screen, Lock Screen, StandBy, every Apple Watch face. A friendly green face when things look good, a red one when something needs your attention. Other apps stay blocked until you've done the diabetes thing."
+  cta_primary_label_pre_launch: "Coming soon to the App Store"
+  cta_primary_label_post_launch: "Download on the App Store"
+  cta_secondary_label: "Star the repo on GitHub"
+  cta_app_store_url: "https://apps.apple.com/app/gluwink/id0000000000" # placeholder, update at launch
+  cta_repo_url: "https://github.com/FokkeZB/GluWink"
+
+three_things:
+  title: "GluWink does three things, and nothing more."
+  items:
+    - heading: "Glucose and carbs visible everywhere."
+      body: "Widgets in every size for Home Screen, Lock Screen, and StandBy. Complications on every Apple Watch face. An optional glucose number on the app icon badge."
+    - heading: "Clear status at a glance."
+      body: "A green face means everything looks good. A red face means something needs attention — glucose is high or low, the sensor is stale, or carbs were never entered for that meal. Same simple language across the app, widgets, and watch."
+    - heading: "Optional app blocking — your call."
+      body: "Block other apps at configurable intervals — always, or only when something needs your attention. While blocking is on and the face is red, GluWink locks other apps until you check in. Otherwise, your phone is just your phone."
+
+audiences:
+  title: "Built for two audiences."
+  items:
+    - tag: "For parents"
+      heading: "Children with Type 1, on a Family-Sharing iPhone."
+      bullets:
+        - "Set GluWink up once on the child's iPhone via Family Sharing."
+        - "Pick which apps stay free to use (the CGM app, school apps, phone, messages)."
+        - "A passphrase only the parent knows protects the settings."
+        - "The child cannot delete the app or skip the check-in."
+        - "Glance at the home-screen badge or a widget to see how things are going."
+    - tag: "For adults"
+      heading: "Self-managing your own Type 1, on your own iPhone."
+      bullets:
+        - "Authorize GluWink for yourself — no Family Sharing required."
+        - "Have a partner, spouse, or friend set the passphrase. The friction is the point."
+        - "You can always uninstall — GluWink is honest about that. It nudges, it doesn't imprison."
+
+data_sources:
+  title: "Where the data comes from."
+  intro: "GluWink reads what's already on your phone. No accounts to create. Pick whichever source fits."
+  items:
+    - heading: "Apple Health"
+      body: "Most CGM apps (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS, and others) already write glucose and carbs to Apple Health. If yours does, GluWink is a one-tap connection."
+    - heading: "Nightscout"
+      body: "Connect your own Nightscout site — handy when a parent monitors a child remotely, or when your diabetes system writes to Nightscout but not Apple Health. Both sources can be on at once; the most recent reading wins."
+    - heading: "Demo mode"
+      body: "Want to try the app first? Demo mode shows realistic glucose and carb data without any sensor."
+  privacy_promise: "Your data stays on your device (HealthKit) or on the Nightscout site you control. No accounts, no servers we run, no analytics, no ads."
+
+screenshots:
+  title: "On every screen the phone has."
+  intro: "Captured straight from the app — no mockups."
+  alt:
+    green: "GluWink check-in shield with a green face: glucose and carbs at a glance."
+    red: "GluWink check-in shield with a red face: action needed, follow the list, back to green."
+    widgets: "GluWink widgets in three sizes on the iPhone home screen."
+    settings: "GluWink settings: tune alerts, pick a data source, shape the shield."
+
+disclaimer:
+  title: "Not a medical device."
+  body: "GluWink does not replace your CGM, your pump, your endocrinologist, or your judgment. It does not make treatment decisions. It surfaces information that's already on the phone and asks one question: did you do the diabetes thing yet?"
+
+open_source:
+  title: "Open source."
+  body: "GluWink is open source under the PolyForm Noncommercial License. You can read the code, build it for your own devices, share builds with private testers, and contribute back."
+  cta_label: "View on GitHub"
+
+footer:
+  tagline: "Type 1 diabetes is relentless. The phone doesn't have to be."
+  copyright: "© 2026 Fokke Zandbergen"
+  links:
+    - { label: "Privacy", url: /privacy/ }
+    - { label: "Support", url: /support/ }
+    - { label: "GitHub", url: "https://github.com/FokkeZB/GluWink" }
+    - { label: "License", url: "https://github.com/FokkeZB/GluWink/blob/main/LICENSE" }
+
+privacy_page:
+  meta_title: "Privacy Policy — GluWink"
+  meta_description: "GluWink does not collect any data. HealthKit data stays on the device. Nightscout data is read directly from your own server."
+  title: "Privacy Policy"
+  last_updated: "Last updated: 18 April 2026"
+  intro: "GluWink is built so there is nothing to collect. This page exists because the App Store requires a privacy policy, not because we have data to disclose."
+  sections:
+    - heading: "What we collect"
+      body: "Nothing. GluWink has no servers, no accounts, no analytics, and no third-party SDKs. Apple's standard App Store Connect crash reports are aggregated and anonymous — we do not run an additional crash reporter."
+    - heading: "What stays on your device"
+      body: "Glucose and carb data read from Apple HealthKit never leaves the device. Settings (excluded apps, glucose thresholds, glucose unit, badge mode, the carb grace period) live in the iOS App Group on your phone. Your passphrase is stored hashed (SHA-256 with a random salt) in the iOS Keychain on your phone."
+    - heading: "Nightscout connections"
+      body: "If you choose Nightscout as a data source, GluWink talks directly from your iPhone to the URL you provided. Your glucose, carb, and any other Nightscout data is exchanged between your iPhone and your Nightscout server only. No GluWink-operated server sits in between."
+    - heading: "Apple Watch"
+      body: "When the Apple Watch app is installed, the watch reads HealthKit on the watch itself. No data is uploaded anywhere; it is shared with the phone via Apple's standard WatchConnectivity framework only when the watch is in range."
+    - heading: "Children's data (Family Sharing)"
+      body: "When GluWink is set up on a child's device via Family Sharing, the same rules apply: nothing leaves the child's device beyond what HealthKit and (optionally) Nightscout normally do. The parent's role is configuration, not data collection."
+    - heading: "Cookies and trackers on this site"
+      body: "This marketing site has zero cookies and zero third-party scripts or trackers. Fonts and images are served from this domain only."
+    - heading: "Changes to this policy"
+      body: "If a future version of GluWink ever adds a feature that requires data collection (for example, push notifications via APNs), we will update this page first and link to it from the app's change log. The policy version is the \"Last updated\" date at the top."
+    - heading: "Contact"
+      body: "Questions or concerns? Open an issue on GitHub: https://github.com/FokkeZB/GluWink/issues."
+
+support_page:
+  meta_title: "Support — GluWink"
+  meta_description: "Get help with GluWink. Common questions answered, plus a link to open an issue on GitHub."
+  title: "Support"
+  intro: "GluWink is a small, open-source project. The fastest path to help is opening a GitHub issue — it's how every bug report and feature request is tracked."
+  cta_label: "Open an issue on GitHub"
+  cta_url: "https://github.com/FokkeZB/GluWink/issues/new/choose"
+  faq_heading: "Frequently asked questions"
+  faqs:
+    - q: "Where can I download the app?"
+      a: "The App Store release isn't live yet. Until it is, you can build GluWink from source — see the README on GitHub for the iOS setup walkthrough. We'll update this page (and the home page) the moment it's available on the App Store."
+    - q: "Does it work with my CGM?"
+      a: "GluWink reads glucose and carb data from Apple Health. If your CGM app (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS, and most others) writes to Apple Health, you're good. Alternatively, connect a Nightscout site — both sources can be on at the same time."
+    - q: "Why doesn't shielding work in the iOS Simulator?"
+      a: "Apple's Screen Time and Family Controls APIs only work on a physical device. The Simulator can run the app for layout and widget previews, but cannot block other apps."
+    - q: "How do I set this up for my child?"
+      a: "On the child's iPhone, install GluWink and authorize Family Controls when prompted (this requires Family Sharing to be set up with you as the family organizer). On your own iPhone, manage Screen Time for the child via Settings → Family → [child] → Screen Time. Disable \"Deleting Apps\" and \"Installing Apps\" so the child can't bypass the shield. Full prerequisites are in AGENTS.md on GitHub."
+    - q: "I forgot my passphrase. What now?"
+      a: "Delete and reinstall GluWink. The passphrase lives in the iOS Keychain and is wiped when the app is removed. Re-running setup creates a new one. (For child devices, deleting the app requires the parent's Apple ID, which is by design.)"
+    - q: "Is GluWink a medical device?"
+      a: "No. GluWink does not replace your CGM, your pump, your endocrinologist, or your judgment. It surfaces information that's already on the phone and asks one question: did you do the diabetes thing yet?"
+
+not_found:
+  title: "Lost a sensor."
+  body: "That page isn't here. Head back to the home page or open an issue if you followed a link that should work."
+  home_label: "Back to home"
