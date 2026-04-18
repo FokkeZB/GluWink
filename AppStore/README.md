@@ -165,6 +165,24 @@ The Markdown files in this folder are the source of truth. They get converted to
 
    The `key` field must be a single string with literal `\n` for newlines, or one big multi-line string — both work.
 
+5. **Fill in App Review Contact Info** at `private/asc-review-info.json` (also gitignored — a template is committed only via this README; the actual file lives in `private/`):
+
+   ```json
+   {
+     "first_name": "Jane",
+     "last_name": "Doe",
+     "phone_number": "+31 6 1234 5678",
+     "email_address": "jane@example.com",
+     "demo_user": "",
+     "demo_password": "",
+     "notes": "GluWink does not require an account. To populate glucose data without a CGM, open Settings → Data Sources → enable Demo mode. Note: Screen Time blocking uses Family Controls, which only works on a real device — not the iOS Simulator."
+   }
+   ```
+
+   Apple rejects pushes with blank `first_name`, `last_name`, `phone_number`, or `email_address`. The phone number must include the country-code prefix (`+31 …`, `+1 …`). `demo_user` and `demo_password` can be empty strings — GluWink doesn't require an account.
+
+   If this file is missing, `make appstore-push` still works for text-only updates but logs a warning and skips the contact-info upload. Submission for review will fail until the contact info is set, either via this file or directly in App Store Connect.
+
 ### Day-to-day commands
 
 | Command | What it does |
