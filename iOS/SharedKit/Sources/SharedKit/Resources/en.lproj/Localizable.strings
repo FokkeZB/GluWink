@@ -40,3 +40,8 @@
 "shield.checks.noGlucoseData.0" = "Check sensor";
 "shield.checks.noGlucoseData.1" = "Check data source";
 "shield.checks.noCarbData.0" = "Check data source";
+
+/* Widget tiles (shared between StatusWidget extension and App screenshot showcase) */
+"widget.glucose" = "Glucose";
+"widget.carbs" = "Carbs";
+"widget.noData" = "No data";
