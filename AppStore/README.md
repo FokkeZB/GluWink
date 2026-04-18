@@ -182,6 +182,10 @@ What gets pushed (per locale, from each `<locale>.md`):
 - Keywords → `keywords.txt`
 - What's New → `release_notes.txt`
 
+Locale-less fields:
+
+- Copyright → `copyright.txt`, derived from the top-level `LICENSE` file (`Copyright (c) YYYY Holder` line; "(c)" and any trailing "and contributors" are stripped — Apple auto-prepends the © glyph).
+
 What is **not** pushed via fastlane (still managed in App Store Connect by hand):
 
 - URLs (Support / Marketing / Privacy Policy) — they're shared across locales and rarely change. See the URLs section above.
