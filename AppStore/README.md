@@ -189,6 +189,7 @@ The Markdown files in this folder are the source of truth. They get converted to
 | `make appstore-sync` | Regenerate `iOS/fastlane/metadata/` from `AppStore/*.md`. Validates length limits locally, no network. |
 | `make appstore-push` | Sync, then push to App Store Connect. Updates the **editable** version (most recent draft / "Prepare for Submission"). Does **not** submit for review. |
 | `make appstore-pull` | Download Apple's current copy into `iOS/fastlane/metadata/` — handy for diffing or bootstrapping a new locale. Read-only; never overwrite the Markdown from this. |
+| `make appstore-beta` | Archive a Release build and upload to TestFlight. Auto-bumps the build number from ASC. See "Releasing a TestFlight build" below. |
 
 What gets pushed (per locale, from each `<locale>.md`):
 
@@ -207,7 +208,7 @@ What is **not** pushed via fastlane (still managed in App Store Connect by hand)
 
 - URLs (Support / Marketing / Privacy Policy) — they're shared across locales and rarely change. See the URLs section above.
 - Category, age rating, App Privacy answers — set once, kept in this README.
-- The build itself — uploaded via Xcode / Transporter.
+- The build itself — `make appstore-beta` uploads it to TestFlight (see the "Releasing a TestFlight build" section below). `make appstore-push` stays text-only via `skip_binary_upload true` in `Deliverfile`, so it's safe to re-run without touching the binary.
 
 Screenshots _are_ pushed by `make appstore-push` now (captions baked in, `skip_screenshots false` in `Deliverfile`). Regenerate with `make appstore-screenshots` first so ASC gets the latest deck.
 
@@ -217,6 +218,51 @@ Screenshots _are_ pushed by `make appstore-push` now (captions baked in, `skip_s
 2. Run `make appstore-sync` to confirm it parses without errors.
 3. In App Store Connect, add the locale to the app version (English UK doesn't auto-create itself).
 4. Run `make appstore-push`.
+
+---
+
+## Releasing a TestFlight build
+
+`make appstore-beta` takes the current `main` checkout to a pending TestFlight build — archive, sign, upload — in one command.
+
+### What it does
+
+1. Calls App Store Connect to find the latest build number across all versions and picks the next integer. Never collides with an existing build, never prompts for a manual bump.
+2. Runs `xcodebuild archive` with `-allowProvisioningUpdates`, so Xcode-managed signing can create or renew the App Store distribution profile on its own.
+3. Exports the archive as an `app-store` `.ipa` into `iOS/build/` (gitignored).
+4. Uploads the `.ipa` to TestFlight via the same App Store Connect API key used for metadata pushes. `skip_waiting_for_build_processing` is on, so the lane returns as soon as Apple acknowledges the upload — the build appears under **TestFlight → Builds** within a few minutes.
+
+The marketing version (`MARKETING_VERSION` in the xcodeproj, shown to users as "1.0") is **not** touched. Bumping that is a deliberate release step tracked under #33. Build numbers, on the other hand, are bookkeeping and move every upload.
+
+### Prerequisites
+
+On top of the metadata setup above:
+
+- Signed into Xcode at least once with an Apple ID on team `Y39937U7XN` (the one in `DEVELOPMENT_TEAM`). `-allowProvisioningUpdates` talks to that session to fetch the App Store profile.
+- The App target still has `CODE_SIGN_STYLE = Automatic`. If you ever flip it to manual, this lane needs an `export_options.provisioningProfiles` override and re-signing notes.
+- `private/asc-api-key.json` is the one with role **App Manager** or higher — "Developer" can read but not upload.
+
+### Running it
+
+```sh
+make appstore-beta
+```
+
+First run takes 3–5 minutes (clean archive + upload); subsequent runs are similar because we `clean: true` every time to avoid "phantom fixed" builds from cached derived data.
+
+Running it again picks a new build number automatically — the lane is safe to re-run as often as needed.
+
+### Checking it worked
+
+- The lane's last log line should be `Successfully uploaded the new binary to App Store Connect`.
+- Within ~5 minutes, the build shows up under **App Store Connect → TestFlight → Builds** in "Processing" state.
+- Once it flips to "Ready to Test", internal testers see it automatically; external distribution is a separate click in ASC.
+
+### When it fails
+
+- **"Cannot find a matching profile"** — sign into Xcode with an account on the `DEVELOPMENT_TEAM` and retry. `-allowProvisioningUpdates` can create profiles but not conjure accounts.
+- **"The bundle version must be higher than the previously uploaded version"** — you're uploading faster than ASC indexes. Wait 30s and rerun; `latest_testflight_build_number` will see the new build and bump past it.
+- **"Invalid API key"** — the key lost its upload role, or expired. Recreate at App Store Connect → Users and Access → Integrations → Keys, save over `private/asc-api-key.json`.
 
 ---
 
@@ -232,6 +278,6 @@ Before tapping **Submit for Review**:
 - [ ] Age rating questionnaire completed (4+, mild medical info).
 - [ ] Sign-in info / demo account section: explicitly say "no account required" and point the reviewer at Demo mode.
 - [ ] Reviewer notes: mention that Screen Time + Family Controls require a real device and that the reviewer can use Demo mode in Settings → Data Sources to populate glucose without a CGM.
-- [ ] Build uploaded and selected for the version.
+- [ ] Build uploaded (run `make appstore-beta`) and selected for the version.
 - [ ] Pricing set to Free.
 - [ ] Availability set to all territories where the listing is localized (at minimum: US, NL, BE).
