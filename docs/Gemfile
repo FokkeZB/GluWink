@@ -1,0 +1,23 @@
+# Pinned to the same gem GitHub Pages runs in production so `bundle exec
+# jekyll serve` matches what visitors will see. Bump alongside the version
+# at https://pages.github.com/versions/.
+source "https://rubygems.org"
+
+gem "github-pages", group: :jekyll_plugins
+
+# Plugins enabled in _config.yml. Both are on GH Pages' allowlist.
+group :jekyll_plugins do
+  gem "jekyll-sitemap"
+  gem "jekyll-seo-tag"
+end
+
+# Lock to a Ruby ABI that ships with macOS / Linux runners.
+gem "webrick", "~> 1.8"
+
+# Ruby 4.x removed several stdlib modules that github-pages / Jekyll 3 still
+# `require`. GitHub Pages itself runs an older Ruby so doesn't need these,
+# but local `bundle exec jekyll serve` on macOS Homebrew Ruby 4.x does.
+gem "csv"
+gem "base64"
+gem "bigdecimal"
+gem "logger"
