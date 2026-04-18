@@ -123,12 +123,12 @@ Scene order matches the table in `README.md` → Screenshots.
 
 | # | Caption |
 |---|---|
-| 1 | The shield that greets you when you reach for another app. |
-| 2 | Red when something needs attention. |
+| 1 | Well done. Glucose and carbs at a glance. |
+| 2 | Action needed? Follow the list, back to green. |
 | 3 | Glucose and carbs on every screen. |
-| 4 | The parent view: status, settings, peace of mind. |
+| 4 | Tune alerts, pick a data source, shape the shield — your call. |
 | 5 | Glucose and carbs on every watch face. |
-| 6 *(optional)* | Apple Health, Nightscout, or demo — pick one. |
+| 6 | Apple Health, Nightscout, or demo — pick one. |
 
 ### Apple Watch (45mm)
 
