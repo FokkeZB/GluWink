@@ -1,6 +1,7 @@
 #if targetEnvironment(simulator)
 import Foundation
 import SharedKit
+import SwiftUI
 
 /// Deterministic state overrides for App Store screenshot captures.
 ///
@@ -64,6 +65,20 @@ enum ScreenshotHarness {
         }
         return args[idx + 1].lowercased().hasPrefix("en") ? .mgdL : .mmolL
     }()
+
+    /// Marketing caption to bake into the top of the screenshot, passed via
+    /// `-UITest_Caption "..."`. Sourced from `AppStore/<locale>.md` →
+    /// "Screenshot captions" by `capture.sh`, so the Markdown stays the
+    /// single editable home for the copy. `nil` disables the banner — handy
+    /// when eyeballing a scene without the marketing overlay.
+    static let caption: String? = {
+        let args = ProcessInfo.processInfo.arguments
+        guard let idx = args.firstIndex(of: "-UITest_Caption"), idx + 1 < args.count else {
+            return nil
+        }
+        let raw = args[idx + 1].trimmingCharacters(in: .whitespacesAndNewlines)
+        return raw.isEmpty ? nil : raw
+    }()
 }
 
 // MARK: - HomeView presets
@@ -91,6 +106,20 @@ extension ScreenshotHarness.Scene {
         /// marketing copy. Only meaningful for scenes that reach the
         /// check-in flow (i.e. `redShield`).
         var checkInPreCheckedCount: Int
+    }
+
+    /// Background color for the marketing caption banner overlaid on this
+    /// scene's screenshot. Shield scenes inherit the shield's own color so
+    /// the banner reinforces the traffic-light metaphor; everything else
+    /// uses a neutral dark charcoal that reads as "marketing chrome"
+    /// rather than app UI.
+    var captionBannerColor: Color {
+        switch self {
+        case .greenShield: return .green
+        case .redShield: return .red
+        case .widgets, .settings, .watch, .setupChecklist:
+            return Color(red: 0.11, green: 0.12, blue: 0.14)
+        }
     }
 
     /// Whether `SetupChecklistCard` should be suppressed for this scene.
