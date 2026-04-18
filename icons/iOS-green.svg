@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="0" fill="#34A853"/>
+  
+  <!-- Subtle radial glow behind shield -->
+  <radialGradient id="glow" cx="50%" cy="48%" r="40%">
+    <stop offset="0%" stop-color="#4ECB71" stop-opacity="0.4"/>
+    <stop offset="100%" stop-color="#34A853" stop-opacity="0"/>
+  </radialGradient>
+  <circle cx="512" cy="480" r="420" fill="url(#glow)"/>
+  
+  <!-- Shield shape -->
+  <path d="M512 160 
+           L720 260 
+           L720 520 
+           Q720 700 512 800 
+           Q304 700 304 520 
+           L304 260 
+           Z" 
+        fill="#B8F0CC" 
+        stroke="#1a6b33" 
+        stroke-width="8"
+        stroke-linejoin="round"/>
+  
+  <!-- Inner shield highlight -->
+  <path d="M512 200 
+           L690 288 
+           L690 510 
+           Q690 672 512 762 
+           Q334 672 334 510 
+           L334 288 
+           Z" 
+        fill="none" 
+        stroke="#D4F7E2" 
+        stroke-width="3"
+        stroke-linejoin="round"
+        opacity="0.6"/>
+  
+  <!-- Glucose wave line -->
+  <path d="M370 440 
+           L415 390 
+           L450 460 
+           L490 360 
+           L530 450 
+           L570 380 
+           L610 430 
+           L655 440" 
+        fill="none" 
+        stroke="#2D8C4E" 
+        stroke-width="18" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- Shadow under wave for depth -->
+  <path d="M370 448 
+           L415 398 
+           L450 468 
+           L490 368 
+           L530 458 
+           L570 388 
+           L610 438 
+           L655 448" 
+        fill="none" 
+        stroke="#1a5c32" 
+        stroke-width="18" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+        opacity="0.15"/>
+  
+  <!-- Left eye -->
+  <circle cx="440" cy="560" r="20" fill="#1a5c32"/>
+  <circle cx="446" cy="554" r="6" fill="#B8F0CC" opacity="0.5"/>
+  
+  <!-- Right eye -->
+  <circle cx="584" cy="560" r="20" fill="#1a5c32"/>
+  <circle cx="590" cy="554" r="6" fill="#B8F0CC" opacity="0.5"/>
+  
+  <!-- Smile -->
+  <path d="M450 620 
+           Q512 680 574 620" 
+        fill="none" 
+        stroke="#1a5c32" 
+        stroke-width="14" 
+        stroke-linecap="round"/>
+  
+  <!-- Cheek blush -->
+  <ellipse cx="400" cy="600" rx="28" ry="18" fill="#2D8C4E" opacity="0.2"/>
+  <ellipse cx="624" cy="600" rx="28" ry="18" fill="#2D8C4E" opacity="0.2"/>
+</svg>

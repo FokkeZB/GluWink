@@ -1,0 +1,185 @@
+GluWink
+
+Copyright (c) 2026 Fokke Zandbergen and contributors
+
+This software is made available under the PolyForm Noncommercial License
+1.0.0, with the additional terms and clarifications stated below. The
+intent is to keep this project a community-driven, non-commercial project:
+you are warmly invited to read, modify, contribute to, and build the code
+for personal use, and to share builds with private testers — but the app
+itself is not for sale, and public app-store distribution is reserved to
+the maintainers to prevent fragmentation of the user base.
+
+If you would like to do something this license does not allow, please open
+an issue. Exceptions may be granted in writing by the copyright holder.
+
+================================================================================
+Additional Terms
+================================================================================
+
+For the avoidance of doubt, the following are NOT permitted under this
+license, in addition to anything already prohibited by the PolyForm
+Noncommercial License 1.0.0:
+
+  1. Selling the software, or any derivative work, in any form. This
+     includes paid downloads, paid subscriptions, in-app purchases, paid
+     support sold as a product, and any other form of monetisation.
+
+  2. Publishing the software, or any derivative work, for general public
+     availability through any application marketplace — including but not
+     limited to the Apple App Store, Mac App Store, Google Play Store,
+     Samsung Galaxy Store, Amazon Appstore, Microsoft Store, and similar
+     marketplaces on any platform — whether under this name, a renamed
+     fork, or otherwise. Public app-store distribution is reserved to the
+     maintainers of this project to prevent fragmentation of the user
+     base. Private testing tracks on these platforms (see permitted use
+     (b) below) are not considered public availability.
+
+The following are explicitly permitted, in addition to all uses granted
+by the PolyForm Noncommercial License 1.0.0:
+
+  a. Building the software, or a fork of it, and installing it on devices
+     you own or control.
+
+  b. Distributing builds of the software, or a fork of it, to a private
+     group of testers — for example via Apple TestFlight, Ad-Hoc or
+     Enterprise distribution, Google Play closed or internal testing
+     tracks, Firebase App Distribution, direct APK sideloading, or any
+     equivalent mechanism on other platforms — provided that no money
+     changes hands and the build is not made available to the general
+     public through a public marketplace.
+
+  c. Submitting changes back to the project. Contributions are accepted
+     under the same terms as this license; by submitting a contribution
+     you agree that it may be distributed under these terms. Ports and
+     contributions for other platforms (Android, watchOS, Wear OS, etc.)
+     are explicitly welcome — please open an issue first to discuss the
+     approach.
+
+================================================================================
+Required Notice
+================================================================================
+
+Required Notice: Copyright (c) 2026 Fokke Zandbergen — GluWink
+
+================================================================================
+PolyForm Noncommercial License 1.0.0
+================================================================================
+
+<https://polyformproject.org/licenses/noncommercial/1.0.0>
+
+## Acceptance
+
+In order to get any license under these terms, you must agree to them as
+both strict obligations and conditions to all your licenses.
+
+## Copyright License
+
+The licensor grants you a copyright license for the software to do
+everything you might do with the software that would otherwise infringe
+the licensor's copyright in it for any permitted purpose. However, you
+may only distribute the software according to Distribution License and
+make changes or new works based on the software according to Changes and
+New Works License.
+
+## Distribution License
+
+The licensor grants you an additional copyright license to distribute
+copies of the software. Your license to distribute covers distributing
+the software with changes and new works permitted by Changes and New
+Works License.
+
+## Notices
+
+You must ensure that anyone who gets a copy of any part of the software
+from you also gets a copy of these terms or the URL for them above, as
+well as copies of any plain-text lines beginning with `Required Notice:`
+that the licensor provided with the software. For example:
+
+> Required Notice: Copyright Yoyodyne, Inc. (http://example.com)
+
+## Changes and New Works License
+
+The licensor grants you an additional copyright license to make changes
+and new works based on the software for any permitted purpose.
+
+## Patent License
+
+The licensor grants you a patent license for the software that covers
+patent claims the licensor can license, or becomes able to license, that
+you would infringe by using the software.
+
+## Noncommercial Purposes
+
+Any noncommercial purpose is a permitted purpose.
+
+## Personal Uses
+
+Personal use for research, experiment, and testing for the benefit of
+public knowledge, personal study, private entertainment, hobby projects,
+amateur pursuits, or religious observance, without any anticipated
+commercial application, is use for a permitted purpose.
+
+## Noncommercial Organizations
+
+Use by any charitable organization, educational institution, public
+research organization, public safety or health organization, environmental
+protection organization, or government institution is use for a permitted
+purpose regardless of the source of funding or obligations resulting from
+the funding.
+
+## Fair Use
+
+You may have "fair use" rights for the software under the law. These
+terms do not limit them.
+
+## No Other Rights
+
+These terms do not allow you to sublicense or transfer any of your
+licenses to anyone else, or prevent the licensor from granting licenses
+to anyone else. These terms do not imply any other licenses.
+
+## Patent Defense
+
+If you make any written claim that the software infringes or contributes
+to infringement of any patent, your patent license for the software
+granted under these terms ends immediately. If your company makes such a
+claim, your patent license ends immediately for work on behalf of your
+company.
+
+## Violations
+
+The first time you are notified in writing that you have violated any of
+these terms, or done anything with the software not covered by your
+licenses, your licenses can nonetheless continue if you come into full
+compliance with these terms, and take practical steps to correct past
+violations, within 32 days of receiving notice. Otherwise, all your
+licenses end immediately.
+
+## No Liability
+
+***As far as the law allows, the software comes as is, without any
+warranty or condition, and the licensor will not be liable to you for any
+damages arising out of these terms or the use or nature of the software,
+under any kind of legal claim.***
+
+## Definitions
+
+The **licensor** is the individual or entity offering these terms, and
+the **software** is the software the licensor makes available under these
+terms.
+
+**You** refers to the individual or entity agreeing to these terms.
+
+**Your company** is any legal entity, sole proprietorship, or other kind
+of organization that you work for, plus all organizations that have
+control over, are under the control of, or are under common control with
+that organization. Control means ownership of substantially all the
+assets of an entity, or the power to direct its management and policies
+by vote, contract, or otherwise. Control can be direct or indirect.
+
+**Your licenses** are all the licenses granted to you for the software
+under these terms.
+
+**Use** means anything you do with the software requiring one of your
+licenses.

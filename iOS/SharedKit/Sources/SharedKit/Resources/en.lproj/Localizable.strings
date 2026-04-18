@@ -1,0 +1,42 @@
+/* Shield UI */
+"shield.closeButton" = "Close App";
+"shield.doneButton" = "Continue";
+"shield.checkInButton" = "I will";
+
+/* Positive titles (no attention needed) */
+"shield.positiveTitle.0" = "Looking good!";
+"shield.positiveTitle.1" = "Keep it up!";
+"shield.positiveTitle.2" = "Nice work!";
+"shield.positiveTitle.3" = "All good!";
+"shield.positiveTitle.4" = "Well done!";
+
+/* Attention titles (action needed) */
+"shield.attentionTitle.0" = "Heads up!";
+"shield.attentionTitle.1" = "Pay attention!";
+"shield.attentionTitle.2" = "Action needed!";
+"shield.attentionTitle.3" = "Take a look!";
+"shield.attentionTitle.4" = "Check this!";
+
+/* Open app prompt */
+"shield.openAppTo %@" = "Open %@ and:";
+
+/* Data display */
+"shield.glucose %@ %@ %@" = "%@ · %@ (%@)";
+"shield.glucoseNoData" = "No glucose data";
+"shield.carbsEntry %d %@ %@" = "%d g · %@ (%@)";
+"shield.carbsNoData" = "No carb data";
+"shield.agoMinutes %d" = "%dm ago";
+"shield.agoHoursMinutes %d %d" = "%dh %dm ago";
+
+/* Attention checks per scenario (defaults, overridable in settings) */
+"shield.checks.highGlucose.0" = "Enter all carbs";
+"shield.checks.highGlucose.1" = "Drink water";
+"shield.checks.highGlucose.2" = "Check pump";
+"shield.checks.lowGlucose.0" = "Eat something";
+"shield.checks.lowGlucose.1" = "Rest";
+"shield.checks.lowGlucose.2" = "Check pump";
+"shield.checks.staleSensor.0" = "Check sensor";
+"shield.checks.carbGap.0" = "Enter carbs";
+"shield.checks.noGlucoseData.0" = "Check sensor";
+"shield.checks.noGlucoseData.1" = "Check data source";
+"shield.checks.noCarbData.0" = "Check data source";

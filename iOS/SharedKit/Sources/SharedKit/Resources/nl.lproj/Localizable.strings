@@ -1,0 +1,42 @@
+/* Shield UI */
+"shield.closeButton" = "Sluit App";
+"shield.doneButton" = "Doorgaan";
+"shield.checkInButton" = "Ga ik doen";
+
+/* Positive titles (no attention needed) */
+"shield.positiveTitle.0" = "Goed bezig!";
+"shield.positiveTitle.1" = "Lekker bezig!";
+"shield.positiveTitle.2" = "Top!";
+"shield.positiveTitle.3" = "Alles goed!";
+"shield.positiveTitle.4" = "Netjes!";
+
+/* Attention titles (action needed) */
+"shield.attentionTitle.0" = "Even opletten!";
+"shield.attentionTitle.1" = "Let op!";
+"shield.attentionTitle.2" = "Actie nodig!";
+"shield.attentionTitle.3" = "Even checken!";
+"shield.attentionTitle.4" = "Kijk even!";
+
+/* Open app prompt */
+"shield.openAppTo %@" = "Open %@ en:";
+
+/* Data display */
+"shield.glucose %@ %@ %@" = "%@ · %@ (%@)";
+"shield.glucoseNoData" = "Geen glucosedata";
+"shield.carbsEntry %d %@ %@" = "%d g · %@ (%@)";
+"shield.carbsNoData" = "Geen KH-data";
+"shield.agoMinutes %d" = "%dm";
+"shield.agoHoursMinutes %d %d" = "%du %dm";
+
+/* Attention checks per scenario (defaults, overridable in settings) */
+"shield.checks.highGlucose.0" = "Voer alle KH in";
+"shield.checks.highGlucose.1" = "Drink water";
+"shield.checks.highGlucose.2" = "Check pomp";
+"shield.checks.lowGlucose.0" = "Eet iets";
+"shield.checks.lowGlucose.1" = "Rust";
+"shield.checks.lowGlucose.2" = "Check pomp";
+"shield.checks.staleSensor.0" = "Check sensor";
+"shield.checks.carbGap.0" = "Voer KH in";
+"shield.checks.noGlucoseData.0" = "Check sensor";
+"shield.checks.noGlucoseData.1" = "Controleer gegevensbron";
+"shield.checks.noCarbData.0" = "Controleer gegevensbron";

@@ -1,0 +1,399 @@
+import HealthKit
+import SwiftUI
+import UserNotifications
+
+/// Card shown on `HomeView` that surfaces optional-but-encouraged setup steps.
+///
+/// Each row opens the same settings detail view used from Settings, so there's
+/// zero UI duplication — this view is pure presentation. Rows disappear once
+/// their underlying feature is configured. The whole card hides when all rows
+/// are satisfied or when the user taps "Hide setup tips" (persisted).
+///
+/// Rows are split into two groups so the user understands the choice they're
+/// making:
+///
+/// 1. **Data sources** — Apple Health (preferred), Nightscout (fallback /
+///    remote-monitoring), Demo (try-the-app-without-a-sensor). The data-source
+///    group hides as soon as any one of them is hooked up; the rest are
+///    alternatives, not additional steps.
+/// 2. **Recommended** — shielding, passphrase, notifications. Independent of
+///    each other; each row sticks around until configured.
+struct SetupChecklistCard: View {
+    /// Ping this to force a state recompute (e.g. after a sheet is dismissed
+    /// and the underlying feature may have changed).
+    @Binding var refreshToken: Int
+
+    @State private var presentedSheet: ChecklistSheet?
+    @State private var isRequestingNotifications = false
+    @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
+    @State private var healthKitStatus: HKAuthorizationStatus
+    @State private var hasPassphrase: Bool
+    @State private var shieldingEnabled: Bool
+    @State private var showHideConfirmation = false
+
+    init(refreshToken: Binding<Int>) {
+        _refreshToken = refreshToken
+        _healthKitStatus = State(
+            initialValue: HKHealthStore().authorizationStatus(for: HKQuantityType(.bloodGlucose))
+        )
+        _hasPassphrase = State(initialValue: KeychainManager.shared.hasPassphrase)
+        _shieldingEnabled = State(initialValue: SharedDataManager.shared.shieldingEnabled)
+    }
+
+    var body: some View {
+        if shouldRender {
+            card
+                .onAppear { refresh() }
+                .onChange(of: refreshToken) { _, _ in refresh() }
+                .sheet(item: $presentedSheet, onDismiss: { refresh() }) { sheet in
+                    sheetContent(for: sheet)
+                }
+                .confirmationDialog(
+                    String(localized: "setup.checklist.hideConfirmTitle"),
+                    isPresented: $showHideConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button(String(localized: "setup.checklist.hideConfirmAction"), role: .destructive) {
+                        withAnimation { hideTips() }
+                    }
+                    Button(String(localized: "settings.cancel"), role: .cancel) {}
+                } message: {
+                    Text("setup.checklist.hideConfirmMessage", tableName: "Localizable")
+                }
+        }
+    }
+
+    // MARK: - Visibility
+
+    /// The card always renders while no data source is configured — that's
+    /// the most important next step, so we don't let the user hide it. Once
+    /// at least one source is set up, the card respects `setupTipsHidden`
+    /// and disappears on demand. Disabling all data sources later brings
+    /// the card back automatically without any extra reset step.
+    private var shouldRender: Bool {
+        guard !visibleGroups.isEmpty else { return false }
+        if !hasAnyDataSource { return true }
+        return !SharedDataManager.shared.setupTipsHidden
+    }
+
+    /// True once the user has connected at least one data source. The whole
+    /// data-source group disappears in this case — Health/Nightscout/Demo are
+    /// alternatives, not stacking steps.
+    ///
+    /// Reads through `SharedDataManager` so this view shares its definition
+    /// with `ShieldingSettingsView` and `ShieldManager.disableIfNoDataSource()`.
+    /// The locally-tracked `@State` properties (`healthKitStatus` etc.) are
+    /// what trigger re-renders when the underlying values change.
+    private var hasAnyDataSource: Bool {
+        SharedDataManager.shared.hasAnyDataSource
+    }
+
+    private var dataSourceRows: [ChecklistRow] {
+        guard !hasAnyDataSource else { return [] }
+        return [.healthKit, .nightscout, .demo]
+    }
+
+    /// The shielding row stays visible until shielding is actually enabled —
+    /// it's the headline recommendation, so we don't hide it just because
+    /// the user hasn't connected a source yet. When no source is configured
+    /// the row is rendered in a disabled style and isn't tappable (see
+    /// `isRowDisabled` / `rowContent`); the user can clearly see the next
+    /// step is "connect something first".
+    private var recommendedRows: [ChecklistRow] {
+        var rows: [ChecklistRow] = []
+        if !shieldingEnabled { rows.append(.shielding) }
+        if !hasPassphrase { rows.append(.passphrase) }
+        if notificationStatus == .notDetermined { rows.append(.notifications) }
+        return rows
+    }
+
+    /// Shielding can't be enabled without a data source, so its row is
+    /// disabled (visually + non-interactive) until one is connected.
+    private func isRowDisabled(_ row: ChecklistRow) -> Bool {
+        switch row {
+        case .shielding: return !hasAnyDataSource
+        default: return false
+        }
+    }
+
+    private var visibleGroups: [ChecklistGroup] {
+        var groups: [ChecklistGroup] = []
+        let dataSources = dataSourceRows
+        if !dataSources.isEmpty {
+            groups.append(ChecklistGroup(
+                kind: .dataSources,
+                titleKey: "setup.checklist.dataSources",
+                footerKey: "setup.checklist.dataSourcesFooter",
+                rows: dataSources
+            ))
+        }
+        let recommended = recommendedRows
+        if !recommended.isEmpty {
+            groups.append(ChecklistGroup(
+                kind: .recommended,
+                titleKey: "setup.checklist.recommended",
+                footerKey: nil,
+                rows: recommended
+            ))
+        }
+        return groups
+    }
+
+    // MARK: - Card
+
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if hasAnyDataSource {
+                HStack {
+                    Spacer()
+                    Button {
+                        showHideConfirmation = true
+                    } label: {
+                        Text("setup.checklist.hide", tableName: "Localizable")
+                            .font(.footnote)
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+
+            ForEach(visibleGroups) { group in
+                groupSection(group)
+            }
+        }
+        .padding(.top, 12)
+        .padding(.bottom, 12)
+    }
+
+    @ViewBuilder
+    private func groupSection(_ group: ChecklistGroup) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(group.titleKey, tableName: "Localizable")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+                .padding(.horizontal, 20)
+
+            VStack(spacing: 0) {
+                ForEach(Array(group.rows.enumerated()), id: \.element) { index, row in
+                    let disabled = isRowDisabled(row)
+                    Button {
+                        handleTap(row: row)
+                    } label: {
+                        rowContent(for: row, disabled: disabled)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(disabled)
+
+                    if index < group.rows.count - 1 {
+                        Divider()
+                            .padding(.leading, 52)
+                    }
+                }
+            }
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 16)
+
+            if let footerKey = group.footerKey {
+                Text(footerKey, tableName: "Localizable")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func rowContent(for row: ChecklistRow, disabled: Bool) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: row.icon)
+                .font(.system(size: 18))
+                .foregroundStyle(disabled ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.tint))
+                .frame(width: 28, height: 28)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(row.titleKey, tableName: "Localizable")
+                    .font(.body)
+                    .foregroundStyle(disabled ? Color.secondary : Color(.label))
+                Text(disabledSubtitleKey(for: row) ?? row.subtitleKey, tableName: "Localizable")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            if row == .notifications, isRequestingNotifications {
+                ProgressView()
+            } else if disabled {
+                Image(systemName: "lock.fill")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            } else {
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .contentShape(Rectangle())
+    }
+
+    /// Replacement subtitle that explains *why* a disabled row can't be
+    /// actioned yet. Returning nil falls back to the row's normal subtitle.
+    private func disabledSubtitleKey(for row: ChecklistRow) -> LocalizedStringKey? {
+        switch row {
+        case .shielding where !hasAnyDataSource:
+            return "setup.checklist.enableShielding.requiresSource"
+        default:
+            return nil
+        }
+    }
+
+    // MARK: - Actions
+
+    private func handleTap(row: ChecklistRow) {
+        switch row {
+        case .healthKit: presentedSheet = .healthKit
+        case .nightscout: presentedSheet = .nightscout
+        case .demo: presentedSheet = .demo
+        case .shielding: presentedSheet = .shielding
+        case .passphrase: presentedSheet = .passphrase
+        case .notifications:
+            Task { await requestNotifications() }
+        }
+    }
+
+    private func hideTips() {
+        SharedDataManager.shared.setupTipsHidden = true
+        SharedDataManager.shared.flush()
+        refreshToken &+= 1
+    }
+
+    private func refresh() {
+        healthKitStatus = HKHealthStore().authorizationStatus(for: HKQuantityType(.bloodGlucose))
+        hasPassphrase = KeychainManager.shared.hasPassphrase
+        shieldingEnabled = SharedDataManager.shared.shieldingEnabled
+        Task {
+            let settings = await UNUserNotificationCenter.current().notificationSettings()
+            await MainActor.run { notificationStatus = settings.authorizationStatus }
+        }
+    }
+
+    @MainActor
+    private func requestNotifications() async {
+        isRequestingNotifications = true
+        defer { isRequestingNotifications = false }
+        _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        notificationStatus = settings.authorizationStatus
+        refreshToken &+= 1
+    }
+
+    // MARK: - Sheets
+
+    @ViewBuilder
+    private func sheetContent(for sheet: ChecklistSheet) -> some View {
+        switch sheet {
+        case .healthKit:
+            NavigationStack {
+                HealthKitSettingsView()
+                    .toolbar { dismissToolbar }
+            }
+        case .nightscout:
+            NavigationStack {
+                NightscoutSettingsView()
+                    .toolbar { dismissToolbar }
+            }
+        case .demo:
+            NavigationStack {
+                MockDataSettingsView()
+                    .toolbar { dismissToolbar }
+            }
+        case .shielding:
+            NavigationStack {
+                ShieldingSettingsView()
+                    .toolbar { dismissToolbar }
+            }
+        case .passphrase:
+            ChangePassphraseView()
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var dismissToolbar: some ToolbarContent {
+        ToolbarItem(placement: .confirmationAction) {
+            Button(String(localized: "settings.done")) {
+                presentedSheet = nil
+            }
+        }
+    }
+}
+
+// MARK: - Rows
+
+private enum ChecklistRow: String, Hashable {
+    case healthKit
+    case nightscout
+    case demo
+    case shielding
+    case passphrase
+    case notifications
+
+    var icon: String {
+        switch self {
+        case .healthKit: return "heart.text.square"
+        case .nightscout: return "cloud"
+        case .demo: return "flask"
+        case .shielding: return "shield.lefthalf.filled"
+        case .passphrase: return "lock"
+        case .notifications: return "bell"
+        }
+    }
+
+    var titleKey: LocalizedStringKey {
+        switch self {
+        case .healthKit: return "setup.checklist.connectHealthKit"
+        case .nightscout: return "setup.checklist.connectNightscout"
+        case .demo: return "setup.checklist.tryDemo"
+        case .shielding: return "setup.checklist.enableShielding"
+        case .passphrase: return "setup.checklist.setPassphrase"
+        case .notifications: return "setup.checklist.allowNotifications"
+        }
+    }
+
+    var subtitleKey: LocalizedStringKey {
+        switch self {
+        case .healthKit: return "setup.checklist.connectHealthKit.subtitle"
+        case .nightscout: return "setup.checklist.connectNightscout.subtitle"
+        case .demo: return "setup.checklist.tryDemo.subtitle"
+        case .shielding: return "setup.checklist.enableShielding.subtitle"
+        case .passphrase: return "setup.checklist.setPassphrase.subtitle"
+        case .notifications: return "setup.checklist.allowNotifications.subtitle"
+        }
+    }
+}
+
+// MARK: - Groups
+
+private struct ChecklistGroup: Identifiable {
+    enum Kind { case dataSources, recommended }
+
+    let kind: Kind
+    let titleKey: LocalizedStringKey
+    let footerKey: LocalizedStringKey?
+    let rows: [ChecklistRow]
+
+    var id: String {
+        switch kind {
+        case .dataSources: return "dataSources"
+        case .recommended: return "recommended"
+        }
+    }
+}
+
+private enum ChecklistSheet: String, Identifiable {
+    case healthKit, nightscout, demo, shielding, passphrase
+    var id: String { rawValue }
+}

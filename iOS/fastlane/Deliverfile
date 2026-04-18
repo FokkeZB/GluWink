@@ -1,0 +1,26 @@
+# Deliverfile — defaults for `fastlane deliver` (push App Store metadata).
+#
+# This file is loaded automatically by both the `appstore` and `appstore_pull`
+# lanes in the Fastfile. Keep it focused on shared options; lane-specific
+# overrides go in the Fastfile.
+
+app_identifier "nl.fokkezb.GluWink"
+
+# Where the per-locale text lives (generated from ../AppStore/*.md by
+# `bundle exec fastlane sync_metadata`). Treated as the source of truth
+# during a push; never edit by hand.
+metadata_path "./fastlane/metadata"
+
+# We don't manage screenshots through fastlane (yet). Keep them in App Store
+# Connect or wire `screenshots_path` later when we automate captures.
+skip_screenshots true
+
+# We're not uploading a binary here — that still happens via Xcode / Transporter.
+skip_binary_upload true
+
+# Don't auto-submit; review submission stays a manual click in App Store Connect.
+submit_for_review false
+
+# Fail fast on metadata problems instead of warning.
+precheck_include_in_app_purchases false
+force false

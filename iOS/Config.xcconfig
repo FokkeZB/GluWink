@@ -1,0 +1,29 @@
+// Shared configuration
+// All targets inherit these settings via the project-level xcconfig.
+
+// App Group identifier (used in entitlements and at runtime)
+APP_GROUP_ID = group.nl.fokkezb.GluWink
+
+// Bundle identifier prefix (used for logging subsystems)
+BUNDLE_PREFIX = nl.fokkezb.GluWink
+
+// Watch bundle identifiers
+WATCH_BUNDLE_ID = $(BUNDLE_PREFIX).watchkitapp
+WATCH_WIDGET_BUNDLE_ID = $(WATCH_BUNDLE_ID).widget
+
+// Display name shown under the app icon and in system UI
+INFOPLIST_KEY_CFBundleDisplayName = GluWink
+
+// HealthKit permission dialog text (contains the app name)
+INFOPLIST_KEY_NSHealthShareUsageDescription = GluWink reads your glucose and carb data to check your diabetes status.
+
+// Glucose thresholds in mmol/L
+HIGH_GLUCOSE_THRESHOLD = 14.0
+LOW_GLUCOSE_THRESHOLD = 4.0
+
+// Glucose data is considered stale after this many minutes
+GLUCOSE_STALE_MINUTES = 30
+
+// Before this hour+minute, missing carb entries are not flagged
+CARB_GRACE_HOUR = 9
+CARB_GRACE_MINUTE = 30

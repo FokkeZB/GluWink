@@ -1,0 +1,2 @@
+/* NOTE: Update app name here when renaming (iOS doesn't support variable substitution in InfoPlist.strings) */
+"NSHealthShareUsageDescription" = "GluWink leest je glucose- en koolhydraatgegevens om je diabetesstatus te controleren.";

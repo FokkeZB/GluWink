@@ -1,0 +1,113 @@
+# Fastfile — App Store Connect automation for GluWink.
+#
+# Auth: requires an App Store Connect API key JSON at `private/asc-api-key.json`
+# (gitignored). See AppStore/README.md → "App Store Connect API key" for how to
+# create one in App Store Connect → Users and Access → Integrations → Keys.
+
+default_platform(:ios)
+opt_out_usage
+
+API_KEY_PATH = "../../private/asc-api-key.json" # repo-root /private/, from iOS/fastlane/
+SYNC_SCRIPT  = File.expand_path("scripts/sync_metadata.rb", __dir__)
+
+def require_api_key!
+  abs = File.expand_path(API_KEY_PATH, __dir__)
+  return abs if File.exist?(abs)
+
+  UI.user_error!(
+    "Missing App Store Connect API key at #{abs}.\n" \
+    "Create one at https://appstoreconnect.apple.com/access/integrations/api " \
+    "and save it as JSON with this shape:\n" \
+    "{\n" \
+    "  \"key_id\": \"ABCDE12345\",\n" \
+    "  \"issuer_id\": \"00000000-0000-0000-0000-000000000000\",\n" \
+    "  \"key\": \"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\",\n" \
+    "  \"in_house\": false\n" \
+    "}"
+  )
+end
+
+platform :ios do
+  desc "Regenerate fastlane/metadata/* from AppStore/<locale>.md"
+  lane :sync_metadata do |options|
+    args = Array(options[:locales]).join(" ")
+    sh("ruby #{SYNC_SCRIPT.shellescape} #{args}")
+  end
+
+  desc "Push App Store listing metadata (regenerates from Markdown first)."
+  desc "Run with `locales:en-US,nl-NL` to scope to specific locales."
+  lane :push_metadata do |options|
+    sync_metadata(locales: (options[:locales] || "").split(","))
+    api_key_path = require_api_key!
+
+    # Workaround for fastlane bug: deliver crashes on brand-new versions because
+    # `review_attachment_file` calls `fetch_app_store_review_detail` without
+    # rescuing the empty-body response. Pre-create the record so the fetch
+    # returns a real model. Idempotent — does nothing if it already exists.
+    ensure_review_detail!(api_key_path)
+
+    deliver(
+      api_key_path: api_key_path,
+      force: true, # skip the HTML preview prompt
+      run_precheck_before_submit: false,
+    )
+  end
+
+  # Make sure the editable App Store version has an AppStoreReviewDetail record.
+  # Without one, fastlane 2.232.2 `deliver` blows up with "No data" inside
+  # `review_attachment_file`. Real review info still has to be filled in inside
+  # App Store Connect (or via `app_review_information:` on `deliver`).
+  def ensure_review_detail!(api_key_path)
+    require "spaceship"
+    require "json"
+
+    key = JSON.parse(File.read(api_key_path))
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
+      key_id: key["key_id"],
+      issuer_id: key["issuer_id"],
+      key: key["key"],
+    )
+
+    app = Spaceship::ConnectAPI::App.find("nl.fokkezb.GluWink")
+    UI.user_error!("App nl.fokkezb.GluWink not found in App Store Connect") unless app
+
+    version = app.get_edit_app_store_version
+    unless version
+      UI.message("No editable version found — nothing to bootstrap.")
+      return
+    end
+
+    detail = begin
+      version.fetch_app_store_review_detail
+    rescue => e
+      UI.message("No review detail yet (#{e.message.lines.first.to_s.strip}); creating one.")
+      nil
+    end
+
+    if detail
+      UI.message("App review detail already exists — skipping bootstrap.")
+    else
+      version.create_app_store_review_detail(attributes: { demo_account_required: false })
+      UI.success("Created empty App Review Information record.")
+    end
+  end
+
+  desc "Download current App Store metadata into fastlane/metadata/ (read-only)."
+  desc "Useful to inspect what Apple has, or to bootstrap a new locale."
+  lane :pull_metadata do
+    api_key_path = require_api_key!
+    # `deliver download_metadata` is a CLI subcommand, not a Fastfile action,
+    # so shell out. `--force` skips the confirmation prompt.
+    sh(
+      "bundle", "exec", "fastlane", "deliver", "download_metadata",
+      "--api_key_path", api_key_path,
+      "--app_identifier", "nl.fokkezb.GluWink",
+      "--metadata_path", File.expand_path("metadata", __dir__),
+      "--force",
+    )
+    UI.message(
+      "Downloaded metadata is in iOS/fastlane/metadata/ — treat it as a snapshot. " \
+      "The source of truth is AppStore/<locale>.md."
+    )
+  end
+end
