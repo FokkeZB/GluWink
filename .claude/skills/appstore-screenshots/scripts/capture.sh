@@ -15,7 +15,13 @@
 #   capture.sh --locale en-US        # one locale, every scene
 #   capture.sh --scene redShield --locale en-US
 #   capture.sh --no-build            # skip rebuild (faster iteration)
+#   capture.sh --no-captions         # skip the marketing caption banner
 #   capture.sh --device 'iPhone 17 Pro Max'
+#
+# Captions are pulled from AppStore/<locale>.md → "Screenshot captions" →
+# "iPhone" table and baked into each screenshot by CaptionBanner.swift.
+# The table row number (1..6) is matched against the scene's numeric
+# prefix (01..06), so keep them aligned when adding new scenes.
 
 set -euo pipefail
 
@@ -40,6 +46,15 @@ scene=""
 locale=""
 device="$DEFAULT_DEVICE"
 do_build=1
+captions=1
+# Fail fast on captions longer than this. 80 chars fits comfortably on three
+# lines at the heavy rounded 30pt used by CaptionBanner on a 6.9" screen;
+# anything longer starts shrinking below the minimumScaleFactor and looks
+# cramped next to the shield.
+CAPTION_HARD_LIMIT=80
+# Softer ceiling: above this, print a warning but still render. Gives
+# translators a headroom heads-up before hitting the hard stop.
+CAPTION_WARN_LIMIT=65
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -47,8 +62,9 @@ while [[ $# -gt 0 ]]; do
         --locale) locale="$2"; shift 2 ;;
         --device) device="$2"; shift 2 ;;
         --no-build) do_build=0; shift ;;
+        --no-captions) captions=0; shift ;;
         -h|--help)
-            sed -n '3,18p' "$0"
+            sed -n '3,24p' "$0"
             exit 0
             ;;
         *) echo "Unknown arg: $1" >&2; exit 64 ;;
@@ -111,6 +127,37 @@ posix_locale_for_locale() {
     esac
 }
 
+# Pull a caption out of AppStore/<locale>.md by row number. Looks for the
+# first Markdown table under the "iPhone" subheading and picks the row whose
+# "#" column (digit-only, even if wrapped in " *(optional)*") matches.
+#
+# Keeping this in awk rather than Ruby avoids spawning a separate interpreter
+# per scene × locale — 10 caption lookups per run shouldn't cost a second.
+caption_for() {
+    local loc="$1"
+    local num="$2"
+    local md="$REPO_ROOT/AppStore/$loc.md"
+    [[ -f "$md" ]] || { echo ""; return; }
+    local n="${num#0}"
+    awk -v want="$n" '
+        /^### iPhone/ { in_iphone = 1; next }
+        /^### / && in_iphone { exit }
+        in_iphone && /^\|[[:space:]]*[0-9]/ {
+            line = $0
+            sub(/^\|[[:space:]]*/, "", line)
+            n = split(line, parts, /\|/)
+            num_part = parts[1]
+            gsub(/[^0-9]/, "", num_part)
+            if (num_part == want && n >= 2) {
+                cap = parts[2]
+                gsub(/^[[:space:]]+|[[:space:]]+$/, "", cap)
+                print cap
+                exit
+            }
+        }
+    ' "$md"
+}
+
 echo "==> Booting simulator: $device"
 xcrun simctl boot "$device" 2>/dev/null || true
 xcrun simctl bootstatus "$device" -b >/dev/null
@@ -157,13 +204,39 @@ for loc in "${locales[@]}"; do
         IFS=':' read -r num name <<< "$entry"
         out="$out_dir/${num}_${name}.png"
 
+        caption=""
+        if [[ "$captions" -eq 1 ]]; then
+            caption="$(caption_for "$loc" "$num")"
+            if [[ -z "$caption" ]]; then
+                echo "ERROR: no caption row $num in AppStore/$loc.md (iPhone table)" >&2
+                exit 65
+            fi
+            cap_len=${#caption}
+            if (( cap_len > CAPTION_HARD_LIMIT )); then
+                echo "ERROR: caption $loc #$num is $cap_len chars (> $CAPTION_HARD_LIMIT): $caption" >&2
+                exit 65
+            elif (( cap_len > CAPTION_WARN_LIMIT )); then
+                echo "WARN:  caption $loc #$num is $cap_len chars (> $CAPTION_WARN_LIMIT): $caption" >&2
+            fi
+        fi
+
         xcrun simctl terminate booted "$BUNDLE_ID" 2>/dev/null || true
-        xcrun simctl launch booted "$BUNDLE_ID" \
-            --args \
-            -UITest_Scene "$name" \
-            -AppleLanguages "($lang)" \
-            -AppleLocale "$posix" \
-            >/dev/null
+        if [[ -n "$caption" ]]; then
+            xcrun simctl launch booted "$BUNDLE_ID" \
+                --args \
+                -UITest_Scene "$name" \
+                -UITest_Caption "$caption" \
+                -AppleLanguages "($lang)" \
+                -AppleLocale "$posix" \
+                >/dev/null
+        else
+            xcrun simctl launch booted "$BUNDLE_ID" \
+                --args \
+                -UITest_Scene "$name" \
+                -AppleLanguages "($lang)" \
+                -AppleLocale "$posix" \
+                >/dev/null
+        fi
 
         # Two seconds is enough for a SwiftUI render on a warm sim. Bump
         # if a scene starts looking partially drawn (e.g. an asynchronous

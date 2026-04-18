@@ -14,9 +14,13 @@ import SwiftUI
 struct WidgetShowcaseView: View {
     // Widget geometry for a 6.9" iPhone. Hard-coded because we only capture
     // on one device class right now; revisit when we add iPad or 6.7".
+    // Slightly shrunken from the real WidgetKit geometry (170 / 170 / 382)
+    // so the full stack fits above the 20%-tall caption banner without
+    // clipping the last tile. Still clearly reads as "small + medium +
+    // large widget" for the marketing shot.
     private let smallSide: CGFloat = 170
-    private let mediumSize = CGSize(width: 364, height: 170)
-    private let largeSize = CGSize(width: 364, height: 382)
+    private let mediumSize = CGSize(width: 364, height: 150)
+    private let largeSize = CGSize(width: 364, height: 310)
     private let cornerRadius: CGFloat = 22
     /// Extra inset applied outside the tile body, inside the colored background.
     /// WidgetKit's container adds ~12–16pt of default `contentMargin` that we
@@ -26,8 +30,12 @@ struct WidgetShowcaseView: View {
     private let widgetContentMargin: CGFloat = 12
 
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer(minLength: 12)
+        // Tile spacing is intentionally snug — the marketing caption banner
+        // eats ~22% of screen height, leaving only ~746pt for the stack. The
+        // three tiles alone are 722pt; anything above 24pt of combined
+        // spacing pushes the bottom tile past the banner and it gets clipped.
+        VStack(spacing: 12) {
+            Spacer(minLength: 0)
 
             HStack(spacing: 16) {
                 smallTile(calmContent)
@@ -40,7 +48,7 @@ struct WidgetShowcaseView: View {
             largeTile(calmContent)
                 .frame(width: largeSize.width, height: largeSize.height)
 
-            Spacer(minLength: 12)
+            Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemGray6))
