@@ -7,12 +7,34 @@ struct CheckInView: View {
     let items: [String]
     let onDisarm: () -> Void
 
-    @State private var checkedIndices: Set<Int> = []
-    @State private var nextUnlockIndex: Int = -1
+    @State private var checkedIndices: Set<Int>
+    @State private var nextUnlockIndex: Int
     @State private var disarmReady = false
 
     private let itemDelay: TimeInterval = 1.5
     private let disarmDelay: TimeInterval = 2.0
+
+    init(items: [String], onDisarm: @escaping () -> Void) {
+        self.items = items
+        self.onDisarm = onDisarm
+
+        #if targetEnvironment(simulator)
+        // Under the App Store screenshot harness, start with N rows pre-
+        // checked so the red-shield shot reads as "user is responding"
+        // instead of a passive list. Also pre-unlocks the next row so the
+        // screenshot doesn't have to wait out the 1.5s unlock timer.
+        if let preset = ScreenshotHarness.current?.homeViewPreset,
+           preset.checkInPreCheckedCount > 0 {
+            let pre = min(preset.checkInPreCheckedCount, items.count)
+            _checkedIndices = State(initialValue: Set(0..<pre))
+            _nextUnlockIndex = State(initialValue: pre < items.count ? pre : items.count)
+            return
+        }
+        #endif
+
+        _checkedIndices = State(initialValue: [])
+        _nextUnlockIndex = State(initialValue: -1)
+    }
 
     var body: some View {
         VStack(spacing: 16) {
@@ -42,6 +64,11 @@ struct CheckInView: View {
         }
         .padding(.horizontal, 32)
         .onAppear {
+            #if targetEnvironment(simulator)
+            // Harness already seeded `nextUnlockIndex` in init; don't let
+            // the 1.5s timer stomp it back to 0.
+            if ScreenshotHarness.isActive { return }
+            #endif
             DispatchQueue.main.asyncAfter(deadline: .now() + itemDelay) {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     nextUnlockIndex = 0
