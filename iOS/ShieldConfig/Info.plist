@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AppGroupID</key>
+	<string>$(APP_GROUP_ID)</string>
+	<key>CarbGraceHour</key>
+	<string>$(CARB_GRACE_HOUR)</string>
+	<key>CarbGraceMinute</key>
+	<string>$(CARB_GRACE_MINUTE)</string>
+	<key>GlucoseStaleMinutes</key>
+	<string>$(GLUCOSE_STALE_MINUTES)</string>
+	<key>HighGlucoseThreshold</key>
+	<string>$(HIGH_GLUCOSE_THRESHOLD)</string>
+	<key>LowGlucoseThreshold</key>
+	<string>$(LOW_GLUCOSE_THRESHOLD)</string>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.ManagedSettingsUI.shield-configuration-service</string>
+		<key>NSExtensionPrincipalClass</key>
+		<string>$(PRODUCT_MODULE_NAME).ShieldConfigurationExtension</string>
+	</dict>
+</dict>
+</plist>

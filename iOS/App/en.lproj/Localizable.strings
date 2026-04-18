@@ -1,0 +1,172 @@
+/* Setup - Passphrase (reused by Settings) */
+"setup.passphraseField" = "Passphrase";
+"setup.passphraseConfirmField" = "Confirm passphrase";
+"setup.passphraseMismatch" = "Passphrases do not match.";
+
+/* Home - Welcome */
+"home.welcome.title %@" = "Welcome to %@";
+"home.welcome.tagline %@" = "Turn your iPhone and Apple Watch from your biggest distraction into your best tool. Glucose and carbs everywhere. Apps blocked when something needs your attention.";
+
+/* Setup Checklist */
+"setup.checklist.title" = "Set up";
+"setup.checklist.hide" = "Hide";
+"setup.checklist.hideConfirmTitle" = "Hide setup tips?";
+"setup.checklist.hideConfirmMessage" = "You can configure or change everything later from Settings. The checklist will reappear if you turn off every data source.";
+"setup.checklist.hideConfirmAction" = "Hide";
+"setup.checklist.dataSources" = "Pick a data source";
+"setup.checklist.dataSourcesFooter" = "You only need one.";
+"setup.checklist.recommended" = "Configure features";
+"setup.checklist.connectHealthKit" = "Connect Apple Health";
+"setup.checklist.connectHealthKit.subtitle" = "The default for most diabetes setups.";
+"setup.checklist.connectNightscout" = "Connect Nightscout";
+"setup.checklist.connectNightscout.subtitle" = "For systems without Apple Health support or remote parents.";
+"setup.checklist.tryDemo" = "Try with demo data";
+"setup.checklist.tryDemo.subtitle" = "Explore the app without a real sensor.";
+"setup.checklist.enableShielding" = "Enable shielding";
+"setup.checklist.enableShielding.subtitle" = "Block apps until a diabetes check-in is done.";
+"setup.checklist.enableShielding.requiresSource" = "Connect a data source first.";
+"setup.checklist.setPassphrase" = "Set a passphrase";
+"setup.checklist.setPassphrase.subtitle" = "Lock settings so only someone with the passphrase can change them.";
+"setup.checklist.allowNotifications" = "Allow notifications";
+"setup.checklist.allowNotifications.subtitle" = "Needed for glucose badge and future alerts.";
+
+/* HealthKit Settings */
+"healthkit.settings.title" = "Apple Health";
+"healthkit.settings.statusHeader" = "Status";
+"healthkit.settings.statusLabel" = "Apple Health";
+"healthkit.settings.statusNotConnected" = "Not connected";
+"healthkit.settings.statusRequested" = "Connected";
+"healthkit.settings.statusFooterNotDetermined" = "Grant read access to glucose and carbs so the app can show your latest values.";
+"healthkit.settings.statusFooterRequested" = "Apple Health can't show whether read access is granted. If glucose data isn't appearing, open the Health app to review permissions for this app.";
+"healthkit.settings.requestButton" = "Connect Apple Health";
+"healthkit.settings.openHealthButton" = "Open Health app";
+"healthkit.settings.sectionFooter" = "Permissions are managed in the Health app under Sharing › Apps.";
+
+/* Settings - Data Sources */
+"settings.dataSources" = "Data Sources";
+"settings.dataSourcesFooter" = "You only need one. Apple Health is the default for most diabetes systems. Nightscout is for systems that can't write to Apple Health, or for parents monitoring a child remotely. Demo data lets you try the app without a real sensor.";
+"settings.healthKit" = "Apple Health";
+
+/* Shielding - Authorization */
+"settings.shieldingAuthorizing" = "Requesting Screen Time…";
+"settings.shieldingNotAuthorizedFooter" = "Screen Time authorization is required before shielding can actually block apps.";
+"settings.shieldingRequiresDataSource" = "Connect Apple Health, Nightscout, or demo data first — shielding needs glucose or carb data to know when to block apps.";
+
+/* Passphrase Prompt */
+"passphrase.title" = "Settings Locked";
+"passphrase.description" = "Enter the passphrase to access settings.";
+"passphrase.field" = "Passphrase";
+"passphrase.unlockButton" = "Unlock";
+
+/* Settings */
+"settings.title" = "Settings";
+"settings.done" = "Done";
+"settings.cancel" = "Cancel";
+"settings.save" = "Save";
+"settings.excludedAppsHeader" = "Excluded Apps";
+"settings.excludedAppsFooter" = "These apps will not be shielded.";
+"settings.glucoseHeader %@" = "Glucose Thresholds (%@)";
+"settings.glucoseUnit" = "Glucose Unit";
+"settings.glucoseUnitFooter" = "Unit used for all glucose values in the app, widgets, and shields.";
+"settings.highThreshold" = "High";
+"settings.lowThreshold" = "Low";
+"settings.dataHeader" = "Data Staleness";
+"settings.staleMinutes" = "Stale after";
+"settings.minutesSuffix %lld" = "%lld min";
+"settings.carbHeader" = "Carb Grace Period";
+"settings.carbGrace" = "No attention before";
+"settings.carbGraceFooter" = "Carb attention checks are skipped before this time each day.";
+"settings.hour" = "Hour";
+"settings.minute" = "Minute";
+"settings.attentionRulesRow" = "Attention Rules";
+"settings.shieldingEnabled" = "Shielding enabled";
+"settings.onlyWhenAttention" = "Only when attention needed";
+"settings.onlyWhenAttentionFooter" = "Shields are only active when attention is needed. Apps are free to use when everything is green.";
+"settings.shieldingDisabledFooter" = "Shielding is off. No apps will be shielded.";
+"settings.shieldingHeader" = "Shielding";
+"settings.intervalsHeader" = "Re-arm Intervals";
+"settings.intervalsFooter" = "How often shields return after dismissal (minimum 15 min, iOS limit).";
+"settings.attentionInterval" = "Needs attention";
+"settings.noAttentionInterval" = "No attention needed";
+"settings.cooldownHeader" = "Attention Cooldown";
+"settings.cooldownFooter" = "How long the child must wait before they can dismiss the attention items.";
+"settings.cooldown" = "Cooldown";
+"settings.secondsSuffix %lld" = "%lld sec";
+"settings.demoData" = "Demo";
+"settings.demoEnabled" = "Demo";
+"settings.demoFooter" = "Simulates glucose and carb data. Disable to resume real HealthKit data.";
+"settings.demoHasData" = "Has data";
+"settings.demoGlucose" = "Glucose";
+"settings.demoCarbs" = "Carbs";
+"settings.minutesAgo" = "Minutes ago";
+"settings.demoAt" = "At";
+"settings.setPassphrase" = "Set a Passphrase";
+"settings.changePassphrase" = "Change Passphrase";
+"settings.currentPassphrase" = "Current passphrase";
+"settings.newPassphrase" = "New passphrase";
+"settings.wrongPassphrase" = "Incorrect passphrase.";
+"settings.removePassphrase" = "Remove Passphrase";
+"passphrase.title.short" = "Passphrase";
+"passphrase.setDescriptionChild" = "Strongly recommended. Set a passphrase to prevent your child from changing settings.";
+"passphrase.setDescriptionAdult" = "Have someone you trust set this passphrase to keep yourself accountable.";
+"passphrase.changeDescription" = "Enter your current passphrase and choose a new one.";
+"passphrase.forgotWarning" = "If you forget this passphrase, the only way to regain access is to uninstall and reinstall the app — which will erase all settings.";
+"passphrase.unlockForgotWarning" = "Forgot your passphrase? The only way to regain access is to uninstall and reinstall the app — which will erase all settings.";
+
+/* Attention Checks Settings */
+"settings.attentionChecksRow" = "Attention Checks";
+"settings.scenario.highGlucose" = "High Glucose";
+"settings.scenario.lowGlucose" = "Low Glucose";
+"settings.scenario.staleSensor" = "Stale Sensor";
+"settings.scenario.carbGap" = "Carb Gap (4+ hours)";
+"settings.scenario.noGlucoseData" = "No Glucose Data";
+"settings.scenario.noCarbData" = "No Carb Data";
+"settings.addCheck" = "Add Check";
+"settings.checkPlaceholder" = "Check text";
+"settings.restoreDefaults" = "Restore Defaults";
+"settings.restoreDefaultsConfirm" = "This will discard all custom checks and restore the built-in defaults.";
+
+/* Glucose Badge */
+"settings.statusOn" = "On";
+"settings.statusOff" = "Off";
+"settings.resetAll" = "Reset All Settings";
+"settings.resetAllConfirm" = "This will reset all settings to their defaults. Your passphrase and allowed apps will be preserved.";
+"settings.resetAllSuccessTitle" = "Settings Reset";
+"settings.resetAllSuccessMessage" = "All settings have been restored to their defaults.";
+"settings.ok" = "OK";
+
+/* Glucose Badge */
+"settings.glucoseBadge" = "Glucose Badge";
+"settings.glucoseBadge.off" = "Off";
+"settings.glucoseBadge.always" = "Always";
+"settings.glucoseBadge.onlyWhenAttention" = "When Attention";
+"settings.glucoseBadgeFooter" = "Show the current glucose value as a badge on the app icon.";
+
+/* Nightscout */
+"settings.nightscout" = "Nightscout";
+"settings.nightscoutEnabled" = "Enable Nightscout";
+"settings.nightscoutFooter" = "Fetch glucose and carb data from a Nightscout site. Useful when monitoring a child remotely or when your diabetes system writes to Nightscout instead of Apple Health. When both sources are enabled, the most recent data wins.";
+"settings.nightscoutRequiresCredentials" = "Provide both a Nightscout URL and API token above before enabling.";
+"settings.nightscoutVerifying" = "Verifying connection…";
+"settings.nightscoutConfigHeader" = "Connection";
+"settings.nightscoutConfigFooter" = "Provide the base URL of your Nightscout site (e.g. https://example.nightscoutpro.com). The API token is optional for public sites but recommended.";
+"settings.nightscoutURLPlaceholder" = "https://example.nightscoutpro.com";
+"settings.nightscoutTokenPlaceholder" = "API token (optional)";
+"settings.nightscoutTest" = "Test Connection";
+"settings.nightscoutTestSuccess" = "Connected";
+"settings.nightscoutVersion %@" = "Version: %@";
+"settings.nightscoutUnits %@" = "Server units: %@";
+"settings.nightscoutStatusHeader" = "Status";
+"settings.nightscoutLastFetch" = "Last update";
+"settings.nightscoutNotConfigured" = "Not configured yet.";
+"settings.nightscoutDisabled" = "Disabled.";
+"settings.nightscoutAwaitingFirstUpdate" = "Awaiting first update…";
+
+/* Check-In Flow */
+"checkin.disarmButton" = "All Done";
+"checkin.disarmWait" = "Wait…";
+"checkin.acknowledgedDescription" = "You've already checked in. Shields will return soon.";
+
+/* Shielding Active */
+"active.title" = "Shielding Active";
+"active.description %@" = "%@ is protecting this device. Apps will be shielded until a diabetes check-in is completed.";

@@ -1,0 +1,172 @@
+/* Setup - Wachtwoord (ook gebruikt in Instellingen) */
+"setup.passphraseField" = "Wachtwoord";
+"setup.passphraseConfirmField" = "Bevestig wachtwoord";
+"setup.passphraseMismatch" = "Wachtwoorden komen niet overeen.";
+
+/* Home - Welkom */
+"home.welcome.title %@" = "Welkom bij %@";
+"home.welcome.tagline %@" = "Verander je iPhone en Apple Watch van je grootste afleider in je beste hulpmiddel. Glucose en koolhydraten overal zichtbaar. Apps blokkeren als iets je aandacht vraagt.";
+
+/* Set-up Checklist */
+"setup.checklist.title" = "Instellen";
+"setup.checklist.hide" = "Verberg";
+"setup.checklist.hideConfirmTitle" = "Set-up-tips verbergen?";
+"setup.checklist.hideConfirmMessage" = "Je kunt alles later instellen of wijzigen via Instellingen. De checklist verschijnt weer zodra je alle gegevensbronnen uitschakelt.";
+"setup.checklist.hideConfirmAction" = "Verberg";
+"setup.checklist.dataSources" = "Kies een gegevensbron";
+"setup.checklist.dataSourcesFooter" = "Je hebt er maar één nodig.";
+"setup.checklist.recommended" = "Stel functies in";
+"setup.checklist.connectHealthKit" = "Apple Gezondheid koppelen";
+"setup.checklist.connectHealthKit.subtitle" = "De standaard voor de meeste diabetessystemen.";
+"setup.checklist.connectNightscout" = "Nightscout koppelen";
+"setup.checklist.connectNightscout.subtitle" = "Voor systemen zonder Apple Gezondheid-koppeling of voor ouders op afstand.";
+"setup.checklist.tryDemo" = "Probeer met demo-data";
+"setup.checklist.tryDemo.subtitle" = "Verken de app zonder echte sensor.";
+"setup.checklist.enableShielding" = "Afscherming inschakelen";
+"setup.checklist.enableShielding.subtitle" = "Blokkeer apps tot een diabetes-check is voltooid.";
+"setup.checklist.enableShielding.requiresSource" = "Koppel eerst een gegevensbron.";
+"setup.checklist.setPassphrase" = "Wachtwoord instellen";
+"setup.checklist.setPassphrase.subtitle" = "Vergrendel instellingen zodat alleen iemand met het wachtwoord ze kan wijzigen.";
+"setup.checklist.allowNotifications" = "Meldingen toestaan";
+"setup.checklist.allowNotifications.subtitle" = "Nodig voor de glucose-badge en toekomstige meldingen.";
+
+/* HealthKit-instellingen */
+"healthkit.settings.title" = "Apple Gezondheid";
+"healthkit.settings.statusHeader" = "Status";
+"healthkit.settings.statusLabel" = "Apple Gezondheid";
+"healthkit.settings.statusNotConnected" = "Niet gekoppeld";
+"healthkit.settings.statusRequested" = "Gekoppeld";
+"healthkit.settings.statusFooterNotDetermined" = "Geef leestoegang tot glucose en koolhydraten, zodat de app de laatste waarden kan tonen.";
+"healthkit.settings.statusFooterRequested" = "Apple Gezondheid laat niet zien of leestoegang is verleend. Als er geen glucosegegevens verschijnen, open dan de Gezondheid-app om de rechten voor deze app te controleren.";
+"healthkit.settings.requestButton" = "Apple Gezondheid koppelen";
+"healthkit.settings.openHealthButton" = "Open Gezondheid-app";
+"healthkit.settings.sectionFooter" = "Rechten beheer je in de Gezondheid-app bij Delen › Apps.";
+
+/* Instellingen - Gegevensbronnen */
+"settings.dataSources" = "Gegevensbronnen";
+"settings.dataSourcesFooter" = "Je hebt er maar één nodig. Apple Gezondheid is de standaard voor de meeste diabetessystemen. Nightscout is voor systemen die niet naar Apple Gezondheid kunnen schrijven, of voor ouders die een kind op afstand volgen. Met demo-data kun je de app zonder echte sensor uitproberen.";
+"settings.healthKit" = "Apple Gezondheid";
+
+/* Afscherming - Autorisatie */
+"settings.shieldingAuthorizing" = "Schermtijd aanvragen…";
+"settings.shieldingNotAuthorizedFooter" = "Schermtijd-autorisatie is nodig voordat afscherming daadwerkelijk apps kan blokkeren.";
+"settings.shieldingRequiresDataSource" = "Koppel eerst Apple Gezondheid, Nightscout of demo-data — afscherming heeft glucose- of koolhydraatgegevens nodig om te weten wanneer apps geblokkeerd moeten worden.";
+
+/* Passphrase Prompt */
+"passphrase.title" = "Instellingen Vergrendeld";
+"passphrase.description" = "Voer het wachtwoord in om de instellingen te openen.";
+"passphrase.field" = "Wachtwoord";
+"passphrase.unlockButton" = "Ontgrendelen";
+
+/* Settings */
+"settings.title" = "Instellingen";
+"settings.done" = "Gereed";
+"settings.cancel" = "Annuleren";
+"settings.save" = "Opslaan";
+"settings.excludedAppsHeader" = "Uitgezonderde Apps";
+"settings.excludedAppsFooter" = "Deze apps worden niet afgeschermd.";
+"settings.glucoseHeader %@" = "Glucosedrempels (%@)";
+"settings.glucoseUnit" = "Glucose-eenheid";
+"settings.glucoseUnitFooter" = "Eenheid voor alle glucosewaarden in de app, widgets en afscherming.";
+"settings.highThreshold" = "Hoog";
+"settings.lowThreshold" = "Laag";
+"settings.dataHeader" = "Veroudering Gegevens";
+"settings.staleMinutes" = "Verouderd na";
+"settings.minutesSuffix %lld" = "%lld min";
+"settings.carbHeader" = "Koolhydraten Gratie";
+"settings.carbGrace" = "Geen aandacht vóór";
+"settings.carbGraceFooter" = "Koolhydraat-aandachtschecks worden overgeslagen vóór dit tijdstip elke dag.";
+"settings.hour" = "Uur";
+"settings.minute" = "Minuut";
+"settings.attentionRulesRow" = "Aandachtsregels";
+"settings.shieldingEnabled" = "Afscherming actief";
+"settings.onlyWhenAttention" = "Alleen bij aandacht nodig";
+"settings.onlyWhenAttentionFooter" = "Afscherming is alleen actief wanneer aandacht nodig is. Apps zijn vrij te gebruiken als alles groen is.";
+"settings.shieldingDisabledFooter" = "Afscherming is uit. Geen apps worden afgeschermd.";
+"settings.shieldingHeader" = "Afscherming";
+"settings.intervalsHeader" = "Herhalingsintervallen";
+"settings.intervalsFooter" = "Hoe vaak afscherming terugkeert na wegklikken (minimaal 15 min, iOS-limiet).";
+"settings.attentionInterval" = "Aandacht nodig";
+"settings.noAttentionInterval" = "Geen aandacht nodig";
+"settings.cooldownHeader" = "Aandacht Wachttijd";
+"settings.cooldownFooter" = "Hoe lang het kind moet wachten voor de aandachtspunten weggeklikt kunnen worden.";
+"settings.cooldown" = "Wachttijd";
+"settings.secondsSuffix %lld" = "%lld sec";
+"settings.demoData" = "Demo";
+"settings.demoEnabled" = "Demo";
+"settings.demoFooter" = "Simuleert glucose- en koolhydraatgegevens. Schakel uit om echte HealthKit-gegevens te hervatten.";
+"settings.demoHasData" = "Heeft data";
+"settings.demoGlucose" = "Glucose";
+"settings.demoCarbs" = "Koolhydraten";
+"settings.minutesAgo" = "Minuten geleden";
+"settings.demoAt" = "Op";
+"settings.setPassphrase" = "Wachtwoord Instellen";
+"settings.changePassphrase" = "Wachtwoord Wijzigen";
+"settings.currentPassphrase" = "Huidig wachtwoord";
+"settings.newPassphrase" = "Nieuw wachtwoord";
+"settings.wrongPassphrase" = "Onjuist wachtwoord.";
+"settings.removePassphrase" = "Wachtwoord Verwijderen";
+"passphrase.title.short" = "Wachtwoord";
+"passphrase.setDescriptionChild" = "Sterk aanbevolen. Stel een wachtwoord in zodat je kind de instellingen niet kan wijzigen.";
+"passphrase.setDescriptionAdult" = "Laat iemand die je vertrouwt dit wachtwoord instellen om jezelf verantwoordelijk te houden.";
+"passphrase.changeDescription" = "Voer je huidige wachtwoord in en kies een nieuw wachtwoord.";
+"passphrase.forgotWarning" = "Als je dit wachtwoord vergeet, kun je alleen weer toegang krijgen door de app te verwijderen en opnieuw te installeren — daarbij worden alle instellingen gewist.";
+"passphrase.unlockForgotWarning" = "Wachtwoord vergeten? Je kunt alleen weer toegang krijgen door de app te verwijderen en opnieuw te installeren — daarbij worden alle instellingen gewist.";
+
+/* Aandachtschecks Instellingen */
+"settings.attentionChecksRow" = "Aandachtschecks";
+"settings.scenario.highGlucose" = "Hoge Glucose";
+"settings.scenario.lowGlucose" = "Lage Glucose";
+"settings.scenario.staleSensor" = "Verouderde Sensor";
+"settings.scenario.carbGap" = "KH-gat (4+ uur)";
+"settings.scenario.noGlucoseData" = "Geen Glucosedata";
+"settings.scenario.noCarbData" = "Geen KH-data";
+"settings.addCheck" = "Check Toevoegen";
+"settings.checkPlaceholder" = "Checktekst";
+"settings.restoreDefaults" = "Herstel Standaard";
+"settings.restoreDefaultsConfirm" = "Alle aangepaste checks worden gewist en de standaardwaarden worden hersteld.";
+
+/* Glucosebadge */
+"settings.statusOn" = "Aan";
+"settings.statusOff" = "Uit";
+"settings.resetAll" = "Alle Instellingen Resetten";
+"settings.resetAllConfirm" = "Alle instellingen worden teruggezet naar de standaardwaarden. Je wachtwoord en toegestane apps blijven behouden.";
+"settings.resetAllSuccessTitle" = "Instellingen gereset";
+"settings.resetAllSuccessMessage" = "Alle instellingen zijn teruggezet naar de standaardwaarden.";
+"settings.ok" = "Oké";
+
+/* Glucosebadge */
+"settings.glucoseBadge" = "Glucosebadge";
+"settings.glucoseBadge.off" = "Uit";
+"settings.glucoseBadge.always" = "Altijd";
+"settings.glucoseBadge.onlyWhenAttention" = "Bij aandacht";
+"settings.glucoseBadgeFooter" = "Toon de huidige glucosewaarde als badge op het apppictogram.";
+
+/* Nightscout */
+"settings.nightscout" = "Nightscout";
+"settings.nightscoutEnabled" = "Nightscout inschakelen";
+"settings.nightscoutFooter" = "Haal glucose- en koolhydraatgegevens op van een Nightscout-site. Handig als je op afstand meekijkt bij een kind of als je diabetessysteem niet naar Apple Health maar wel naar Nightscout schrijft. Zijn beide bronnen actief, dan wint de nieuwste waarde.";
+"settings.nightscoutRequiresCredentials" = "Vul hierboven eerst een Nightscout-URL én API-token in voordat je dit kunt inschakelen.";
+"settings.nightscoutVerifying" = "Verbinding controleren…";
+"settings.nightscoutConfigHeader" = "Verbinding";
+"settings.nightscoutConfigFooter" = "Vul de basis-URL van je Nightscout-site in (bijv. https://voorbeeld.nightscoutpro.com). Een API-token is optioneel voor open sites, maar wel aanbevolen.";
+"settings.nightscoutURLPlaceholder" = "https://voorbeeld.nightscoutpro.com";
+"settings.nightscoutTokenPlaceholder" = "API-token (optioneel)";
+"settings.nightscoutTest" = "Verbinding testen";
+"settings.nightscoutTestSuccess" = "Verbonden";
+"settings.nightscoutVersion %@" = "Versie: %@";
+"settings.nightscoutUnits %@" = "Server-eenheid: %@";
+"settings.nightscoutStatusHeader" = "Status";
+"settings.nightscoutLastFetch" = "Laatste update";
+"settings.nightscoutNotConfigured" = "Nog niet ingesteld.";
+"settings.nightscoutDisabled" = "Uitgeschakeld.";
+"settings.nightscoutAwaitingFirstUpdate" = "Wachten op eerste update…";
+
+/* Inchecken */
+"checkin.disarmButton" = "Klaar";
+"checkin.disarmWait" = "Wacht…";
+"checkin.acknowledgedDescription" = "Je hebt al ingecheckt. Afscherming keert binnenkort terug.";
+
+/* Shielding Active */
+"active.title" = "Afscherming Actief";
+"active.description %@" = "%@ beschermt dit apparaat. Apps worden afgeschermd totdat een diabetes-check is voltooid.";

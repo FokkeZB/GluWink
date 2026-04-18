@@ -1,0 +1,16 @@
+.DS_Store
+private/
+
+# Build artifacts (Xcode + SwiftPM derived data)
+.build/
+iOS/build/
+
+# Fastlane (App Store metadata pipeline) — see iOS/fastlane/Fastfile.
+# Generated metadata is regenerated from AppStore/*.md before every push,
+# so it shouldn't live in git (the Markdown is the source of truth).
+iOS/fastlane/metadata/
+iOS/fastlane/screenshots/
+iOS/fastlane/report.xml
+iOS/fastlane/README.md
+iOS/vendor/bundle/
+iOS/.bundle/

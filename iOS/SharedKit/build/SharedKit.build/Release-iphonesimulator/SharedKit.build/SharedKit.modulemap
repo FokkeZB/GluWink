@@ -1,0 +1,4 @@
+module SharedKit {
+header "SharedKit-Swift.h"
+export *
+}

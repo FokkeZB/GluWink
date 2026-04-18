@@ -1,0 +1,6 @@
+app_identifier("nl.fokkezb.GluWink")
+
+# Team IDs are not needed when using an App Store Connect API key —
+# fastlane resolves them from the key. Leave commented for reference.
+# itc_team_id "1234567"
+# team_id     "ABCDE12345"

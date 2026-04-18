@@ -1,0 +1,46 @@
+{
+  "" : {
+    "const-values" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-primary.swiftconstvalues",
+    "dependencies" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-primary.d",
+    "diagnostics" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-primary.dia",
+    "emit-module-dependencies" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-primary-emit-module.dia",
+    "pch" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-primary.swiftdeps"
+  },
+  "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/Sources/SharedKit/AttentionScenario.swift" : {
+    "index-unit-output-path" : "/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/AttentionScenario.o",
+    "llvm-bc" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/AttentionScenario.bc",
+    "object" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/AttentionScenario.o"
+  },
+  "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/Sources/SharedKit/Constants.swift" : {
+    "index-unit-output-path" : "/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/Constants.o",
+    "llvm-bc" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/Constants.bc",
+    "object" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/Constants.o"
+  },
+  "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/Sources/SharedKit/GlucoseUnit.swift" : {
+    "index-unit-output-path" : "/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/GlucoseUnit.o",
+    "llvm-bc" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/GlucoseUnit.bc",
+    "object" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/GlucoseUnit.o"
+  },
+  "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/Sources/SharedKit/NightscoutClient.swift" : {
+    "index-unit-output-path" : "/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/NightscoutClient.o",
+    "llvm-bc" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/NightscoutClient.bc",
+    "object" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/NightscoutClient.o"
+  },
+  "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/Sources/SharedKit/ShieldContent.swift" : {
+    "index-unit-output-path" : "/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/ShieldContent.o",
+    "llvm-bc" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/ShieldContent.bc",
+    "object" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/ShieldContent.o"
+  },
+  "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/Sources/SharedKit/SimulatorWatchBridge.swift" : {
+    "index-unit-output-path" : "/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SimulatorWatchBridge.o",
+    "llvm-bc" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SimulatorWatchBridge.bc",
+    "object" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SimulatorWatchBridge.o"
+  },
+  "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/DerivedSources/resource_bundle_accessor.swift" : {
+    "index-unit-output-path" : "/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/resource_bundle_accessor.o",
+    "llvm-bc" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/resource_bundle_accessor.bc",
+    "object" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/resource_bundle_accessor.o"
+  }
+}

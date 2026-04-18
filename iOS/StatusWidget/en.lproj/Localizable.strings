@@ -1,0 +1,19 @@
+/* Widget */
+"widget.description" = "Glucose and carb status at a glance.";
+"widget.metricTitle" = "Single Metric";
+"widget.metricDescription" = "Show glucose or carbs.";
+
+/* Widget intent (configuration) */
+"widget.intent.metricType" = "Metric";
+"widget.intent.glucose" = "Glucose";
+"widget.intent.carbs" = "Carbs";
+"widget.intent.description" = "Shows glucose or carb status.";
+
+"widget.glucose" = "Glucose";
+"widget.carbs" = "Carbs";
+"widget.noData" = "No data";
+"widget.agoMinutes %d" = "%dm ago";
+"widget.agoHoursMinutes %d %d" = "%dh %dm ago";
+"widget.shortAgoMinutes %d" = "%dm ago";
+"widget.shortAgoHoursMinutes %d %d" = "%dh %dm ago";
+"widget.tapToCheckIn" = "Tap for Tips";

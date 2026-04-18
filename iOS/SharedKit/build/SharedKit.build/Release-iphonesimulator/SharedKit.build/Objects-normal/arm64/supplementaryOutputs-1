@@ -1,0 +1,12 @@
+{
+  "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/DerivedSources/resource_bundle_accessor.swift" : {
+    "abi-baseline-json" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit.abi.json",
+    "const-values" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-primary.swiftconstvalues",
+    "dependencies" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-primary.d",
+    "diagnostics" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-primary.dia",
+    "objc-header" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit-Swift.h",
+    "swiftdoc" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit.swiftdoc",
+    "swiftmodule" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit.swiftmodule",
+    "swiftsourceinfo" : "/Users/fokkezb/Code/GluCoach/iOS/SharedKit/build/SharedKit.build/Release-iphonesimulator/SharedKit.build/Objects-normal/arm64/SharedKit.swiftsourceinfo"
+  }
+}

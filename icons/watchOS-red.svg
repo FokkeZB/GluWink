@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#D93025"/>
+  
+  <!-- Subtle radial glow -->
+  <radialGradient id="glow" cx="50%" cy="48%" r="35%">
+    <stop offset="0%" stop-color="#EF5350" stop-opacity="0.4"/>
+    <stop offset="100%" stop-color="#D93025" stop-opacity="0"/>
+  </radialGradient>
+  <circle cx="512" cy="512" r="400" fill="url(#glow)"/>
+  
+  <!-- Shield shape -->
+  <path d="M512 240 
+           L672 320 
+           L672 520 
+           Q672 660 512 740 
+           Q352 660 352 520 
+           L352 320 
+           Z" 
+        fill="#FCCEC8" 
+        stroke="#8B1A12" 
+        stroke-width="7"
+        stroke-linejoin="round"/>
+  
+  <!-- Inner shield highlight -->
+  <path d="M512 272 
+           L648 342 
+           L648 512 
+           Q648 636 512 708 
+           Q376 636 376 512 
+           L376 342 
+           Z" 
+        fill="none" 
+        stroke="#F5DBD8" 
+        stroke-width="2.5"
+        stroke-linejoin="round"
+        opacity="0.6"/>
+  
+  <!-- Glucose wave line - spiky/high -->
+  <path d="M410 450 
+           L442 390 
+           L472 455 
+           L502 365 
+           L532 450 
+           L562 380 
+           L592 435 
+           L618 370" 
+        fill="none" 
+        stroke="#8B1A12" 
+        stroke-width="15" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- Wave shadow -->
+  <path d="M410 457 
+           L442 397 
+           L472 462 
+           L502 372 
+           L532 457 
+           L562 387 
+           L592 442 
+           L618 377" 
+        fill="none" 
+        stroke="#6B110A" 
+        stroke-width="15" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+        opacity="0.15"/>
+  
+  <!-- Left eye -->
+  <circle cx="468" cy="525" r="16" fill="#8B1A12"/>
+  <circle cx="473" cy="520" r="5" fill="#FCCEC8" opacity="0.5"/>
+  <!-- Left eyebrow - worried -->
+  <path d="M448 505 Q468 496 486 506" fill="none" stroke="#8B1A12" stroke-width="7" stroke-linecap="round"/>
+  
+  <!-- Right eye -->
+  <circle cx="556" cy="525" r="16" fill="#8B1A12"/>
+  <circle cx="561" cy="520" r="5" fill="#FCCEC8" opacity="0.5"/>
+  <!-- Right eyebrow - worried -->
+  <path d="M538 506 Q556 496 576 505" fill="none" stroke="#8B1A12" stroke-width="7" stroke-linecap="round"/>
+  
+  <!-- Frown -->
+  <path d="M478 590 
+           Q512 555 546 590" 
+        fill="none" 
+        stroke="#8B1A12" 
+        stroke-width="12" 
+        stroke-linecap="round"/>
+  
+  <!-- Cheek blush -->
+  <ellipse cx="432" cy="555" rx="22" ry="14" fill="#8B1A12" opacity="0.15"/>
+  <ellipse cx="592" cy="555" rx="22" ry="14" fill="#8B1A12" opacity="0.15"/>
+</svg>

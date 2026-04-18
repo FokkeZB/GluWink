@@ -1,0 +1,12 @@
+"watch.widget.rectangularTitle" = "Status";
+"watch.widget.rectangularDescription" = "Toon glucose en KH samen.";
+"watch.widget.metricTitle" = "Enkele meting";
+"watch.widget.metricDescription" = "Toon glucose of koolhydraten.";
+"watch.widget.noData" = "Geen data";
+"watch.widget.agoMinutes %d" = "%dm";
+"watch.widget.agoHoursMinutes %d %d" = "%du %dm";
+
+"watch.widget.intent.metricType" = "Meting";
+"watch.widget.intent.glucose" = "Glucose";
+"watch.widget.intent.carbs" = "Koolhydraten";
+"watch.widget.intent.description" = "Kies welke meting je wilt tonen.";
