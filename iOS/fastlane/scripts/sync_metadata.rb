@@ -48,7 +48,10 @@ LIMITS = {
   "description.txt"      => 4000,
   "keywords.txt"         => 100,
   "release_notes.txt"    => 4000,
+  "copyright.txt"        => 200,
 }.freeze
+
+LICENSE_PATH = REPO_ROOT.join("LICENSE")
 
 # Parse one `<locale>.md` into { "name.txt" => "GluWink", ... }.
 def parse(md_path)
@@ -129,6 +132,34 @@ def discover_locales
   end
 end
 
+# Extract the Apple-shaped copyright string ("YYYY Holder") from LICENSE.
+# Apple's tooltip: "year the rights were obtained" + "name of the person or
+# entity that owns the exclusive rights" — they auto-prepend ©, so we don't.
+# "and contributors" is a license-file convention, not an ownership claim, so
+# it's stripped here.
+def extract_copyright(license_path)
+  raise "LICENSE not found at #{license_path}" unless license_path.exist?
+
+  match = license_path.read.match(/^Copyright\s*(?:\(c\)|©)?\s*(\d{4})\s+(.+?)\s*$/i)
+  raise "Could not find a 'Copyright (c) YYYY Name' line in #{license_path}" unless match
+
+  year = match[1]
+  holder = match[2].sub(/\s+and contributors\s*$/i, "").strip
+  "#{year} #{holder}"
+end
+
+def write_copyright
+  text = extract_copyright(LICENSE_PATH)
+  limit = LIMITS["copyright.txt"]
+  abort("ERROR: copyright string '#{text}' exceeds #{limit} chars") if text.length > limit
+
+  FileUtils.mkdir_p(METADATA_DIR)
+  path = METADATA_DIR.join("copyright.txt")
+  path.write(text + "\n")
+  puts "→ copyright"
+  puts "  wrote #{path.relative_path_from(METADATA_DIR.parent)} (#{text.length} chars)"
+end
+
 requested = ARGV.empty? ? discover_locales : ARGV
 abort("ERROR: no locales found in #{APPSTORE_DIR}") if requested.empty?
 
@@ -144,5 +175,8 @@ requested.each do |locale|
   validate!(locale, fields)
   write_locale(locale, fields)
 end
+
+# Locale-less fields (one record per app, not per locale).
+write_copyright
 
 puts "\nDone. Metadata written to #{METADATA_DIR.relative_path_from(REPO_ROOT)}/"
