@@ -238,6 +238,7 @@ The marketing version (`MARKETING_VERSION` in the xcodeproj, shown to users as "
 
 On top of the metadata setup above:
 
+- **Family Controls Distribution** approved by Apple for team `Y39937U7XN` — request at https://developer.apple.com/contact/request/family-controls-distribution/. Without this, archive succeeds but `xcodebuild -exportArchive` fails because the auto-generated **Store** profile cannot include `com.apple.developer.family-controls`. Apple grants the **Development** variant of the capability automatically; the **Distribution** variant is a manual review (typically days to a few weeks). See `QUIRKS.md` → "Family Controls Distribution requires manual Apple approval" for the full story.
 - Signed into Xcode at least once with an Apple ID on team `Y39937U7XN` (the one in `DEVELOPMENT_TEAM`). `-allowProvisioningUpdates` talks to that session to fetch the App Store profile.
 - The App target still has `CODE_SIGN_STYLE = Automatic`. If you ever flip it to manual, this lane needs an `export_options.provisioningProfiles` override and re-signing notes.
 - `private/asc-api-key.json` is the one with role **App Manager** or higher — "Developer" can read but not upload.
@@ -260,6 +261,7 @@ Running it again picks a new build number automatically — the lane is safe to 
 
 ### When it fails
 
+- **`Provisioning profile "iOS Team Store Provisioning Profile: nl.fokkezb.GluWink…" doesn't include the Family Controls (Development) capability` / `…doesn't include the com.apple.developer.family-controls entitlement`** — repeated for the App, ShieldConfig, ShieldAction, and DeviceActivityMonitor targets, with `** EXPORT FAILED **` and `Exit status: 70` at the end. The archive built fine; the Distribution profile is missing the entitlement because Apple hasn't approved Family Controls for distribution on this team yet. Submit the request linked in the Prerequisites above and re-run the lane after approval lands. There is no code workaround — stripping the entitlement breaks the app, and ad-hoc / development export can't go to TestFlight. The misleading "(Development)" wording in the error means the profile only carries the auto-granted Development variant, not the Distribution variant the binary needs.
 - **"Cannot find a matching profile"** — sign into Xcode with an account on the `DEVELOPMENT_TEAM` and retry. `-allowProvisioningUpdates` can create profiles but not conjure accounts.
 - **"The bundle version must be higher than the previously uploaded version"** — you're uploading faster than ASC indexes. Wait 30s and rerun; `latest_testflight_build_number` will see the new build and bump past it.
 - **"Invalid API key"** — the key lost its upload role, or expired. Recreate at App Store Connect → Users and Access → Integrations → Keys, save over `private/asc-api-key.json`.
