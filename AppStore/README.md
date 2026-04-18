@@ -85,7 +85,7 @@ Deliver every locale in the **same order** so screenshot #1 is always the same c
 | 3 | **Home Screen widgets** — small + medium + large in a stack, mix of green and red. |
 | 4 | **Settings** — parent / main-app chrome: Attention Rules, Shielding On, data sources, glucose unit. |
 | 5 | **Apple Watch + complications** — watch face with glucose + carbs complications, plus the Watch app. |
-| 6 *(optional)* | **Setup checklist** — Apple Health + Nightscout + demo data choices. |
+| 6 | **Setup checklist** — Apple Health + Nightscout + demo data choices. |
 
 ### Apple Watch scenes (45mm)
 
@@ -96,13 +96,12 @@ Deliver every locale in the **same order** so screenshot #1 is always the same c
 
 ### Captions
 
-Captions for each scene live in the per-locale file under **Screenshot captions**. Each locale file ships its own translations in the same order.
+Captions for each scene live in the per-locale file under **Screenshot captions**. They are the single source of truth: `.claude/skills/appstore-screenshots/scripts/capture.sh` parses the "iPhone" table out of `<locale>.md` and passes the matching caption to the app via `-UITest_Caption`, where `CaptionBanner.swift` renders it as a colored banner at the bottom of the shot (green / red for shield scenes, charcoal otherwise). Apple removed the standalone "caption" field from listings years ago, so there is no separate App Store Connect field to fill in.
 
 ### Production checklist
 
-- [ ] Run `make appstore-screenshots` to render the iPhone deck (scenes 1–4, 6) from the Simulator — the in-app `ScreenshotHarness` renders marketing-equivalent shield, widget, and settings scenes without needing the live Screen Time UI. Scene 5 (Apple Watch) is still manual until the Watch path is wired. See `.claude/skills/appstore-screenshots/SKILL.md` for scene-level flags and locale filters.
+- [ ] Run `make appstore-screenshots` to render the iPhone deck (scenes 1–4, 6) from the Simulator — the in-app `ScreenshotHarness` renders marketing-equivalent shield, widget, and settings scenes without needing the live Screen Time UI, and bakes the per-locale caption straight into the PNG. Scene 5 (Apple Watch) is still manual until the Watch path is wired. See `.claude/skills/appstore-screenshots/SKILL.md` for scene-level flags and locale filters.
 - [ ] Status bar is locked to 9:41, full signal, full battery by the capture script — no extra `xcrun simctl status_bar` commands needed.
-- [ ] Localize captions on the screenshot itself **and** in the App Store Connect caption field.
 - [ ] Avoid real names, school logos, or other identifying information in widget previews.
 - [ ] Keep the green/red faces consistent with the app icon variants in `iOS/App/Assets.xcassets/`.
 
@@ -208,8 +207,9 @@ What is **not** pushed via fastlane (still managed in App Store Connect by hand)
 
 - URLs (Support / Marketing / Privacy Policy) — they're shared across locales and rarely change. See the URLs section above.
 - Category, age rating, App Privacy answers — set once, kept in this README.
-- Screenshots and captions — screenshots are now produced from the Simulator by `.claude/skills/appstore-screenshots`, but captions/frames aren't auto-applied yet. `skip_screenshots` stays `true` in `Deliverfile` until that's wired (tracked in issue #28).
 - The build itself — uploaded via Xcode / Transporter.
+
+Screenshots _are_ pushed by `make appstore-push` now (captions baked in, `skip_screenshots false` in `Deliverfile`). Regenerate with `make appstore-screenshots` first so ASC gets the latest deck.
 
 ### Adding a new locale
 
@@ -225,8 +225,7 @@ What is **not** pushed via fastlane (still managed in App Store Connect by hand)
 Before tapping **Submit for Review**:
 
 - [ ] App name, subtitle, promo text, description, keywords, and What's New filled in for every locale the listing supports.
-- [ ] Screenshots uploaded for at least one required iPhone size, every locale.
-- [ ] Screenshot captions entered per locale.
+- [ ] Screenshots uploaded for at least one required iPhone size, every locale (`make appstore-push` now also uploads them; captions are baked into each PNG from `AppStore/<locale>.md`).
 - [ ] Privacy Policy URL is live and reachable.
 - [ ] Support URL is live and reachable.
 - [ ] App Privacy questionnaire completed ("Data Not Collected").

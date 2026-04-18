@@ -8,7 +8,17 @@ allowed-tools: Bash(bash .claude/skills/appstore-screenshots/scripts/capture.sh:
 
 Drives `iOS/App/ScreenshotHarness.swift` (gated by `#if targetEnvironment(simulator)`) to capture every App Store scene for every locale into `iOS/fastlane/screenshots/<locale>/iPhone-6.9/`. Then waits for explicit user sign-off before uploading via `fastlane deliver`.
 
-See GitHub issues [#28](https://github.com/FokkeZB/GluWink/issues/28) (tracker) and [#29](https://github.com/FokkeZB/GluWink/issues/29) (harness) for design context.
+See GitHub issues [#28](https://github.com/FokkeZB/GluWink/issues/28) (tracker), [#29](https://github.com/FokkeZB/GluWink/issues/29) (harness), and [#31](https://github.com/FokkeZB/GluWink/issues/31) (captions) for design context.
+
+## Captions
+
+Every shot has a marketing caption baked into the bottom ~20% of the PNG by `CaptionBanner.swift`. The text is pulled from `AppStore/<locale>.md` → "Screenshot captions" → iPhone table by `capture.sh` and passed to the app via `-UITest_Caption "..."`. Row number N in the table matches the `NN_` numeric prefix on the captured file.
+
+The banner background matches the scene's brand language: green for `greenShield`, red for `redShield`, charcoal for everything else. Text renders white, 30pt heavy rounded, up to three lines (auto-scales down to 70% for tight translations).
+
+Edit a caption in `AppStore/<locale>.md`, rerun `make appstore-screenshots` (or `capture.sh --scene X --locale Y --no-build` for a single shot), done. No separate caption field in App Store Connect — Apple removed per-screenshot captions from listings years ago, so the Markdown is the only place that matters.
+
+To skip the banner while iterating on app UI (not for the App Store deck), pass `--no-captions`.
 
 ## Scenes
 
@@ -46,11 +56,12 @@ The script writes to `iOS/fastlane/screenshots/<locale>/iPhone-6.9/<NN>_<scene>.
 1. **Capture.** Run the script with no args. Use `--no-build` if a fresh `xcodebuild` already happened in this session.
 2. **Review every PNG.** Read each file in the agent client and check:
    - Status bar reads `9:41`, full bars, full battery (charged charging glyph).
-   - Glucose / carb numbers match the harness presets (greenShield: 6.4 mmol/L + 25 g; redShield: 14.8 mmol/L + 30 g).
+   - Glucose / carb numbers match the harness presets (greenShield: 6.4 mmol/L + 25 g; redShield: 14.8 mmol/L + 30 g). English locales display as mg/dL, everything else as mmol/L.
+   - Caption matches the matching row in `AppStore/<locale>.md` → "Screenshot captions" and reads cleanly without hitting the 3-line limit.
    - Title text is in the right language and reads cleanly (titles are randomized per launch — re-run a single scene if you got an awkward one, the harness re-rolls).
    - No `SetupChecklistCard` visible on greenShield / redShield / settings / widgets (only on `setupChecklist`).
 3. **Show the user a summary** with file paths and any concerns (e.g. "the redShield title came out as 'Take a look!' — want me to re-roll?"). **Do not push** without explicit sign-off.
-4. **On approval:** flip `iOS/fastlane/Deliverfile` line 16 from `skip_screenshots true` to `false` (and any other steps from issue #28 → "Flipping the upload switch") if not already done, then `make appstore-push`.
+4. **On approval:** `make appstore-push` (screenshots upload alongside metadata — `Deliverfile` is already configured with `skip_screenshots false`).
 
 ## Re-rolling a single scene
 
@@ -76,7 +87,7 @@ Repeat until the title reads well in marketing context.
 | `CoreSimulatorService connection became invalid` | simctl can't talk to the host service | Run any `xcrun simctl …` once outside the agent sandbox; opening Xcode also fixes it |
 | Captures show wrong language | `-AppleLanguages` ignored by some screens | Confirm the locale file exists in the iOS bundle (`iOS/App/<lang>.lproj/`) |
 | `SetupChecklistCard` showing on greenShield / redShield | Build is stale (harness fix not yet compiled) | Drop `--no-build` and rerun |
-| `home` scene looks identical to `greenShield` | They are, intentionally — see scene table | Either pick one in App Store Connect or evolve the `home` preset in `ScreenshotHarness.swift` |
+| Caption too long → script exits with "caption … is N chars" | Caption in `AppStore/<locale>.md` exceeds the hard limit (80 chars) | Tighten the translation or shorten the English source; the limit is set in `capture.sh` at the top |
 | Status bar shows real values | `simctl status_bar override` didn't apply | Boot the sim once (`xcrun simctl boot "iPhone 17 Pro Max"`) and rerun |
 | Build error about `ScreenshotHarness` | Old branch / harness file missing | Confirm `iOS/App/ScreenshotHarness.swift` exists; the App target uses synced groups so it should compile automatically |
 | Setup checklist scene looks half-configured | Previous `settings` run left flags in the App Group | Rerun the whole deck (no `--scene`); the harness resets data-source / shielding flags on every launch |
@@ -88,5 +99,4 @@ The settings scene writes `mockModeEnabled`, `shieldingEnabled`, and `healthKitE
 ## What this skill does NOT do (yet)
 
 - **Apple Watch (scene 05)**: needs the Watch simulator and the `WatchApp` scheme. Same harness pattern would work; not yet wired.
-- **Caption rendering / device frames**: tracked under issue #31 (`fastlane frameit` driven from the Markdown captions).
-- **Auto-upload**: this skill stops at "PNGs on disk + user reviewed". The push step is the existing `make appstore-push`, which only includes screenshots once `Deliverfile` line 16 flips to `skip_screenshots false` (see issue #28 → "Flipping the upload switch").
+- **Auto-upload**: this skill stops at "PNGs on disk + user reviewed". The push step is the existing `make appstore-push`, which picks up the generated PNGs and uploads them alongside metadata.

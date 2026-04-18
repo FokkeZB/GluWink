@@ -14,6 +14,9 @@ import SwiftUI
 struct WidgetShowcaseView: View {
     // Widget geometry for a 6.9" iPhone. Hard-coded because we only capture
     // on one device class right now; revisit when we add iPad or 6.7".
+    // These match the real WidgetKit point sizes — the caption banner is
+    // a translucent overlay, so the large tile is free to extend under it
+    // without being clipped.
     private let smallSide: CGFloat = 170
     private let mediumSize = CGSize(width: 364, height: 170)
     private let largeSize = CGSize(width: 364, height: 382)
