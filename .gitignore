@@ -5,6 +5,11 @@ private/
 .build/
 iOS/build/
 
+# Xcode per-user state (open tabs, scroll position, scheme selection).
+# Regenerated on every Xcode launch — never useful in git.
+**/xcuserdata/
+**/*.xcuserstate
+
 # Fastlane (App Store metadata pipeline) — see iOS/fastlane/Fastfile.
 # Generated metadata is regenerated from AppStore/*.md before every push,
 # so it shouldn't live in git (the Markdown is the source of truth).
