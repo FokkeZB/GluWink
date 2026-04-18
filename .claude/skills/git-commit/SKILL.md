@@ -86,7 +86,11 @@ Bad (and why):
    - `git diff` — unstaged.
    - `git diff --cached` — staged.
    - `git log --oneline -10` — match the existing tone (skip if there are no commits yet).
-2. **Group, don't dump.** If the diff spans multiple unrelated concerns, split into multiple commits with selective `git add <path>` (or `git add -p` for hunks). Atomic commits make `git log` and `git revert` actually useful.
+2. **Always split into commits that tell a story.** The default is multiple commits, not one. Before staging anything, read the full diff and identify the distinct stories in it — each logical change (a feature, a fix, a refactor, a doc update) gets its own commit. A reader skimming `git log --oneline` should be able to reconstruct *why* the working tree moved from A to B, one beat at a time. Only fall back to a single commit when the diff genuinely is one story (e.g. a one-line typo fix). When in doubt, split.
+   - Group by **intent**, not by file. Two files edited for the same reason → one commit. One file edited for two reasons → two commits (split with `git add -p`).
+   - Order commits so each one stands on its own and the repo builds/runs at every step. Docs-only reframes before the code that motivates them; infra/plumbing before the feature that uses it; feature before the doc that describes it — whichever order makes each commit self-contained.
+   - Stage selectively: `git add <path>` for whole files, `git add -p <path>` for hunk-level splits. `printf 'n\ny\nq\n' | git add -p <path>` works non-interactively when you know which hunks to pick.
+   - After each commit, re-run `git status` + `git diff` to make sure the remaining diff is exactly the next story — no stragglers, no accidental drops.
 3. **Verify before committing.** Run `git status` again to confirm only the intended files are staged.
 4. **Use a HEREDOC** so multi-line bodies survive shell quoting:
 
@@ -106,7 +110,7 @@ Bad (and why):
    )"
    ```
 
-5. **Don't push automatically.** Push only when the user explicitly asks. The remote is `git@github.com:FokkeZB/GluWink.git`.
+5. **Don't push automatically.** Push only when the user explicitly asks. The remote is `git@github.com:FokkeZB/GluWink.git`. When the user does ask, push once after all the split commits have landed — not between each one.
 
 ## Pre-flight safety
 
