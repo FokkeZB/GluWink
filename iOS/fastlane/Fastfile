@@ -7,8 +7,16 @@
 default_platform(:ios)
 opt_out_usage
 
-API_KEY_PATH = "../../private/asc-api-key.json" # repo-root /private/, from iOS/fastlane/
-SYNC_SCRIPT  = File.expand_path("scripts/sync_metadata.rb", __dir__)
+API_KEY_PATH     = "../../private/asc-api-key.json"     # repo-root /private/, from iOS/fastlane/
+REVIEW_INFO_PATH = "../../private/asc-review-info.json" # ditto — App Review Contact Info + demo + notes
+SYNC_SCRIPT      = File.expand_path("scripts/sync_metadata.rb", __dir__)
+
+# Review info fields fastlane will accept on `deliver(app_review_information: …)`.
+REVIEW_INFO_KEYS = %i[first_name last_name phone_number email_address demo_user demo_password notes].freeze
+
+# These four are the ones App Store Connect rejects when blank. demo_user /
+# demo_password / notes are optional — GluWink doesn't require login.
+REVIEW_INFO_REQUIRED = %i[first_name last_name phone_number email_address].freeze
 
 def require_api_key!
   abs = File.expand_path(API_KEY_PATH, __dir__)
@@ -27,6 +35,36 @@ def require_api_key!
   )
 end
 
+# Load App Review Contact Info from private/asc-review-info.json. Returns a
+# symbol-keyed hash ready to pass as `deliver(app_review_information: …)`, or
+# `nil` if the file is absent (so day-to-day text-only pushes still work).
+# Errors loudly if the file is present but missing required values — those are
+# exactly the fields ASC rejects with HTTP 409.
+def load_review_info
+  require "json"
+
+  abs = File.expand_path(REVIEW_INFO_PATH, __dir__)
+  unless File.exist?(abs)
+    UI.important(
+      "No #{REVIEW_INFO_PATH} found — skipping App Review Contact Info upload. " \
+      "Fill it in before submitting for review."
+    )
+    return nil
+  end
+
+  data = JSON.parse(File.read(abs))
+  missing = REVIEW_INFO_REQUIRED.select { |k| data[k.to_s].to_s.strip.empty? }
+  unless missing.empty?
+    UI.user_error!(
+      "App Review contact info at #{abs} is missing required values: " \
+      "#{missing.join(', ')}.\n" \
+      "Phone number must include the country code, e.g. '+31 6 1234 5678'."
+    )
+  end
+
+  REVIEW_INFO_KEYS.each_with_object({}) { |k, h| h[k] = data[k.to_s] if data.key?(k.to_s) }
+end
+
 platform :ios do
   desc "Regenerate fastlane/metadata/* from AppStore/<locale>.md"
   lane :sync_metadata do |options|
@@ -40,17 +78,30 @@ platform :ios do
     sync_metadata(locales: (options[:locales] || "").split(","))
     api_key_path = require_api_key!
 
+    # Wipe any stale `metadata/review_information/` directory left over from a
+    # previous `pull_metadata`. fastlane unconditionally PATCHes whatever is in
+    # there, and empty/blank files trigger HTTP 409 from ASC. Authoritative
+    # review info now lives in `private/asc-review-info.json` and is passed
+    # explicitly via `app_review_information:` below.
+    review_dir = File.expand_path("metadata/review_information", __dir__)
+    FileUtils.rm_rf(review_dir) if File.exist?(review_dir)
+
     # Workaround for fastlane bug: deliver crashes on brand-new versions because
     # `review_attachment_file` calls `fetch_app_store_review_detail` without
     # rescuing the empty-body response. Pre-create the record so the fetch
     # returns a real model. Idempotent — does nothing if it already exists.
     ensure_review_detail!(api_key_path)
 
-    deliver(
+    deliver_options = {
       api_key_path: api_key_path,
       force: true, # skip the HTML preview prompt
       run_precheck_before_submit: false,
-    )
+    }
+
+    review_info = load_review_info
+    deliver_options[:app_review_information] = review_info if review_info
+
+    deliver(**deliver_options)
   end
 
   # Make sure the editable App Store version has an AppStoreReviewDetail record.
