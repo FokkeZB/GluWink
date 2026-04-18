@@ -56,7 +56,7 @@ venv-clean:
 
 # --- App Store listing (fastlane deliver) ---
 
-.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull
+.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots
 
 ## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile)
 appstore-bootstrap:
@@ -74,3 +74,9 @@ appstore-push:
 ## Download current App Store metadata into iOS/fastlane/metadata/ (snapshot only)
 appstore-pull:
 	cd iOS && bundle exec fastlane pull_metadata
+
+## Regenerate the App Store screenshot deck (every scene × every locale).
+## Writes PNGs into iOS/fastlane/screenshots/<locale>/iPhone-6.9/.
+## See .claude/skills/appstore-screenshots/SKILL.md for what's covered.
+appstore-screenshots:
+	bash .claude/skills/appstore-screenshots/scripts/capture.sh
