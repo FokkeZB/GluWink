@@ -18,6 +18,14 @@ struct MainApp: App {
         // it usable as a "first launch after install" sentinel.
         Self.handleFirstLaunchAfterInstall()
 
+        #if targetEnvironment(simulator)
+        // When a fastlane snapshot run launched us with `-UITest_Scene`,
+        // seed the App Group with the scene's glucose / carb values so the
+        // widget and watch processes render the same state as the main
+        // app. No-op outside of a harness run.
+        ScreenshotHarness.seedAppGroupIfNeeded()
+        #endif
+
         // Register HealthKit observers early if the user has already granted
         // HealthKit permission in a past launch. We check by looking at
         // whether we've moved past `.notDetermined` — that's the only state
@@ -46,6 +54,19 @@ struct MainApp: App {
             ContentView()
                 .task {
                     let data = SharedDataManager.shared
+
+                    #if targetEnvironment(simulator)
+                    // Under the screenshot harness, skip HealthKit and
+                    // Nightscout entirely — the App Group was already
+                    // seeded in `init()` with deterministic values, and
+                    // re-fetching would either clobber them (HK sample
+                    // timestamp is newer) or wake the network and stall
+                    // the capture.
+                    if ScreenshotHarness.isActive {
+                        WatchSessionManager.shared.sendLatestContext()
+                        return
+                    }
+                    #endif
 
                     // HealthKit: re-request + enable background delivery
                     // if the user has been asked at least once, and try an

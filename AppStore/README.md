@@ -83,7 +83,7 @@ Deliver every locale in the **same order** so screenshot #1 is always the same c
 | 1 | **Green shield** — friendly face, "Looking good!", glucose + carbs visible, single Continue button. |
 | 2 | **Red shield** — red face, "Heads up!", glucose high, action checks visible. |
 | 3 | **Home Screen widgets** — small + medium + large in a stack, mix of green and red. |
-| 4 | **Parent / main app view** — shielding active screen, gear icon, status. |
+| 4 | **Settings** — parent / main-app chrome: Attention Rules, Shielding On, data sources, glucose unit. |
 | 5 | **Apple Watch + complications** — watch face with glucose + carbs complications, plus the Watch app. |
 | 6 *(optional)* | **Setup checklist** — Apple Health + Nightscout + demo data choices. |
 
@@ -100,8 +100,8 @@ Captions for each scene live in the per-locale file under **Screenshot captions*
 
 ### Production checklist
 
-- [ ] Render screenshots from a real device (Screen Time UI does not work in the Simulator — see `QUIRKS.md`).
-- [ ] Use the same status bar (full battery, full signal, no notifications) — `xcrun simctl status_bar` for any non-shield screens captured in the Simulator.
+- [ ] Use `.claude/skills/appstore-screenshots/scripts/capture.sh` to render the iPhone deck (scenes 1–4, 6) from the Simulator — the in-app `ScreenshotHarness` renders marketing-equivalent shield, widget, and settings scenes without needing the live Screen Time UI. Scene 5 (Apple Watch) is still manual until the Watch path is wired.
+- [ ] Status bar is locked to 9:41, full signal, full battery by the capture script — no extra `xcrun simctl status_bar` commands needed.
 - [ ] Localize captions on the screenshot itself **and** in the App Store Connect caption field.
 - [ ] Avoid real names, school logos, or other identifying information in widget previews.
 - [ ] Keep the green/red faces consistent with the app icon variants in `iOS/App/Assets.xcassets/`.
@@ -208,7 +208,7 @@ What is **not** pushed via fastlane (still managed in App Store Connect by hand)
 
 - URLs (Support / Marketing / Privacy Policy) — they're shared across locales and rarely change. See the URLs section above.
 - Category, age rating, App Privacy answers — set once, kept in this README.
-- Screenshots and captions — produced from real devices, not yet automated.
+- Screenshots and captions — screenshots are now produced from the Simulator by `.claude/skills/appstore-screenshots`, but captions/frames aren't auto-applied yet. `skip_screenshots` stays `true` in `Deliverfile` until that's wired (tracked in issue #28).
 - The build itself — uploaded via Xcode / Transporter.
 
 ### Adding a new locale

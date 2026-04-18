@@ -57,26 +57,38 @@ struct SetupChecklistCard: View {
     }
 
     var body: some View {
-        if shouldRender {
-            card
-                .onAppear { refresh() }
-                .onChange(of: refreshToken) { _, _ in refresh() }
-                .sheet(item: $presentedSheet, onDismiss: { refresh() }) { sheet in
-                    sheetContent(for: sheet)
-                }
-                .confirmationDialog(
-                    String(localized: "setup.checklist.hideConfirmTitle"),
-                    isPresented: $showHideConfirmation,
-                    titleVisibility: .visible
-                ) {
-                    Button(String(localized: "setup.checklist.hideConfirmAction"), role: .destructive) {
-                        withAnimation { hideTips() }
-                    }
-                    Button(String(localized: "settings.cancel"), role: .cancel) {}
-                } message: {
-                    Text("setup.checklist.hideConfirmMessage", tableName: "Localizable")
-                }
+        #if targetEnvironment(simulator)
+        if let scene = ScreenshotHarness.current, scene.hidesSetupChecklist {
+            EmptyView()
+        } else if shouldRender {
+            renderedCard
         }
+        #else
+        if shouldRender {
+            renderedCard
+        }
+        #endif
+    }
+
+    private var renderedCard: some View {
+        card
+            .onAppear { refresh() }
+            .onChange(of: refreshToken) { _, _ in refresh() }
+            .sheet(item: $presentedSheet, onDismiss: { refresh() }) { sheet in
+                sheetContent(for: sheet)
+            }
+            .confirmationDialog(
+                String(localized: "setup.checklist.hideConfirmTitle"),
+                isPresented: $showHideConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button(String(localized: "setup.checklist.hideConfirmAction"), role: .destructive) {
+                    withAnimation { hideTips() }
+                }
+                Button(String(localized: "settings.cancel"), role: .cancel) {}
+            } message: {
+                Text("setup.checklist.hideConfirmMessage", tableName: "Localizable")
+            }
     }
 
     // MARK: - Visibility

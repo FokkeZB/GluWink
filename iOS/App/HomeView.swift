@@ -62,6 +62,17 @@ struct HomeView: View {
     init() {
         #if targetEnvironment(simulator)
         _isDisarmed = State(initialValue: false)
+
+        if let preset = ScreenshotHarness.current?.homeViewPreset {
+            _glucose = State(initialValue: preset.glucose)
+            _glucoseMinutesAgo = State(initialValue: preset.glucoseMinutesAgo)
+            _carbGrams = State(initialValue: preset.carbGrams)
+            _carbMinutesAgo = State(initialValue: preset.carbMinutesAgo)
+            _hasGlucoseData = State(initialValue: preset.hasGlucoseData)
+            _hasCarbData = State(initialValue: preset.hasCarbData)
+            _mockShieldingEnabled = State(initialValue: preset.shieldingEnabled)
+            _mockDisarmed = State(initialValue: preset.disarmed)
+        }
         #else
         _isDisarmed = State(initialValue: SharedDataManager.shared.isShieldDisarmed)
         #endif
@@ -119,6 +130,9 @@ struct HomeView: View {
     /// screen explains what to do instead of showing "--".
     private var showsWelcome: Bool {
         #if targetEnvironment(simulator)
+        if let preset = ScreenshotHarness.current?.homeViewPreset {
+            return preset.forceWelcome
+        }
         return false
         #else
         let data = SharedDataManager.shared
@@ -221,12 +235,14 @@ struct HomeView: View {
         }
         #if targetEnvironment(simulator)
         .overlay(alignment: .bottomTrailing) {
-            Button {
-                showMockControls = true
-            } label: {
-                Image(systemName: "ladybug")
-                    .font(.title2)
-                    .padding(12)
+            if !ScreenshotHarness.isActive {
+                Button {
+                    showMockControls = true
+                } label: {
+                    Image(systemName: "ladybug")
+                        .font(.title2)
+                        .padding(12)
+                }
             }
         }
         .sheet(isPresented: $showMockControls) {
