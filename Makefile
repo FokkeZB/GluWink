@@ -56,7 +56,7 @@ venv-clean:
 
 # --- App Store listing (fastlane deliver) ---
 
-.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots
+.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta
 
 ## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile)
 appstore-bootstrap:
@@ -80,3 +80,11 @@ appstore-pull:
 ## See .claude/skills/appstore-screenshots/SKILL.md for what's covered.
 appstore-screenshots:
 	bash .claude/skills/appstore-screenshots/scripts/capture.sh
+
+## Build a Release archive and upload it to TestFlight.
+## Auto-bumps the build number from the latest TestFlight build and uses
+## Xcode-managed signing. Requires private/asc-api-key.json and being
+## signed into Xcode with the development team.
+## See AppStore/README.md → "Releasing a TestFlight build".
+appstore-beta:
+	cd iOS && bundle exec fastlane beta
