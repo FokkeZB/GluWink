@@ -27,15 +27,17 @@ Locales come from `AppStore/<locale>.md`. Today: `en-US`, `nl-NL`. Adding a new 
 
 ```bash
 # Capture every scene × every locale (one build, ~30s end-to-end)
-bash .claude/skills/appstore-screenshots/scripts/capture.sh
+make appstore-screenshots
 
-# Iterate on one scene without rebuilding
+# Iterate on one scene without rebuilding — drop down to the script directly
 bash .claude/skills/appstore-screenshots/scripts/capture.sh \
     --scene redShield --locale en-US --no-build
 
 # Different simulator (default is "iPhone 17 Pro Max", the 6.9" device)
 bash .claude/skills/appstore-screenshots/scripts/capture.sh --device "iPhone 16 Pro Max"
 ```
+
+`make appstore-screenshots` is the short alias for the full-deck capture. Use the raw `capture.sh` path for the `--scene` / `--locale` / `--device` / `--no-build` flags.
 
 The script writes to `iOS/fastlane/screenshots/<locale>/iPhone-6.9/<NN>_<scene>.png` and locks the simulator status bar to 9:41, full battery, full bars before each shot.
 

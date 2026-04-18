@@ -100,7 +100,7 @@ Captions for each scene live in the per-locale file under **Screenshot captions*
 
 ### Production checklist
 
-- [ ] Use `.claude/skills/appstore-screenshots/scripts/capture.sh` to render the iPhone deck (scenes 1–4, 6) from the Simulator — the in-app `ScreenshotHarness` renders marketing-equivalent shield, widget, and settings scenes without needing the live Screen Time UI. Scene 5 (Apple Watch) is still manual until the Watch path is wired.
+- [ ] Run `make appstore-screenshots` to render the iPhone deck (scenes 1–4, 6) from the Simulator — the in-app `ScreenshotHarness` renders marketing-equivalent shield, widget, and settings scenes without needing the live Screen Time UI. Scene 5 (Apple Watch) is still manual until the Watch path is wired. See `.claude/skills/appstore-screenshots/SKILL.md` for scene-level flags and locale filters.
 - [ ] Status bar is locked to 9:41, full signal, full battery by the capture script — no extra `xcrun simctl status_bar` commands needed.
 - [ ] Localize captions on the screenshot itself **and** in the App Store Connect caption field.
 - [ ] Avoid real names, school logos, or other identifying information in widget previews.
