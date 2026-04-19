@@ -36,11 +36,11 @@ Apple character limits are noted next to each field in the per-locale files. Any
 
 ## URLs
 
-The domain is **`gluwink.app`** (GitHub Pages, served from the repo).
+The domain is **`gluwink.com`** (GitHub Pages, served from the repo).
 
-- **Support URL:** `https://gluwink.app/support` — page that links to GitHub Issues.
-- **Marketing URL:** `https://gluwink.app`
-- **Privacy Policy URL:** `https://gluwink.app/privacy` — must exist before submission.
+- **Support URL:** `https://gluwink.com/support` — page that links to GitHub Issues.
+- **Marketing URL:** `https://gluwink.com`
+- **Privacy Policy URL:** `https://gluwink.com/privacy` — must exist before submission.
 
 These URLs are the same across every locale. The marketing site itself must have a localized variant (or a language switcher) before the corresponding App Store locale goes live.
 

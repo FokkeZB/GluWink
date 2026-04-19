@@ -2,7 +2,7 @@
 
 Static Jekyll site served by **GitHub Pages** from the `main` branch's
 `/docs` folder. No Actions workflow builds the site — Pages runs the
-allowlisted Jekyll plugins on its own. Lives at **`https://gluwink.app`**
+allowlisted Jekyll plugins on its own. Lives at **`https://gluwink.com`**
 (custom domain via `docs/CNAME`).
 
 The screenshots drift-check (`.github/workflows/screenshots-sync-check.yml`)
@@ -12,7 +12,7 @@ is a separate, small workflow that has nothing to do with the site build.
 
 ```
 docs/
-├── CNAME                           gluwink.app (custom-domain marker)
+├── CNAME                           gluwink.com (custom-domain marker)
 ├── _config.yml                     site config; flip `launched: true` at v1.0
 ├── Gemfile                         pinned to the github-pages gem
 ├── _data/
@@ -177,12 +177,12 @@ If you want the consistency of self-hosted Inter:
 The whole change is one CSS file + 4 woff2 files; no other code touches
 font loading.
 
-## Deploying to `gluwink.app`
+## Deploying to `gluwink.com`
 
 GitHub side (one-time):
 
 1. Settings → Pages → Source: **Deploy from a branch** → `main` / `/docs`.
-2. Settings → Pages → Custom domain: **`gluwink.app`** → tick **Enforce
+2. Settings → Pages → Custom domain: **`gluwink.com`** → tick **Enforce
    HTTPS** once the certificate provisions.
 
 DNS side (registrar):
@@ -197,16 +197,16 @@ doesn't support ALIAS / ANAME. Latest list:
 <https://docs.github.com/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain>.
 
 After DNS propagates (minutes to a few hours), GitHub re-issues the cert
-automatically, the green check appears under Pages, and `https://gluwink.app`
+automatically, the green check appears under Pages, and `https://gluwink.com`
 serves this folder.
 
 ## App Store URL checklist (before submitting v1.0)
 
 App Review verifies these URLs exist and return 200 in every locale:
 
-- `https://gluwink.app/` and `https://gluwink.app/nl/` — marketing
-- `https://gluwink.app/privacy/` and `https://gluwink.app/nl/privacy/`
-- `https://gluwink.app/support/` and `https://gluwink.app/nl/support/`
+- `https://gluwink.com/` and `https://gluwink.com/nl/` — marketing
+- `https://gluwink.com/privacy/` and `https://gluwink.com/nl/privacy/`
+- `https://gluwink.com/support/` and `https://gluwink.com/nl/support/`
 
 The Medical category specifically requires Privacy + Support to be live
 before submission.
