@@ -1,0 +1,15 @@
+---
+layout: page
+id: privacy
+permalink: /privacy/
+title: "Privacy Policy"
+meta_title: "Privacy Policy — GluWink"
+meta_description: "GluWink does not collect any data. HealthKit data stays on the device. Nightscout data is read directly from your own server."
+---
+{%- assign p = site.data.en.privacy_page -%}
+<p class="prose__meta">{{ p.last_updated }}</p>
+<p class="prose__lede">{{ p.intro }}</p>
+{%- for section in p.sections -%}
+  <h2>{{ section.heading }}</h2>
+  <p>{{ section.body }}</p>
+{%- endfor -%}

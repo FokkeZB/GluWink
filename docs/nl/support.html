@@ -1,0 +1,27 @@
+---
+layout: page
+id: support
+lang: nl
+locale: nl-NL
+hreflang_other: en
+hreflang_other_url: /support/
+permalink: /nl/support/
+title: "Hulp"
+meta_title: "Hulp — GluWink"
+meta_description: "Hulp bij GluWink. Veelgestelde vragen, plus een link om een issue op GitHub te openen."
+---
+{%- assign s = site.data.nl.support_page -%}
+<p class="prose__lede">{{ s.intro }}</p>
+<p>
+  <a class="btn btn--primary" href="{{ s.cta_url }}" rel="noopener">{{ s.cta_label }}</a>
+</p>
+
+<h2>{{ s.faq_heading }}</h2>
+<div class="faq">
+  {%- for item in s.faqs -%}
+    <details class="faq__item">
+      <summary>{{ item.q }}</summary>
+      <p>{{ item.a }}</p>
+    </details>
+  {%- endfor -%}
+</div>

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="{{ page.lang | default: 'en' }}" dir="{{ page.dir | default: 'ltr' }}">
+<head>
+  {%- include head.html -%}
+</head>
+<body class="page page--{{ page.id | default: 'home' }}">
+  <a class="visually-hidden visually-hidden--focusable" href="#main">Skip to content</a>
+  {%- include header.html -%}
+  <main id="main">
+    {{ content }}
+  </main>
+  {%- include footer.html -%}
+  <script src="{{ '/assets/js/hero-carousel.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
+</body>
+</html>
