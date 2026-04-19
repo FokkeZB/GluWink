@@ -9,12 +9,14 @@
 
 :root {
   --bg: #ffffff;
-  --bg-soft: #f5f6f8;
+  /* Warm cream rather than cool gray so the alternating sections feel
+     inviting rather than clinical. Just enough to read as "off-white". */
+  --bg-soft: #f7f4ee;
   --bg-elev: #ffffff;
   --fg: #0f1115;
   --fg-soft: #4a5260;
   --fg-mute: #6b7280;
-  --line: #e6e8ec;
+  --line: #ece8df;
   --brand: #0a84ff;       /* iOS systemBlue, matches the app's accent */
   --brand-ink: #ffffff;
   --green: #34c759;       /* iOS systemGreen — "all clear" */
@@ -41,6 +43,13 @@
     --brand: #0a84ff;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6);
     --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.55);
+  }
+  /* Tone the hero gradient down in dark mode — the peach reads garish on
+     near-black, but a faint warm glow keeps it from feeling sterile. */
+  .hero {
+    background:
+      radial-gradient(80% 60% at 100% 0%, rgba(10, 132, 255, 0.18), transparent 65%),
+      radial-gradient(70% 60% at 0% 100%, rgba(255, 159, 90, 0.10), transparent 65%);
   }
 }
 
@@ -86,25 +95,164 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
 }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--fg); font-weight: 600; }
 .brand:hover { text-decoration: none; }
-.brand img { width: 32px; height: 32px; border-radius: 8px; }
+.brand img {
+  width: 40px; height: 40px;
+  /* iOS app-icon squircle (Apple uses ~22.37%). The PNG is square so we
+     need to round it ourselves; the same value below makes the floating
+     hero tile read as a real home-screen icon. */
+  border-radius: 22.37%;
+  box-shadow: 0 1px 1px rgba(15, 17, 21, 0.12), 0 0 0 1px rgba(15, 17, 21, 0.04);
+}
 .brand__name { font-size: 17px; letter-spacing: -0.01em; }
 .nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .nav a { color: var(--fg-soft); padding: 8px 12px; border-radius: 8px; font-size: 15px; font-weight: 500; }
 .nav a:hover { color: var(--fg); background: var(--bg-soft); text-decoration: none; }
 .nav__lang { color: var(--brand) !important; }
 
-/* Hero */
-.hero { padding: clamp(48px, 9vw, 96px) 0 clamp(24px, 4vw, 48px); }
-.hero__inner { max-width: 760px; }
+/* Hero — two-column on desktop (copy + framed phone). The soft radial
+   gradients warm up an otherwise stark above-the-fold and pull the eye
+   toward the phone on the right. */
+.hero {
+  padding: clamp(48px, 9vw, 96px) 0 clamp(48px, 7vw, 80px);
+  background:
+    radial-gradient(80% 60% at 100% 0%, rgba(10, 132, 255, 0.10), transparent 65%),
+    radial-gradient(70% 60% at 0% 100%, rgba(255, 198, 150, 0.45), transparent 65%);
+}
+.hero__inner {
+  display: grid;
+  gap: clamp(32px, 6vw, 56px);
+  grid-template-columns: 1fr;
+  align-items: center;
+}
+@media (min-width: 900px) {
+  .hero__inner { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+}
+.hero__copy { max-width: 60ch; }
+/* position: relative so the floating app-icon tile can anchor to the
+   media column rather than the whole hero. */
+.hero__media { display: flex; justify-content: center; align-items: center; }
+
+/* Hero carousel — wraps the phone, dot pager, and the floating app icon.
+   Vertical flex column so the dots sit directly under the bezel. The
+   carousel itself is the positioning context for .hero__app-icon (instead
+   of .hero__media) so the icon stays glued to the phone, not the column. */
+.hero-carousel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  outline: none;
+}
+/* Show keyboard focus on the phone bezel rather than the wrap so the
+   focus ring reads as "you're driving the carousel now". */
+.hero-carousel:focus-visible .iphone {
+  outline: 3px solid var(--brand);
+  outline-offset: 6px;
+}
+.hero-carousel__slides {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hero-carousel__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+.hero-carousel__slide.is-active { opacity: 1; }
+.hero-carousel__slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-carousel__slide { transition: none; }
+}
+
+/* Pager dots — small, brand-tinted when active, large enough to be a
+   comfortable touch target (button is 24x24, the visible dot is 10x10). */
+.hero-carousel__dots {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.hero-carousel__dots button {
+  width: 24px; height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.hero-carousel__dots button::before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--fg-mute);
+  opacity: 0.35;
+  transition: background 150ms ease, opacity 150ms ease, transform 150ms ease;
+}
+.hero-carousel__dots button:hover::before { opacity: 0.7; }
+.hero-carousel__dots button:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+.hero-carousel__dots button[aria-current="true"]::before {
+  background: var(--brand);
+  opacity: 1;
+  transform: scale(1.25);
+}
+
+/* Floating app-icon tile — the friendly face is the brand, so we lift
+   the iOS app icon off the top-left of the hero phone like a sticker
+   that's been peeled forward. iOS squircle radius (22.37%), soft drop
+   shadow and a hairline highlight for that "real home-screen icon"
+   feel. Sized in clamp() so it scales with viewport. */
+.hero__app-icon {
+  position: absolute;
+  z-index: 2;
+  width: clamp(80px, 12vw, 132px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  top: -8%;
+  /* Tuck it just outside the phone bezel on the left. The iPhone
+     frame in .iphone--xl maxes at 380px and the carousel column is
+     phone-width, so 50% = phone center. We pull left by half-icon
+     plus a phone-width-relative offset. */
+  left: calc(50% - (clamp(80px, 12vw, 132px) / 2) - clamp(110px, 16vw, 180px));
+  border-radius: 22.37%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    0 1px 0 rgba(255, 255, 255, 0.10),
+    0 26px 40px -16px rgba(15, 17, 21, 0.35),
+    0 8px 16px -8px rgba(15, 17, 21, 0.20);
+  transform: rotate(-4deg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero__app-icon { transition: transform 320ms ease; }
+  .hero-carousel:hover .hero__app-icon { transform: rotate(-2deg) translateY(-2px); }
+}
 .hero__eyebrow {
   margin: 0 0 12px; font-size: 13px; font-weight: 600;
   letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand);
 }
 .hero__title {
-  margin: 0 0 16px; font-size: clamp(36px, 6vw, 64px); line-height: 1.05;
+  margin: 0 0 16px; font-size: clamp(34px, 5.4vw, 56px); line-height: 1.05;
   letter-spacing: -0.025em; font-weight: 700;
 }
-.hero__subtitle { margin: 0 0 12px; font-size: clamp(18px, 2.4vw, 22px); color: var(--fg-soft); font-weight: 500; }
+.hero__subtitle { margin: 0 0 12px; font-size: clamp(18px, 2.2vw, 22px); color: var(--fg-soft); font-weight: 500; }
 .hero__body { margin: 0 0 28px; color: var(--fg-soft); max-width: 60ch; }
 
 /* CTA buttons */
@@ -202,6 +350,46 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
   box-shadow: var(--shadow-md);
   background: var(--bg-soft);
 }
+
+/* iPhone frame — pure CSS, no images. Wraps a portrait screenshot in a
+   bezel that approximates a modern iPhone Pro (1320x2868 screen ratio).
+   Sizes are driven by --iphone-w / --iphone-bezel / --iphone-radius so
+   callers can override per context (hero, grid, etc.). */
+.iphone {
+  --iphone-w: 280px;
+  --iphone-bezel: 12px;
+  --iphone-radius: 38px;
+  width: var(--iphone-w);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: var(--iphone-bezel);
+  border-radius: var(--iphone-radius);
+  background: linear-gradient(170deg, #2a2b30 0%, #15161a 55%, #0c0d10 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 1px 0 0 rgba(255, 255, 255, 0.05),
+    0 30px 60px -28px rgba(15, 17, 21, 0.45),
+    0 18px 30px -18px rgba(15, 17, 21, 0.30);
+}
+.iphone__screen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1320 / 2868;
+  border-radius: calc(var(--iphone-radius) - var(--iphone-bezel) + 2px);
+  overflow: hidden;
+  background: #000;
+}
+.iphone__screen img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Hero phone is the LCP — bigger, more padded, and stepped up at wider
+   viewports so it actually carries the above-the-fold. */
+.iphone--xl { --iphone-w: 300px; --iphone-bezel: 13px; --iphone-radius: 42px; }
+@media (min-width: 760px)  { .iphone--xl { --iphone-w: 340px; --iphone-bezel: 14px; --iphone-radius: 46px; } }
+@media (min-width: 1024px) { .iphone--xl { --iphone-w: 380px; --iphone-bezel: 16px; --iphone-radius: 50px; } }
 
 /* Disclaimer */
 .disclaimer {

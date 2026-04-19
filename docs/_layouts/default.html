@@ -10,5 +10,6 @@
     {{ content }}
   </main>
   {%- include footer.html -%}
+  <script src="{{ '/assets/js/hero-carousel.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
 </body>
 </html>
