@@ -25,6 +25,6 @@
 <meta property="og:image" content="{{ site.url }}{{ data.meta.og_image | default: '/assets/og-en.png' }}">
 <meta name="twitter:card" content="summary_large_image">
 
-<link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 
 {%- seo title=false -%}

@@ -10,11 +10,16 @@ permalink: /nl/
 {%- assign data = site.data.nl -%}
 <section class="hero">
   <div class="wrap hero__inner">
-    <p class="hero__eyebrow">{{ data.hero.eyebrow }}</p>
-    <h1 class="hero__title">{{ data.hero.title }}</h1>
-    <p class="hero__subtitle">{{ data.hero.subtitle }}</p>
-    <p class="hero__body">{{ data.hero.body }}</p>
-    {%- include cta.html -%}
+    <div class="hero__copy">
+      <p class="hero__eyebrow">{{ data.hero.eyebrow }}</p>
+      <h1 class="hero__title">{{ data.hero.title }}</h1>
+      <p class="hero__subtitle">{{ data.hero.subtitle }}</p>
+      <p class="hero__body">{{ data.hero.body }}</p>
+      {%- include cta.html -%}
+    </div>
+    <div class="hero__media">
+      {%- include hero-carousel.html -%}
+    </div>
   </div>
 </section>
 

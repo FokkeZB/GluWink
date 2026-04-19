@@ -1,0 +1,38 @@
+{%- comment -%}
+  Hero carousel: floating brand app icon + iPhone frame containing a
+  4-slide auto-rotating gallery, with dot pager beneath the phone.
+  Driven by /assets/js/hero-carousel.js (data-carousel attribute).
+{%- endcomment -%}
+{%- assign t = page.lang | default: "en" -%}
+{%- if t == "nl" -%}{%- assign data = site.data.nl -%}{%- assign locale = "nl-NL" -%}
+{%- else -%}{%- assign data = site.data.en -%}{%- assign locale = "en-US" -%}{%- endif -%}
+{%- capture base -%}/assets/screenshots/{{ locale }}/{%- endcapture -%}
+<div class="hero-carousel" data-carousel data-interval="5000" tabindex="0"
+     role="group" aria-roledescription="carousel" aria-label="{{ data.screenshots.title }}">
+  <img class="hero__app-icon" src="{{ '/assets/icons/iOS.png' | relative_url }}" alt=""
+       width="160" height="160" loading="eager" fetchpriority="high" decoding="async">
+  <figure class="iphone iphone--xl">
+    <div class="iphone__screen">
+      <ul class="hero-carousel__slides">
+        <li class="hero-carousel__slide is-active" data-slide aria-hidden="false">
+          <img src="{{ base | append: '01_greenShield.png' | relative_url }}" alt="{{ data.screenshots.alt.green }}" loading="eager" fetchpriority="high" decoding="async">
+        </li>
+        <li class="hero-carousel__slide" data-slide aria-hidden="true">
+          <img src="{{ base | append: '02_redShield.png' | relative_url }}" alt="{{ data.screenshots.alt.red }}" loading="eager" decoding="async">
+        </li>
+        <li class="hero-carousel__slide" data-slide aria-hidden="true">
+          <img src="{{ base | append: '03_widgets.png' | relative_url }}" alt="{{ data.screenshots.alt.widgets }}" loading="eager" decoding="async">
+        </li>
+        <li class="hero-carousel__slide" data-slide aria-hidden="true">
+          <img src="{{ base | append: '04_settings.png' | relative_url }}" alt="{{ data.screenshots.alt.settings }}" loading="eager" decoding="async">
+        </li>
+      </ul>
+    </div>
+  </figure>
+  <div class="hero-carousel__dots" aria-label="Choose screenshot">
+    <button type="button" data-slide-to="0" aria-current="true"  aria-label="{{ data.screenshots.alt.green }}"></button>
+    <button type="button" data-slide-to="1" aria-current="false" aria-label="{{ data.screenshots.alt.red }}"></button>
+    <button type="button" data-slide-to="2" aria-current="false" aria-label="{{ data.screenshots.alt.widgets }}"></button>
+    <button type="button" data-slide-to="3" aria-current="false" aria-label="{{ data.screenshots.alt.settings }}"></button>
+  </div>
+</div>
