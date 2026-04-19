@@ -39,31 +39,58 @@ docs/
 
 ## Local dev
 
-The `github-pages` gem pins Jekyll 3.10 / Liquid 4.0, which call
-`Object#tainted?` — a method removed in Ruby 3.2. Production builds run on
-GitHub's container with Ruby 3.3, so they work fine; local builds need a
-matching Ruby. macOS Homebrew currently ships Ruby 4.x, so use `rbenv` (or
-`asdf`) to pin 3.3 for this folder:
+Ruby pin lives in `docs/.tool-versions` (`ruby 3.3.4`) so [asdf] activates
+the right version automatically the moment you `cd docs`. We need 3.3.x
+specifically because the `github-pages` gem still pins Jekyll 3.10 /
+Liquid 4.0, which call `Object#tainted?` — removed in Ruby 3.2 and
+absent from macOS Homebrew's Ruby 4.x. GitHub Pages itself runs on
+Ruby 3.3, so local and production stay aligned.
+
+### One-time bootstrap
+
+If you already have asdf and its Ruby plugin's build deps, this is the
+whole story:
 
 ```sh
-brew install rbenv
-rbenv install 3.3.4
-cd docs
-rbenv local 3.3.4         # writes docs/.ruby-version (already in repo)
-bundle install            # installs into vendor/bundle (gitignored)
+make docs-bootstrap
 ```
 
-Then, from the repo root:
+That target asks asdf to install the plugin (idempotent), reads
+`docs/.tool-versions`, installs Ruby 3.3.4, and runs `bundle install` into
+`docs/vendor/bundle/` (gitignored).
+
+If you don't have asdf yet:
 
 ```sh
-make docs-serve           # bundle exec jekyll serve --livereload
+brew install asdf
+# Add asdf to your shell once — see https://asdf-vm.com/guide/getting-started.html
+echo '. /opt/homebrew/opt/asdf/libexec/asdf.sh' >> ~/.zshrc
+exec zsh
+
+# Build deps for compiling Ruby on macOS (one-time):
+brew install openssl@3 readline libyaml gmp
+
+make docs-bootstrap
+```
+
+### Serve
+
+From the repo root:
+
+```sh
+make docs-serve
 ```
 
 Open <http://127.0.0.1:4000/>. NL lives at <http://127.0.0.1:4000/nl/>.
+The target sanity-checks the active Ruby and aborts with a pointer to
+`make docs-bootstrap` if you're on the wrong version.
 
-If `bundle install` complains about a Ruby version mismatch, your shell
-isn't picking up the rbenv shim. Add `eval "$(rbenv init - zsh)"` to
-`~/.zshrc` and reopen the terminal.
+The Make targets prepend `~/.asdf/shims` to `PATH` so they work even when
+Homebrew's Ruby sits earlier in your shell `PATH`. If you'd rather run
+`bundle` / `jekyll` directly (without Make), put the shims dir first in
+your own `PATH` or run them through `asdf exec` from inside `docs/`.
+
+[asdf]: https://asdf-vm.com/
 
 ## Editing copy
 
