@@ -92,6 +92,26 @@ your own `PATH` or run them through `asdf exec` from inside `docs/`.
 
 [asdf]: https://asdf-vm.com/
 
+### Pre-merge production check
+
+Before merging anything that's likely to affect what GitHub Pages
+serves (layout includes, plugin config, `_config.yml`, asset paths),
+run a clean production build and serve the static output exactly the
+way Pages will:
+
+```sh
+make docs-publish-check
+```
+
+That target runs `JEKYLL_ENV=production bundle exec jekyll build` into
+`docs/_site/`, then serves the result with a vanilla
+`python3 -m http.server` on <http://127.0.0.1:4001/> (different port
+from `docs-serve` so both can run side-by-side). It catches issues
+that `docs-serve`'s live-reload mode hides — wrong `relative_url`s,
+broken Liquid in includes that only fires under the production env,
+missing assets that 404 once Jekyll's dev middleware isn't proxying
+them.
+
 ## Editing copy
 
 All user-visible English strings live in `_data/en.yml`. All Dutch strings
