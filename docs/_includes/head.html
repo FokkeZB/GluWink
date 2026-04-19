@@ -27,4 +27,18 @@
 
 <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 
+{%- comment -%}
+  Preload the hero carousel's first slide so the browser can start
+  fetching it during HTML parse, before the body even renders. Gated
+  on a per-page front-matter flag so it's only emitted on pages that
+  actually use the carousel (home, /nl/) — preloading it on
+  /privacy or /support would trigger a console warning that the
+  preloaded resource went unused. The image path mirrors what
+  hero-carousel.html builds at runtime.
+{%- endcomment -%}
+{%- if page.preload_hero -%}
+<link rel="preload" as="image" fetchpriority="high"
+      href="{{ '/assets/screenshots/' | append: data.locale | append: '/01_greenShield.png' | relative_url }}">
+{%- endif -%}
+
 {%- seo title=false -%}

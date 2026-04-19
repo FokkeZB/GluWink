@@ -14,17 +14,30 @@
   <figure class="iphone iphone--xl">
     <div class="iphone__screen">
       <ul class="hero-carousel__slides">
+        {%- comment -%}
+          Slide 1 paints with a real `src` so the browser can fetch it
+          immediately (paired with the `<link rel=preload>` in head.html);
+          this is the LCP element.
+
+          Slides 2-4 use `data-src` and have NO `src` attribute, so the
+          browser doesn't fetch them during initial parse. The carousel JS
+          hydrates each one on demand the first time it's about to be
+          shown (and pre-warms the next one), keeping ~1 MiB of PNG out
+          of the LCP critical path. Width/height are still set so the
+          slot reserves layout space and there's no CLS when the swap
+          happens.
+        {%- endcomment -%}
         <li class="hero-carousel__slide is-active" data-slide aria-hidden="false">
-          <img src="{{ base | append: '01_greenShield.png' | relative_url }}" alt="{{ data.screenshots.alt.green }}" loading="eager" fetchpriority="high" decoding="async">
+          <img src="{{ base | append: '01_greenShield.png' | relative_url }}" alt="{{ data.screenshots.alt.green }}" width="320" height="694" loading="eager" fetchpriority="high" decoding="async">
         </li>
         <li class="hero-carousel__slide" data-slide aria-hidden="true">
-          <img src="{{ base | append: '02_redShield.png' | relative_url }}" alt="{{ data.screenshots.alt.red }}" loading="eager" decoding="async">
+          <img data-src="{{ base | append: '02_redShield.png' | relative_url }}" alt="{{ data.screenshots.alt.red }}" width="320" height="694" decoding="async">
         </li>
         <li class="hero-carousel__slide" data-slide aria-hidden="true">
-          <img src="{{ base | append: '03_widgets.png' | relative_url }}" alt="{{ data.screenshots.alt.widgets }}" loading="eager" decoding="async">
+          <img data-src="{{ base | append: '03_widgets.png' | relative_url }}" alt="{{ data.screenshots.alt.widgets }}" width="320" height="694" decoding="async">
         </li>
         <li class="hero-carousel__slide" data-slide aria-hidden="true">
-          <img src="{{ base | append: '04_settings.png' | relative_url }}" alt="{{ data.screenshots.alt.settings }}" loading="eager" decoding="async">
+          <img data-src="{{ base | append: '04_settings.png' | relative_url }}" alt="{{ data.screenshots.alt.settings }}" width="320" height="694" decoding="async">
         </li>
       </ul>
     </div>
