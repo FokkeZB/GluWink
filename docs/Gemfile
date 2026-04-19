@@ -11,13 +11,5 @@ group :jekyll_plugins do
   gem "jekyll-seo-tag"
 end
 
-# Lock to a Ruby ABI that ships with macOS / Linux runners.
+# webrick is no longer in Ruby's stdlib (since 3.0); jekyll serve needs it.
 gem "webrick", "~> 1.8"
-
-# Ruby 4.x removed several stdlib modules that github-pages / Jekyll 3 still
-# `require`. GitHub Pages itself runs an older Ruby so doesn't need these,
-# but local `bundle exec jekyll serve` on macOS Homebrew Ruby 4.x does.
-gem "csv"
-gem "base64"
-gem "bigdecimal"
-gem "logger"
