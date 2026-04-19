@@ -56,7 +56,7 @@ venv-clean:
 
 # --- App Store listing (fastlane deliver) ---
 
-.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta docs-sync-screenshots docs-serve
+.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta docs-sync-screenshots docs-bootstrap docs-serve
 
 ## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile)
 appstore-bootstrap:
@@ -89,10 +89,27 @@ _capture-screenshots:
 docs-sync-screenshots:
 	bash docs/scripts/sync-screenshots.sh
 
+# Prepend asdf shims so the Ruby pinned in docs/.tool-versions wins over
+# any Homebrew Ruby earlier in $PATH (a common gotcha on macOS).
+DOCS_PATH := $(HOME)/.asdf/shims:$(PATH)
+
+## One-time: install Ruby per docs/.tool-versions and gem deps for the
+## marketing site. Requires asdf (https://asdf-vm.com/) and the asdf-ruby
+## build deps on macOS: `brew install openssl@3 readline libyaml gmp`.
+## Idempotent — safe to re-run after pulling changes to docs/Gemfile.
+docs-bootstrap:
+	@command -v asdf >/dev/null || { echo "ERROR: asdf not found. Install with 'brew install asdf' and follow https://asdf-vm.com/guide/getting-started.html to source it in your shell." >&2; exit 1; }
+	@asdf plugin list 2>/dev/null | grep -qx ruby || asdf plugin add ruby
+	cd docs && asdf install
+	cd docs && PATH="$(DOCS_PATH)" bundle config set --local path 'vendor/bundle' && PATH="$(DOCS_PATH)" bundle install
+
 ## Serve the marketing site locally on http://127.0.0.1:4000/.
-## One-time: cd docs && bundle install. Pinned to the same gem GH Pages runs.
+## Run `make docs-bootstrap` once first. Aborts early if the active Ruby
+## doesn't match docs/.tool-versions (the github-pages gem can't run on
+## Ruby 4.x — Liquid 4.0 still calls Object#tainted?).
 docs-serve:
-	cd docs && bundle exec jekyll serve --livereload
+	@cd docs && PATH="$(DOCS_PATH)" ruby -e 'exit RUBY_VERSION.start_with?("3.3.") ? 0 : 1' || { echo "ERROR: docs/ requires Ruby 3.3.x (see docs/.tool-versions). Run 'make docs-bootstrap' first." >&2; exit 1; }
+	cd docs && PATH="$(DOCS_PATH)" bundle exec jekyll serve --livereload
 
 ## Build a Release archive and upload it to TestFlight.
 ## Auto-bumps the build number from the latest TestFlight build and uses
