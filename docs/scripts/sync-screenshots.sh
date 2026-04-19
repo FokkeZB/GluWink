@@ -20,7 +20,7 @@ SRC="$ROOT/iOS/fastlane/screenshots"
 DST="$ROOT/docs/assets/screenshots"
 
 # Scenes the marketing site uses, in the order it shows them. Keep in sync
-# with docs/_includes/screenshot-grid.html. Watch (scene 5) is omitted on
+# with docs/_includes/hero-carousel.html. Watch (scene 5) is omitted on
 # purpose — the capture pipeline doesn't yet automate Apple Watch shots.
 SCENES=(01_greenShield 02_redShield 03_widgets 04_settings)
 LOCALES=(en-US nl-NL)
