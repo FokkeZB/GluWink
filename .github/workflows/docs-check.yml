@@ -1,0 +1,55 @@
+# Build the marketing site exactly the way GitHub Pages will publish it
+# and fail the PR if Jekyll can't produce a clean static tree. Catches
+# Liquid syntax errors, missing _data references, broken includes, plugin
+# loading failures, and anything else that surfaces only in JEKYLL_ENV=
+# production but not in the live-reload dev server.
+#
+# Layer 1 of the site-check stack from #62. Future layers (htmlproofer
+# for asset/link validation, project-specific smoke greps for the
+# canonical/OG dedupe class of bug) land in the PR that fixes #51,
+# alongside the bugs they're meant to catch.
+#
+# Triggered only on PRs and main pushes that actually touch the site or
+# this workflow, so docs-only churn doesn't burn minutes on every iOS PR.
+
+name: Docs build check
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - ".github/workflows/docs-check.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/docs-check.yml"
+
+# Cancel superseded runs when a PR gets a new push.
+concurrency:
+  group: docs-check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pin Ruby to the same version docs/.tool-versions and GitHub
+      # Pages itself run, so the build matches production. bundler-cache
+      # restores docs/vendor/bundle/ keyed on docs/Gemfile.lock — first
+      # run installs gems, every subsequent run is a cache hit.
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.4"
+          bundler-cache: true
+          working-directory: docs
+
+      - name: Build site (production)
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build --strict_front_matter --trace
