@@ -23,7 +23,7 @@ docs/
 │   ├── header.html                 brand + nav + language switcher
 │   ├── footer.html                 tagline + privacy/support/github links
 │   ├── cta.html                    SINGLE swap point for the primary CTA
-│   └── screenshot-grid.html        4-up gallery
+│   └── hero-carousel.html          above-the-fold phone + auto-rotating shots
 ├── _layouts/
 │   ├── default.html                site chrome wrapper
 │   └── page.html                   prose wrapper (privacy/support)

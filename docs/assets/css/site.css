@@ -338,19 +338,6 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
   color: var(--fg-soft); font-size: 15px;
 }
 
-/* Screenshots */
-.screenshot-grid {
-  display: grid; gap: 16px;
-  grid-template-columns: repeat(2, 1fr);
-}
-@media (min-width: 760px) { .screenshot-grid { grid-template-columns: repeat(4, 1fr); gap: 24px; } }
-.screenshot-grid__item { margin: 0; }
-.screenshot-grid__item img {
-  border-radius: 22px;
-  box-shadow: var(--shadow-md);
-  background: var(--bg-soft);
-}
-
 /* iPhone frame — pure CSS, no images. Wraps a portrait screenshot in a
    bezel that approximates a modern iPhone Pro (1320x2868 screen ratio).
    Sizes are driven by --iphone-w / --iphone-bezel / --iphone-radius so
