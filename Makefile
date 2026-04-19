@@ -56,7 +56,7 @@ venv-clean:
 
 # --- App Store listing (fastlane deliver) ---
 
-.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta docs-sync-screenshots docs-bootstrap docs-serve docs-clean docs-build docs-publish-check
+.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta docs-sync-screenshots docs-bootstrap docs-serve docs-clean docs-build docs-publish-check docs-audit
 
 ## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile)
 appstore-bootstrap:
@@ -133,6 +133,22 @@ docs-build: docs-clean
 docs-publish-check: docs-build
 	@echo "Serving production build of docs/_site/ at http://127.0.0.1:4001/ — Ctrl-C to stop."
 	cd docs/_site && python3 -m http.server 4001 --bind 127.0.0.1
+
+## Run a Lighthouse audit (perf / a11y / best-practices / seo) against a
+## production-mirror build of the marketing site, on both `/` and `/nl/`,
+## and print a compact summary + the audits that need attention.
+##
+## Builds the site fresh, boots its own http server on :4001 (or reuses
+## one if you already have `docs-publish-check` running), and writes raw
+## JSON reports to /tmp/glucwink-lh/ for follow-up drilldown. Cache and
+## document-latency insights are filtered out — they're artifacts of the
+## local python http server, not production issues.
+##
+## Pairs with .claude/skills/site-audit/SKILL.md: just say "audit the
+## site" and the agent will run this, file an issue with what to fix,
+## and offer to fix it.
+docs-audit:
+	bash docs/scripts/lighthouse-audit.sh
 
 ## Build a Release archive and upload it to TestFlight.
 ## Auto-bumps the build number from the latest TestFlight build and uses

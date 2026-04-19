@@ -15,9 +15,19 @@
   --bg-elev: #ffffff;
   --fg: #0f1115;
   --fg-soft: #4a5260;
-  --fg-mute: #6b7280;
+  /* Darkened from #6b7280 so 14px secondary copy clears WCAG AA on the
+     warm cream background (--bg-soft) — the lighter shade only just
+     missed (4.4:1 vs the 4.5:1 minimum). */
+  --fg-mute: #575e69;
   --line: #ece8df;
   --brand: #0a84ff;       /* iOS systemBlue, matches the app's accent */
+  /* AA-passing variant of --brand for use as TEXT on white. iOS systemBlue
+     reads at 3.64:1 on white at body sizes, which fails WCAG AA. Use this
+     wherever the brand colour appears as text (header lang switcher,
+     section eyebrows, etc.). Keep --brand for non-text accents (button
+     fills, bullet dots, gradient tints) where contrast rules don't apply
+     and the slightly brighter iOS blue still reads as native. */
+  --brand-text: #0058c0;
   --brand-ink: #ffffff;
   --green: #34c759;       /* iOS systemGreen — "all clear" */
   --red: #ff3b30;         /* iOS systemRed — "needs attention" */
@@ -41,6 +51,9 @@
     --fg-mute: #8a92a4;
     --line: #262a35;
     --brand: #0a84ff;
+    /* Dark mode: #0a84ff on near-black is ~7:1, well above AA. No need
+       for a darker text variant; alias to the same colour. */
+    --brand-text: #0a84ff;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6);
     --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.55);
   }
@@ -107,7 +120,7 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
 .nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .nav a { color: var(--fg-soft); padding: 8px 12px; border-radius: 8px; font-size: 15px; font-weight: 500; }
 .nav a:hover { color: var(--fg); background: var(--bg-soft); text-decoration: none; }
-.nav__lang { color: var(--brand) !important; }
+.nav__lang { color: var(--brand-text) !important; }
 
 /* Hero — two-column on desktop (copy + framed phone). The soft radial
    gradients warm up an otherwise stark above-the-fold and pull the eye
@@ -309,7 +322,7 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
 }
 .audience__tag {
   margin: 0 0 8px; font-size: 12px; font-weight: 600;
-  letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand);
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-text);
 }
 .audience__heading { margin: 0 0 14px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.2; }
 .audience__bullets { margin: 0; padding: 0; list-style: none; }

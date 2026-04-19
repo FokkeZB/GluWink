@@ -112,6 +112,24 @@ broken Liquid in includes that only fires under the production env,
 missing assets that 404 once Jekyll's dev middleware isn't proxying
 them.
 
+### Lighthouse audit
+
+To check performance / a11y / best-practices / SEO scores against the
+same production build:
+
+```sh
+make docs-audit
+```
+
+This runs Lighthouse (mobile, simulated throttling) against `/` and
+`/nl/`, prints a summary table and the failing audits, and saves raw
+JSON reports to `/tmp/glucwink-lh/`. It auto-builds and serves the
+site if needed, or reuses an existing `:4001` listener.
+
+Pairs with the **`site-audit`** Claude/Cursor skill — say "audit the
+site" and the agent will run this, decide whether anything needs
+fixing, and offer to file an issue + open a PR.
+
 ## Editing copy
 
 All user-visible English strings live in `_data/en.yml`. All Dutch strings

@@ -19,8 +19,23 @@
     let index = 0;
     let timer = null;
 
+    // Hydrate a slide's <img data-src=...> into a real <img src=...> the
+    // first time we need it. Slides 2-4 ship without `src` so they don't
+    // compete with slide 1 (the LCP element) for initial bandwidth — see
+    // the comment in _includes/hero-carousel.html for the full rationale.
+    function hydrate(slide) {
+      const img = slide && slide.querySelector('img[data-src]');
+      if (!img) return;
+      img.src = img.dataset.src;
+      img.removeAttribute('data-src');
+    }
+
     function show(next) {
       index = ((next % slides.length) + slides.length) % slides.length;
+      // Make sure the slide we're about to show — and the one after it,
+      // so it's already decoded by the next tick — both have real sources.
+      hydrate(slides[index]);
+      hydrate(slides[(index + 1) % slides.length]);
       slides.forEach((slide, n) => {
         const active = n === index;
         slide.classList.toggle('is-active', active);
@@ -29,6 +44,17 @@
       dots.forEach((dot, n) => {
         dot.setAttribute('aria-current', n === index ? 'true' : 'false');
       });
+    }
+
+    // Once the page has finished loading the LCP-critical assets, warm
+    // up slide 2 in the background so it's ready before the first
+    // auto-advance fires (~5s later). Falls back gracefully on browsers
+    // without requestIdleCallback.
+    const warmNext = () => hydrate(slides[1]);
+    if (window.requestIdleCallback) {
+      window.requestIdleCallback(warmNext, { timeout: 2000 });
+    } else {
+      window.setTimeout(warmNext, 1500);
     }
 
     function start() {

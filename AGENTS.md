@@ -50,6 +50,25 @@ The project includes an MCP server (`.mcp.json`) that connects to a running Xcod
 
 **`QUIRKS.md`** (repo root) documents platform quirks, API limitations, Xcode build gotchas, and other hard-won lessons. Read it before making changes to avoid repeating mistakes.
 
+## Always think automation
+
+If you find yourself running a multi-step manual workflow that the user is likely to ask for again — site audits, screenshot capture, App Store sync, release prep, anything that takes more than two commands and some judgement — **propose extracting it before you finish the current task**. Don't wait to be asked. The cost is one short conversation; the reward is that "audit the site" / "ship a beta" / "regenerate screenshots" becomes a single sentence forever after.
+
+The pattern this repo uses:
+
+| Layer | Lives in | Owns |
+|---|---|---|
+| Mechanical work | A `make <target>` in the repo `Makefile`, optionally backed by a script under `<surface>/scripts/` (e.g. `docs/scripts/lighthouse-audit.sh`) | The deterministic part — build, run, parse, print. Idempotent, exits 0 on success. |
+| Reasoning / orchestration | A `.claude/skills/<name>/SKILL.md` with a `description:` that lists the natural-language triggers | When to run, how to interpret the output, what to do next (file an issue, propose a fix, stop and report). |
+| Trigger | Any natural phrasing the user is likely to use | The skill's `description` is what the agent matches on, so include the obvious synonyms. |
+
+**Worked example — site audits.** After running Lighthouse manually, filing issue #56 by hand, and writing a fix PR for it on 2026-04-19, the same workflow was extracted into:
+
+- `make docs-audit` → `docs/scripts/lighthouse-audit.sh` (builds, serves, runs Lighthouse on `/` and `/nl/`, prints summary + failing audits)
+- `.claude/skills/site-audit/SKILL.md` (triggered by "audit the site", "lighthouse the site", etc. — runs the make target, decides whether action is needed, proposes to file an issue and implement fixes following the structure of #56)
+
+So now "audit the site" is a one-liner instead of ~15 minutes of judgement calls. **When you ship the next thing that smells like this, do the same**: ship the make target, ship the skill, mention both in the PR description, and add a one-line worked-example pointer here so future agents see the pattern.
+
 ## Device Prerequisites (manual, not part of the app)
 
 ### For children (parent-managed)
