@@ -1,0 +1,13 @@
+{%- assign t = page.lang | default: "en" -%}
+{%- if t == "nl" -%}{%- assign data = site.data.nl -%}{%- else -%}{%- assign data = site.data.en -%}{%- endif -%}
+<footer class="site-footer" role="contentinfo">
+  <div class="wrap site-footer__inner">
+    <p class="site-footer__tagline">{{ data.footer.tagline }}</p>
+    <ul class="site-footer__links">
+      {%- for link in data.footer.links -%}
+        <li><a href="{{ link.url | relative_url }}">{{ link.label }}</a></li>
+      {%- endfor -%}
+    </ul>
+    <p class="site-footer__copy">{{ data.footer.copyright }}</p>
+  </div>
+</footer>

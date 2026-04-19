@@ -1,0 +1,15 @@
+# Pinned to the same gem GitHub Pages runs in production so `bundle exec
+# jekyll serve` matches what visitors will see. Bump alongside the version
+# at https://pages.github.com/versions/.
+source "https://rubygems.org"
+
+gem "github-pages", group: :jekyll_plugins
+
+# Plugins enabled in _config.yml. Both are on GH Pages' allowlist.
+group :jekyll_plugins do
+  gem "jekyll-sitemap"
+  gem "jekyll-seo-tag"
+end
+
+# webrick is no longer in Ruby's stdlib (since 3.0); jekyll serve needs it.
+gem "webrick", "~> 1.8"

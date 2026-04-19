@@ -1,0 +1,48 @@
+# GluWink marketing site — built by GitHub Pages from this folder.
+# Only plugins on GitHub Pages' allowlist; no Actions build step needed.
+# https://pages.github.com/versions/
+
+title: GluWink
+description: Make your iPhone and Apple Watch a tool for diabetes — not a distraction from it.
+url: "https://gluwink.app"
+baseurl: ""
+
+author:
+  name: Fokke Zandbergen
+  url: https://github.com/FokkeZB
+
+repository: FokkeZB/GluWink
+github_username: FokkeZB
+
+# CTA state. Flip to true (and update _includes/cta.html with the App Store
+# badge + URL) on launch day. See docs/README.md → "Flipping the CTA".
+launched: false
+
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Don't ship implementation files to the built site.
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - scripts
+  - .jekyll-cache
+  - .sass-cache
+
+# Locale tagging — kept consistent with App Store locale codes.
+defaults:
+  - scope: { path: "" }
+    values:
+      lang: en
+      locale: en-US
+      hreflang_other: nl
+      hreflang_other_url: /nl/
+  - scope: { path: "nl" }
+    values:
+      lang: nl
+      locale: nl-NL
+      hreflang_other: en
+      hreflang_other_url: /

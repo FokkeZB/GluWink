@@ -1,0 +1,19 @@
+---
+layout: page
+id: privacy
+lang: nl
+locale: nl-NL
+hreflang_other: en
+hreflang_other_url: /privacy/
+permalink: /nl/privacy/
+title: "Privacybeleid"
+meta_title: "Privacybeleid — GluWink"
+meta_description: "GluWink verzamelt geen gegevens. HealthKit-data blijft op je toestel. Nightscout-data wordt rechtstreeks van je eigen server gelezen."
+---
+{%- assign p = site.data.nl.privacy_page -%}
+<p class="prose__meta">{{ p.last_updated }}</p>
+<p class="prose__lede">{{ p.intro }}</p>
+{%- for section in p.sections -%}
+  <h2>{{ section.heading }}</h2>
+  <p>{{ section.body }}</p>
+{%- endfor -%}

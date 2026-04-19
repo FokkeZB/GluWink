@@ -1,0 +1,17 @@
+{%- assign t = page.lang | default: "en" -%}
+{%- if t == "nl" -%}{%- assign data = site.data.nl -%}{%- assign home_url = "/nl/" -%}
+{%- else -%}{%- assign data = site.data.en -%}{%- assign home_url = "/" -%}{%- endif -%}
+<header class="site-header" role="banner">
+  <div class="wrap site-header__inner">
+    <a class="brand" href="{{ home_url | relative_url }}" aria-label="GluWink home">
+      <img src="{{ '/assets/icons/iOS.png' | relative_url }}" alt="" width="36" height="36" decoding="async">
+      <span class="brand__name">GluWink</span>
+    </a>
+    <nav class="nav" aria-label="primary">
+      <a href="{{ home_url | append: 'privacy/' | relative_url }}">{{ data.nav.privacy }}</a>
+      <a href="{{ home_url | append: 'support/' | relative_url }}">{{ data.nav.support }}</a>
+      <a href="https://github.com/FokkeZB/GluWink" rel="me noopener" class="nav__github">{{ data.nav.github }}</a>
+      <a href="{{ data.nav.switch_lang_url | relative_url }}" class="nav__lang" hreflang="{{ page.hreflang_other }}">{{ data.nav.switch_lang_label }}</a>
+    </nav>
+  </div>
+</header>
