@@ -10,6 +10,11 @@ iOS/build/
 **/xcuserdata/
 **/*.xcuserstate
 
+# Editor-local config (VS Code / Cursor). Workspace-scoped settings like
+# extension toggles are personal preferences, not project conventions —
+# project-wide editor rules belong in .editorconfig and AGENTS.md.
+.vscode/
+
 # Fastlane (App Store metadata pipeline) — see iOS/fastlane/Fastfile.
 # Generated metadata is regenerated from AppStore/*.md before every push,
 # so it shouldn't live in git (the Markdown is the source of truth).
