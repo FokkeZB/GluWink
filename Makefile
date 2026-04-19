@@ -56,7 +56,7 @@ venv-clean:
 
 # --- App Store listing (fastlane deliver) ---
 
-.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta docs-sync-screenshots docs-bootstrap docs-serve
+.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta docs-sync-screenshots docs-bootstrap docs-serve docs-clean docs-build docs-publish-check
 
 ## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile)
 appstore-bootstrap:
@@ -110,6 +110,29 @@ docs-bootstrap:
 docs-serve:
 	@cd docs && PATH="$(DOCS_PATH)" ruby -e 'exit RUBY_VERSION.start_with?("3.3.") ? 0 : 1' || { echo "ERROR: docs/ requires Ruby 3.3.x (see docs/.tool-versions). Run 'make docs-bootstrap' first." >&2; exit 1; }
 	cd docs && PATH="$(DOCS_PATH)" bundle exec jekyll serve --livereload
+
+## Wipe Jekyll's build output and caches under docs/. Safe to run anytime;
+## the next `docs-build` / `docs-serve` will regenerate everything.
+docs-clean:
+	rm -rf docs/_site docs/.jekyll-cache docs/.sass-cache
+
+## Build the marketing site exactly as GitHub Pages will, into docs/_site/.
+## Sets JEKYLL_ENV=production so jekyll-seo-tag emits canonical URLs and
+## any production-only conditionals fire. Always starts from a clean tree
+## so cached or stale output can't mask a real publish-time failure.
+docs-build: docs-clean
+	@cd docs && PATH="$(DOCS_PATH)" ruby -e 'exit RUBY_VERSION.start_with?("3.3.") ? 0 : 1' || { echo "ERROR: docs/ requires Ruby 3.3.x (see docs/.tool-versions). Run 'make docs-bootstrap' first." >&2; exit 1; }
+	cd docs && PATH="$(DOCS_PATH)" JEKYLL_ENV=production bundle exec jekyll build
+
+## Final pre-merge sanity check: clean production build, then serve the
+## static docs/_site/ from a vanilla HTTP server on http://127.0.0.1:4001/.
+## `docs-serve` runs Jekyll's dev server with live-reload, which can mask
+## issues (missing assets, wrong relative_url, Liquid-only-in-includes
+## breakage) that only surface in the static output GitHub Pages publishes.
+## Uses port 4001 so it can run alongside `docs-serve` (which owns 4000).
+docs-publish-check: docs-build
+	@echo "Serving production build of docs/_site/ at http://127.0.0.1:4001/ — Ctrl-C to stop."
+	cd docs/_site && python3 -m http.server 4001 --bind 127.0.0.1
 
 ## Build a Release archive and upload it to TestFlight.
 ## Auto-bumps the build number from the latest TestFlight build and uses
