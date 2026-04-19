@@ -195,28 +195,130 @@ If you want the consistency of self-hosted Inter:
 The whole change is one CSS file + 4 woff2 files; no other code touches
 font loading.
 
-## Deploying to `gluwink.app`
+## Production setup: Cloudflare in front of GitHub Pages
 
-GitHub side (one-time):
+`gluwink.app` is served by GitHub Pages but **Cloudflare sits in front** as the
+authoritative DNS *and* the TLS edge. `gluwink.com` is registered too and
+301-redirects to `gluwink.app` at the Cloudflare edge — only one canonical URL
+ever appears in `<link rel="canonical">`, OG tags, sitemaps, or App Store metadata.
 
-1. Settings → Pages → Source: **Deploy from a branch** → `main` / `/docs`.
-2. Settings → Pages → Custom domain: **`gluwink.app`** → tick **Enforce
-   HTTPS** once the certificate provisions.
+```
+Browser ─HTTPS─▶ Cloudflare edge ─HTTPS─▶ GitHub Pages (185.199.x.x)
+                  ▲ adds HSTS + Always Use HTTPS
+                  ▲ terminates TLS with its own cert
+                  ▲ origin validated against GH's Let's Encrypt cert (Full strict)
+```
 
-DNS side (registrar):
+The reason we proxy through Cloudflare at all is that GitHub Pages itself
+[doesn't send `Strict-Transport-Security`](https://github.com/isaacs/github/issues/1249).
+We get that header (and Always Use HTTPS, and an edge 301 redirect) from
+Cloudflare, with the `.app` TLD's own [HSTS preload](https://hstspreload.org/)
+as a third belt-and-braces layer.
 
-| Record | Host | Value |
-|---|---|---|
-| ALIAS / ANAME | `@` | `fokkezb.github.io` |
-| CNAME | `www` | `fokkezb.github.io` |
+### DNS (`gluwink.app` zone, on Cloudflare)
 
-Use four `A` records to GitHub's Pages IPs as a fallback if your registrar
-doesn't support ALIAS / ANAME. Latest list:
-<https://docs.github.com/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain>.
+Registrar nameservers point at the two `*.ns.cloudflare.com` servers Cloudflare
+assigns. Inside the zone, only four records matter:
 
-After DNS propagates (minutes to a few hours), GitHub re-issues the cert
-automatically, the green check appears under Pages, and `https://gluwink.app`
-serves this folder.
+| Type | Name | Content | Proxy |
+|---|---|---|---|
+| `CNAME` | `@` | `fokkezb.github.io` | Proxied (orange) |
+| `CNAME` | `www` | `fokkezb.github.io` | Proxied (orange) |
+| `CNAME` | `mail` | `mail.86id.nl` | DNS only (gray) |
+| `TXT` | `@` | `"v=spf1 mx include:spf.86id.nl …"` | — |
+
+Cloudflare flattens the apex `CNAME` to A records at the edge, so the four
+`185.199.x.153` GH Pages addresses never need to be hand-maintained. Mail
+records stay DNS-only — the proxy is HTTP-only and would silently break SMTP.
+
+### Bringing it up from scratch
+
+The order matters because GH Pages provisions its own Let's Encrypt cert via an
+HTTP-01 challenge that **must reach GH directly**, not via Cloudflare. Run the
+sequence in [#48](https://github.com/FokkeZB/GluWink/issues/48) once per fresh
+setup. The summary:
+
+1. Add the zone in Cloudflare, point the registrar at Cloudflare's nameservers,
+   wait for the zone to flip from *Pending* → *Active*.
+2. Add the two `CNAME` rows with the cloud **gray (DNS only)** for now.
+3. In the repo, **Settings → Pages**: source = `main` `/docs`, custom domain =
+   `gluwink.app`. Wait for "DNS check successful" on both the apex and `www`
+   (both must be valid for the dual-SAN cert), then 5–15 min later the **Enforce
+   HTTPS** checkbox un-greys. Tick it.
+4. Only now: flip both `CNAME` rows to **orange (Proxied)**, then set Cloudflare
+   → SSL/TLS → **Full (strict)**. Anything less than Full strict will loop or
+   downgrade — Flexible in particular fights GH's HTTPS redirect to a 301 storm.
+5. SSL/TLS → Edge Certificates: **Always Use HTTPS** ON, **HSTS** enabled
+   (max-age 6 months → 1 year after a couple of stable weeks, includeSubDomains
+   ON, Preload ON), **No-Sniff Header** ON.
+
+### `gluwink.com` redirect zone
+
+Same nameserver delegation. The zone has two records pointing at an
+[RFC 5737](https://datatracker.ietf.org/doc/html/rfc5737) documentation IP that
+exists only so Cloudflare lets us proxy it:
+
+| Type | Name | Content | Proxy |
+|---|---|---|---|
+| `A` | `@` | `192.0.2.1` | Proxied |
+| `A` | `www` | `192.0.2.1` | Proxied |
+
+A **Redirect Rule** short-circuits the request at the edge before Cloudflare
+ever tries to actually contact `192.0.2.1`:
+
+- *When*: `(http.host eq "gluwink.com") or (http.host eq "www.gluwink.com")`
+- *Then*: URL redirect, **Type: Dynamic** (Static rejects expressions),
+  expression `concat("https://gluwink.app", http.request.uri.path)`, status
+  **301**, preserve query string ON.
+
+Same edge security as the canonical zone (Always Use HTTPS, HSTS) — partly
+defense in depth, partly so HTTP clients get one redirect (`http://gluwink.com`
+→ `https://gluwink.app/`) instead of two (HTTP→HTTPS, then `.com`→`.app`).
+
+### Verifying the setup
+
+Smoke test with a fresh public resolver so your local DNS cache can't lie to
+you (Cloudflare flips are instant at the edge but local resolvers honour the
+old gray-cloud TTLs longer than they should):
+
+```sh
+RES=1.1.1.1
+APP_IP=$(dig @$RES +short gluwink.app | head -1)
+RESOLVE="gluwink.app:443:$APP_IP"
+
+# canonical: 200, served via Cloudflare, with HSTS
+curl -sk --resolve "$RESOLVE" -I https://gluwink.app | \
+  grep -iE 'HTTP/|server:|strict-transport|x-content-type-options'
+
+# .com 301s straight to .app
+for h in gluwink.com www.gluwink.com; do
+  ip=$(dig @$RES +short "$h" | head -1)
+  curl -sk --resolve "$h:443:$ip" -IL "https://$h/" | grep -iE 'HTTP/|location:'
+done
+```
+
+Want: `HTTP/2 200`, `server: cloudflare`,
+`strict-transport-security: max-age=… includeSubDomains; preload`,
+`x-content-type-options: nosniff` on the canonical, and every `.com` chain
+ending at `HTTP/2 200` on `https://gluwink.app/`.
+
+### Bear traps
+
+- **Don't delete `docs/CNAME`.** Each successful Pages build copies it back to
+  the served root; if it's missing in source, GH eventually clears the
+  custom-domain setting and the site starts serving on
+  `fokkezb.github.io/GluWink/`, which 301s and confuses Cloudflare's cache.
+- **Don't switch Cloudflare to Flexible SSL.** It would talk HTTP to GH Pages,
+  GH would 301 to HTTPS, infinite loop. Always **Full (strict)**.
+- **Don't proxy mail.** `mail` / `MX` / SPF / DMARC stay DNS-only. The proxy is
+  HTTP-only.
+- **Don't change `baseurl`.** It's empty because we serve from the apex; setting
+  it to `/GluWink` (or anything else) breaks every internal link, since
+  templates use `relative_url`.
+- **Don't flip records to orange before the GH cert exists.** The HTTP-01
+  challenge has to hit GH directly. If you proxy first, GH never finishes
+  validation and you'll be stuck waiting (or hit the LE rate limit). Recovery
+  is to flip back to gray, wait, retry — annoying but not destructive.
 
 ## App Store URL checklist (before submitting v1.0)
 
