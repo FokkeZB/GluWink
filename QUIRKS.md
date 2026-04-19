@@ -39,17 +39,26 @@ Tested 2026-04-13: `requestAuthorization(for: .individual)` succeeds on a non-ch
 ### .child authorization fails silently without Family Sharing
 On a device that isn't a child member of a Family Sharing group, `.child` authorization throws an error. The app catches this and falls back to `.individual`. The error message is not user-friendly (Apple internal domain), which is why we don't surface it.
 
-### Family Controls Distribution requires manual Apple approval
-The `com.apple.developer.family-controls` entitlement is one of Apple's "restricted capabilities". Apple grants the **Development** variant automatically to any team, so dev builds and Run-on-device work out of the box. The **Distribution** variant — needed for any App Store / TestFlight build — has to be requested per team at https://developer.apple.com/contact/request/family-controls-distribution/ and is reviewed manually (typically days to a few weeks).
+### Family Controls Distribution entitlement is self-serve, but App Store Review still gates it
+The `com.apple.developer.family-controls` entitlement is one of Apple's "restricted capabilities". Apple grants the **Development** variant automatically to any team, so dev builds and Run-on-device work out of the box. The **Distribution** variant — needed for any App Store / TestFlight build — is requested per team at https://developer.apple.com/contact/request/family-controls-distribution/.
 
-Symptom when the request hasn't been approved yet: `xcodebuild archive` succeeds, then `xcodebuild -exportArchive` fails with one error per Family-Controls-using target:
+As of 2026-04 the form is **self-serve attestation**, not a manual review. You enter name, email, team ID, accept the Apple Developer License Agreement, and tick that GluWink's primary purpose is one of:
+
+1. parental supervision of children's app usage via Family Sharing, or
+2. an individual managing their own device for focus, productivity, or personal device-usage management.
+
+GluWink fits both (parent-managing-child + adult-self-managing diabetes check-in). Click *Get Entitlement* and the capability is attached to the team within minutes — no human gatekeeper at this step. The Apple Developer License Agreement clauses on the form make the limits explicit: no ad blocking, no organisational/MDM use, no managing another adult's device, no sharing the data received through the framework with advertisers or data brokers.
+
+The real evaluation moves to **App Store Review** (guideline 5.5) when you submit a build. If the shipped app doesn't match the attested purpose, Apple rejects there. Spell the medical use case out in App Review notes (see `AppStore/README.md` → Production checklist).
+
+Symptom when the entitlement isn't attached to the team yet (or hasn't propagated to the auto-generated Distribution profile): `xcodebuild archive` succeeds, then `xcodebuild -exportArchive` fails with one error per Family-Controls-using target:
 
 ```
 error: exportArchive Provisioning profile "iOS Team Store Provisioning Profile: nl.fokkezb.GluWink.ShieldConfig" doesn't include the Family Controls (Development) capability.
 error: exportArchive Provisioning profile "iOS Team Store Provisioning Profile: nl.fokkezb.GluWink.ShieldConfig" doesn't include the com.apple.developer.family-controls entitlement.
 ```
 
-The "(Development)" wording is misleading — it means the auto-generated Store profile is *limited to* the Development variant of the entitlement (which is all Apple lets it carry without approval), not that the binary asked for a Development entitlement. There is no code workaround: removing the entitlement gates out the entire shielding feature, and ad-hoc / enterprise export can't reach TestFlight. The only path is the Apple form, then re-running `make appstore-beta` once the approval email arrives. Targets affected: `App`, `ShieldConfig`, `ShieldAction`, `DeviceActivityMonitor`.
+The "(Development)" wording is misleading — it means the auto-generated Store profile is *limited to* the Development variant of the entitlement (which is all Apple lets it carry until the Distribution attestation is done), not that the binary asked for a Development entitlement. There is no code workaround: removing the entitlement gates out the entire shielding feature, and ad-hoc / enterprise export can't reach TestFlight. The only path is to complete the form, wait for the Distribution profile to refresh (a re-run of `make appstore-beta` with `-allowProvisioningUpdates` regenerates it), and try again. Targets affected: `App`, `ShieldConfig`, `ShieldAction`, `DeviceActivityMonitor`.
 
 ### Passphrase stored in Keychain, not App Group
 The settings passphrase is stored in the device Keychain (SHA-256 hash + random salt, 48 bytes total). It is NOT in App Group UserDefaults — extensions don't need it, and Keychain is encrypted at rest. `kSecAttrAccessibleAfterFirstUnlock` ensures it survives backgrounding and reboots but requires the device to have been unlocked at least once.
