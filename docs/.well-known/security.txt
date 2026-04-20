@@ -1,0 +1,4 @@
+Contact: https://github.com/FokkeZB/GluWink/security/advisories/new
+Expires: 2027-04-20T00:00:00.000Z
+Preferred-Languages: en, nl
+Canonical: https://gluwink.app/.well-known/security.txt

@@ -32,6 +32,11 @@ exclude:
   - .jekyll-cache
   - .sass-cache
 
+# Jekyll skips dotfile-prefixed paths by default. Force-include the
+# .well-known/ folder so /.well-known/security.txt (RFC 9116) is served.
+include:
+  - .well-known
+
 # Locale tagging — kept consistent with App Store locale codes.
 defaults:
   - scope: { path: "" }
