@@ -38,6 +38,7 @@
     "git branch",
     "git fetch",
     "git push",
+    "cd",
     "jq",
     "mise install",
     "mise exec",

@@ -94,6 +94,22 @@ Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the sam
 
 If a future skill genuinely needs one of these, propose the allowlist diff in the same PR rather than working around it locally — `.claude/settings.json` lands automatically, and `.cursor/permissions.example.json` is the heads-up for Cursor users to re-merge.
 
+#### Gotcha: don't shadow the allowlist with `cd`
+
+Cursor (and Claude Code) match the allowlist against the **leading command** of the shell line, not "any command in the chain". So this:
+
+```sh
+cd /path/to/repo && gh pr create --draft --title …
+```
+
+is matched as `cd …`, **not** `gh pr create …` — the `gh pr create` allowlist entry never fires, the command runs in the sandbox, and `api.github.com` is firewalled. This bit me hard while building the planning loop.
+
+Fixes (in order of preference):
+
+1. **Use the Shell tool's `working_directory` parameter** instead of `cd && …`. The system prompt for both agents documents this explicitly. The leading command is then the real one (`gh`, `git`, etc.) and the allowlist matches.
+2. `cd` is on the allowlist as belt-and-braces for the cases where you genuinely need a chained `cd` (e.g. inside a generated script). It still skips the sandbox, but you lose the per-command guardrails for whatever runs after the `&&`. Prefer (1).
+3. Don't chain at all when an allowlisted command can stand alone — `git push origin foo` from anywhere in the worktree works without `cd`.
+
 ## Xcode MCP Server
 
 The project includes an MCP server (`.mcp.json`) that connects to a running Xcode instance via `xcrun mcpbridge`. **Xcode must be open** for the server to work. When available, prefer MCP tools over shell-based alternatives:
