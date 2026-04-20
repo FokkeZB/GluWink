@@ -37,6 +37,7 @@
     "git diff",
     "git branch",
     "git fetch",
+    "git push",
     "jq",
     "mise install",
     "mise exec",

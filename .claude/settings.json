@@ -37,6 +37,7 @@
       "Bash(git diff:*)",
       "Bash(git branch:*)",
       "Bash(git fetch:*)",
+      "Bash(git push:*)",
       "Bash(jq:*)",
       "Bash(mise install:*)",
       "Bash(mise exec:*)",

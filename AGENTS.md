@@ -75,7 +75,7 @@ Unlike `permissions.json`, **Cursor reads `.cursor/sandbox.json` directly from t
 
 #### Curated set (what's in, what's out)
 
-Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the same curated `gh` subset, plus `git worktree`, `git status`/`log`/`diff`/`branch`/`fetch`, and `jq`. Read-heavy `gh` (issue/pr/project/repo/release/run/workflow `view|list|diff|checks`), the writes the planning loop needs (`issue create|edit|comment|close`, `pr create|edit|comment`, `project item-add|edit|archive`), and `gh api graphql` + `gh api repos/FokkeZB/` for the few REST sidesteps the loop relies on.
+Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the same curated `gh` subset, plus `git worktree`, `git status`/`log`/`diff`/`branch`/`fetch`/`push`, and `jq`. Read-heavy `gh` (issue/pr/project/repo/release/run/workflow `view|list|diff|checks`), the writes the planning loop needs (`issue create|edit|comment|close`, `pr create|edit|comment`, `project item-add|edit|archive`), and `gh api graphql` + `gh api repos/FokkeZB/` for the few REST sidesteps the loop relies on. `git push` is allowed so subagents can publish their branches; the explicit denies below catch the dangerous variants on Claude Code, and on Cursor the prefix-match limitation means *you* stay in the loop on `git push --force` / `git push origin main`.
 
 **Deliberately excluded** so you stay in the loop:
 
