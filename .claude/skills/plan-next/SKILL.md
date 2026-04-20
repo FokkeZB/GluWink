@@ -224,6 +224,20 @@ The skill **must** stop and wait for the owner at:
 - **Subagent opens a PR but it doesn't link the issue.** Edit the PR
   body to add `Closes #N` so the project's "Linked pull requests"
   field auto-populates and the issue closes on merge.
+- **`gh pr edit` / `gh pr view` errors with "Projects (classic) is
+  being deprecated".** `gh` still queries the legacy `projectCards`
+  relation on PRs and treats GitHub's deprecation warning as a hard
+  error, even when you're not touching projects. Sidestep with REST:
+
+  ```bash
+  jq -Rs '{body: .}' /tmp/pr-body.md > /tmp/pr-body.json
+  gh api -X PATCH repos/FokkeZB/GluWink/pulls/<n> --input /tmp/pr-body.json
+  gh api repos/FokkeZB/GluWink/pulls/<n> \
+    --jq '{state, draft, url, body_first_line: (.body | split("\n") | .[0])}'
+  ```
+
+  Both endpoints are covered by the workspace allowlist
+  (`gh api repos/FokkeZB/`).
 - **Project field IDs are wrong** (someone re-created Status). Re-run
   the rediscovery commands at the top of "Project + repo facts" and
   update this file in the same PR — the IDs are baked into the skill
