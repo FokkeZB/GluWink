@@ -39,13 +39,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Pin Ruby to the same version docs/.tool-versions and GitHub
-      # Pages itself run, so the build matches production. bundler-cache
-      # restores docs/vendor/bundle/ keyed on docs/Gemfile.lock — first
-      # run installs gems, every subsequent run is a cache hit.
+      # Pin Ruby to the same version docs/.ruby-version and GitHub
+      # Pages itself run, so the build matches production. ruby/setup-ruby
+      # reads working-directory's .ruby-version automatically when
+      # ruby-version isn't set, keeping CI in lock-step with the local
+      # pin (mise.toml + docs/.ruby-version) without duplicating it here.
+      # bundler-cache restores docs/vendor/bundle/ keyed on
+      # docs/Gemfile.lock — first run installs gems, every subsequent
+      # run is a cache hit.
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3.4"
           bundler-cache: true
           working-directory: docs
 

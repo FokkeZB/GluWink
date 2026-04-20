@@ -1,0 +1,26 @@
+# Pinned tool versions for the GluWink repo. mise reads this on `cd`
+# (when shell-activated) and on `mise install`. See AGENTS.md →
+# "Tool versions" for the install recipe and the rationale for keeping
+# pinning in one place.
+#
+# These pins are the source of truth. .ruby-version files in subtrees
+# (currently docs/.ruby-version) are kept as a universal hint for
+# non-mise tooling — mise honours them too as a fallback.
+
+[tools]
+
+# Marketing site (docs/) needs Ruby 3.3.x specifically: the github-pages
+# gem still depends on Liquid 4.0 calling Object#tainted?, which Ruby
+# 3.2 removed. GitHub Pages itself runs on 3.3, so local matches prod.
+ruby = "3.3.4"
+
+# GitHub CLI. 2.80.0 was the first release that fixed the
+# "Projects (classic) is being deprecated" regression in `gh pr edit` /
+# `gh pr view` — see https://github.com/cli/cli/issues/12640.
+# Pinning the floor here lets the .claude/skills/plan-next workflow
+# call gh directly instead of carrying REST workarounds. Bump the pin
+# (not the floor) when a newer gh feature becomes load-bearing.
+gh = "2.90"
+
+# jq: used by the planning loop to slice gh API JSON.
+jq = "1.7"
