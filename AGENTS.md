@@ -25,19 +25,51 @@ This repo is worked on from multiple AI agents (Cursor, Claude Code, etc.). When
 
 **Rationale:** `.mcp.json` at the repo root is read by both Claude Code and Cursor. `AGENTS.md` is read by Claude Code natively and by Cursor via its rules system. Agent-specific config directories (`.cursor/`, `.claude/`) should only be used when there is no shared equivalent, or when behavior genuinely differs between agents.
 
-### Cursor terminal allowlist (workspace-pinned)
+### Agent terminal allowlist
 
-`.vscode/settings.json` (partially un-gitignored — see `.gitignore`) pins `cursor.terminal.allowList` for this repo. It's the operational permission surface the **Self-managed planning loop** (below) runs on: a curated subset of `gh` subcommands the agent can invoke without prompting you.
+The **Self-managed planning loop** (below) needs the agent to invoke a curated subset of `gh` (and `git worktree`, `jq`) without prompting on every call. There is no fully cross-agent standard for "repo-pinned terminal allowlist" yet, so the curated set is shipped three ways, each doing the most it can:
 
-The allowlist is workspace-level on purpose, not user-level:
+| Layer | File | Scope | Cross-agent? |
+|---|---|---|---|
+| Per-skill (in-skill calls only) | `.claude/skills/*/SKILL.md` frontmatter `allowed-tools:` | Active during that skill | **Yes** — read by both Claude Code and Cursor |
+| Repo-pinned global (Claude Code) | `.claude/settings.json` (`permissions.allow` / `deny`) | Always-on, this repo | Claude Code only |
+| Repo-pinned global (Cursor) | **`.cursor/permissions.example.json`** — Cursor doesn't read this; copy it into `~/.cursor/permissions.json` | Always-on, all of your Cursor | Cursor only, **manual install** |
 
-- It's **part of the loop**. The skill that needs these commands lives in this repo; its permissions belong here too.
-- **PR-reviewable.** Adding `gh pr merge` (don't) or any other elevation lands as a visible diff.
-- **Future-you on another machine** picks it up automatically, same as `AGENTS.md` and `.mcp.json` do.
+**Why three?** The first layer is the only true cross-agent one, but it only fires when the matching skill is active — useless if you ask "create an issue" in a fresh chat with no skill triggered. Claude Code lets us repo-pin a global allowlist (`.claude/settings.json` is read automatically). Cursor's IDE agent allowlist is documented as **per-user only — no per-project override exists** ([Cursor docs](https://cursor.com/docs/reference/permissions.md)), so the best we can do is ship a tracked example and tell each contributor to merge it locally.
 
-Deliberately **excluded** so you stay in the loop: `gh pr merge`, `gh pr ready`, anything under `gh release / gh repo edit / gh workflow run / gh secret / gh variable / gh auth`, and `gh project create|delete|field-create|field-delete`. If a future skill genuinely needs one of those, propose it in a PR rather than working around the allowlist locally.
+#### Installing the Cursor allowlist (one-time, per machine)
 
-Personal Cursor settings (your colour theme, font size, extension prefs) still go in your user `settings.json` — only the shared allowlist (and the existing `djlint.showInstallError` muting) lives in the tracked workspace file.
+```sh
+# If you don't have a permissions.json yet:
+cp .cursor/permissions.example.json ~/.cursor/permissions.json
+
+# If you already have one, merge the terminalAllowlist arrays:
+jq -s '
+  (.[0] // {}) as $cur | (.[1] // {}) as $new |
+  $cur * $new
+  | .terminalAllowlist = ((($cur.terminalAllowlist // []) + ($new.terminalAllowlist // [])) | unique)
+' ~/.cursor/permissions.json .cursor/permissions.example.json > /tmp/p.json \
+  && mv /tmp/p.json ~/.cursor/permissions.json
+```
+
+Cursor re-reads the file on save. The allowlist only fires when **Auto-Run** is on (Settings → Cursor Settings → Agents → Auto-Run, set to *Run in Sandbox* or *Run Everything*). In *Ask Every Time* mode the allowlist is ignored, by design.
+
+#### Curated set (what's in, what's out)
+
+Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the same curated `gh` subset, plus `git worktree`, `git status`/`log`/`diff`/`branch`/`fetch`, and `jq`. Read-heavy `gh` (issue/pr/project/repo/release/run/workflow `view|list|diff|checks`), the writes the planning loop needs (`issue create|edit|comment|close`, `pr create|edit|comment`, `project item-add|edit|archive`), and `gh api graphql` + `gh api repos/FokkeZB/` for the few REST sidesteps the loop relies on.
+
+**Deliberately excluded** so you stay in the loop:
+
+- `gh pr merge` — owner merges, always.
+- `gh pr ready` — marking draft → ready is the owner's *I'm done* signal.
+- `gh release create|delete|edit` — App Store-adjacent.
+- `gh repo edit|delete|archive`.
+- `gh workflow run|enable|disable` — actively triggers CI.
+- `gh secret`, `gh variable`, `gh auth`.
+- `gh project create|delete|field-create|field-delete` — board-shape changes.
+- `git push --force`, `git push origin main`, `git reset --hard`, `rm -rf .worktrees` (Claude Code only — Cursor's allowlist matches command-prefixes, not full lines, so these need to stay in your judgement loop on Cursor).
+
+If a future skill genuinely needs one of these, propose the allowlist diff in the same PR rather than working around it locally — `.claude/settings.json` lands automatically, and `.cursor/permissions.example.json` is the heads-up for Cursor users to re-merge.
 
 ## Xcode MCP Server
 

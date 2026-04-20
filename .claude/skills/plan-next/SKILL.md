@@ -236,8 +236,9 @@ The skill **must** stop and wait for the owner at:
     --jq '{state, draft, url, body_first_line: (.body | split("\n") | .[0])}'
   ```
 
-  Both endpoints are covered by the workspace allowlist
-  (`gh api repos/FokkeZB/`).
+  Both endpoints are covered by the repo's allowlist
+  (`gh api repos/FokkeZB/` — see AGENTS.md → "Agent terminal
+  allowlist").
 - **Project field IDs are wrong** (someone re-created Status). Re-run
   the rediscovery commands at the top of "Project + repo facts" and
   update this file in the same PR — the IDs are baked into the skill
