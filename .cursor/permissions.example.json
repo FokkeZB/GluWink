@@ -1,5 +1,5 @@
 {
-  "_comment_": "EXAMPLE FILE — Cursor does not read this from the repo. Cursor's IDE agent allowlist is per-user only and lives at ~/.cursor/permissions.json. See AGENTS.md → 'Agent terminal allowlist' for the install recipe and the rationale for what's included/excluded. This file exists so the curated set is version-controlled and PR-reviewable; widening it is a deliberate diff, not an ad-hoc per-machine drift.",
+  "_comment_": "EXAMPLE FILE — Cursor does not read this from the repo. Cursor's IDE agent terminal allowlist is per-user only and lives at ~/.cursor/permissions.json. See AGENTS.md → 'Agent terminal allowlist' for the install recipe and the rationale for what's included/excluded. This file exists so the curated set is version-controlled and PR-reviewable; widening it is a deliberate diff, not an ad-hoc per-machine drift. NOTE: this file only controls terminal command auto-run. Filesystem and network sandbox rules live in .cursor/sandbox.json, which Cursor reads directly from the repo.",
 
   "terminalAllowlist": [
     "gh issue list",
@@ -37,6 +37,8 @@
     "git diff",
     "git branch",
     "git fetch",
+    "git push",
+    "cd",
     "jq",
     "mise install",
     "mise exec",

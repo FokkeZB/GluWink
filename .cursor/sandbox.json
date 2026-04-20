@@ -1,0 +1,7 @@
+{
+  "// Note": "Repo-pinned Cursor sandbox config. Cursor reads this file automatically (unlike .cursor/permissions.json, which is per-user only). See AGENTS.md → 'Agent terminal allowlist' for the rationale. Filesystem: agent has read+write on the entire workspace (the whole repo); writes outside the workspace still require an explicit additionalReadwritePaths entry in your per-user ~/.cursor/sandbox.json. Network: open by default — no per-host allowlist to maintain. The terminal allowlist + denies in .claude/settings.json are the meaningful guard against the agent doing anything destructive; per-host network filtering on top adds friction without adding security in a single-maintainer repo.",
+  "type": "workspace_readwrite",
+  "networkPolicy": {
+    "default": "allow"
+  }
+}

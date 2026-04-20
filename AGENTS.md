@@ -41,15 +41,16 @@ When bumping a pin: edit `mise.toml`, run `mise install`, commit. Skills assume 
 
 ### Agent terminal allowlist
 
-The **Self-managed planning loop** (below) needs the agent to invoke a curated subset of `gh` (and `git worktree`, `jq`) without prompting on every call. There is no fully cross-agent standard for "repo-pinned terminal allowlist" yet, so the curated set is shipped three ways, each doing the most it can:
+The **Self-managed planning loop** (below) needs the agent to invoke a curated subset of `gh` (and `git worktree`, `jq`) without prompting on every call, **and** to reach `api.github.com` without re-asking for network permission on every call. Two separate concerns, two separate mechanisms — and Cursor's mechanisms aren't quite the same as Claude Code's, so the curated set is shipped four ways, each doing the most it can:
 
-| Layer | File | Scope | Cross-agent? |
-|---|---|---|---|
-| Per-skill (in-skill calls only) | `.claude/skills/*/SKILL.md` frontmatter `allowed-tools:` | Active during that skill | **Yes** — read by both Claude Code and Cursor |
-| Repo-pinned global (Claude Code) | `.claude/settings.json` (`permissions.allow` / `deny`) | Always-on, this repo | Claude Code only |
-| Repo-pinned global (Cursor) | **`.cursor/permissions.example.json`** — Cursor doesn't read this; copy it into `~/.cursor/permissions.json` | Always-on, all of your Cursor | Cursor only, **manual install** |
+| Layer | File | What it controls | Scope | Cross-agent? |
+|---|---|---|---|---|
+| Per-skill (in-skill calls only) | `.claude/skills/*/SKILL.md` frontmatter `allowed-tools:` | Terminal commands | Active during that skill | **Yes** — Claude Code & Cursor |
+| Repo-pinned global (Claude Code) | `.claude/settings.json` (`permissions.allow` / `deny`) | Terminal commands | Always-on, this repo | Claude Code only |
+| Repo-pinned global (Cursor — terminal) | **`.cursor/permissions.example.json`** — Cursor doesn't read this; copy it into `~/.cursor/permissions.json` | Terminal commands | Always-on, all of your Cursor | Cursor only, **manual install** |
+| Repo-pinned global (Cursor — sandbox/network) | **`.cursor/sandbox.json`** — Cursor reads this automatically | Sandbox network allowlist (e.g. `api.github.com`) | Always-on, this repo | Cursor only, automatic |
 
-**Why three?** The first layer is the only true cross-agent one, but it only fires when the matching skill is active — useless if you ask "create an issue" in a fresh chat with no skill triggered. Claude Code lets us repo-pin a global allowlist (`.claude/settings.json` is read automatically). Cursor's IDE agent allowlist is documented as **per-user only — no per-project override exists** ([Cursor docs](https://cursor.com/docs/reference/permissions.md)), so the best we can do is ship a tracked example and tell each contributor to merge it locally.
+**Why four?** The first layer is the only true cross-agent one, but it only fires when the matching skill is active — useless if you ask "create an issue" in a fresh chat with no skill triggered. Claude Code lets us repo-pin a global terminal allowlist (`.claude/settings.json` is read automatically) and doesn't sandbox network. Cursor splits the concern: its **terminal allowlist** is documented as [per-user only — no per-project override](https://cursor.com/docs/reference/permissions.md), so the best we can do is ship a tracked example and tell each contributor to merge it locally; its **sandbox/network policy** ([`.cursor/sandbox.json`](https://cursor.com/docs/reference/sandbox.md)) **does** support a repo-level file, so we ship that one committed and Cursor picks it up automatically.
 
 #### Installing the Cursor allowlist (one-time, per machine)
 
@@ -68,9 +69,18 @@ jq -s '
 
 Cursor re-reads the file on save. The allowlist only fires when **Auto-Run** is on (Settings → Cursor Settings → Agents → Auto-Run, set to *Run in Sandbox* or *Run Everything*). In *Ask Every Time* mode the allowlist is ignored, by design.
 
+#### Cursor sandbox/network (`.cursor/sandbox.json`)
+
+Unlike `permissions.json`, **Cursor reads `.cursor/sandbox.json` directly from the repo** ([docs](https://cursor.com/docs/reference/sandbox.md)) — no manual install. The committed file is intentionally minimal:
+
+- `type: workspace_readwrite` — the agent can read/write anywhere in the repo workspace, but writes outside the workspace are blocked. This is the meaningful guard: it prevents the agent from accidentally clobbering `~/.gitconfig`, `~/.ssh/`, or any other personal config while iterating in this repo. Per-user write exceptions (e.g. for global git hooks like the zapier-omni-hook log dir) belong in `~/.cursor/sandbox.json` via `additionalReadwritePaths`, not in the committed file.
+- `networkPolicy.default: allow` — no per-host filtering. We tried a curated allow list (`api.github.com`, `*.githubusercontent.com`, `github.com`, `uploads.github.com`) but it added friction without adding security: the planning loop's safety net is the curated terminal allowlist + explicit denies in `.claude/settings.json`, not "the agent can't reach random hosts". For a single-maintainer repo where you trust the allowlist, network sandboxing is theatre.
+
+If you want to *re-enable* per-host network filtering for your own clone — e.g. you're paranoid about a compromised dependency — set `networkPolicy.default: "deny"` plus an explicit `allow` list in your `~/.cursor/sandbox.json`. Allow lists are unioned across the repo file and yours, but `deny` always wins, so you can tighten unilaterally.
+
 #### Curated set (what's in, what's out)
 
-Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the same curated `gh` subset, plus `git worktree`, `git status`/`log`/`diff`/`branch`/`fetch`, and `jq`. Read-heavy `gh` (issue/pr/project/repo/release/run/workflow `view|list|diff|checks`), the writes the planning loop needs (`issue create|edit|comment|close`, `pr create|edit|comment`, `project item-add|edit|archive`), and `gh api graphql` + `gh api repos/FokkeZB/` for the few REST sidesteps the loop relies on.
+Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the same curated `gh` subset, plus `git worktree`, `git status`/`log`/`diff`/`branch`/`fetch`/`push`, and `jq`. Read-heavy `gh` (issue/pr/project/repo/release/run/workflow `view|list|diff|checks`), the writes the planning loop needs (`issue create|edit|comment|close`, `pr create|edit|comment`, `project item-add|edit|archive`), and `gh api graphql` + `gh api repos/FokkeZB/` for the few REST sidesteps the loop relies on. `git push` is allowed so subagents can publish their branches; the explicit denies below catch the dangerous variants on Claude Code, and on Cursor the prefix-match limitation means *you* stay in the loop on `git push --force` / `git push origin main`.
 
 **Deliberately excluded** so you stay in the loop:
 
@@ -83,6 +93,22 @@ Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the sam
 - `git push --force`, `git push origin main`, `git reset --hard`, `rm -rf .worktrees` (Claude Code only — Cursor's allowlist matches command-prefixes, not full lines, so these need to stay in your judgement loop on Cursor).
 
 If a future skill genuinely needs one of these, propose the allowlist diff in the same PR rather than working around it locally — `.claude/settings.json` lands automatically, and `.cursor/permissions.example.json` is the heads-up for Cursor users to re-merge.
+
+#### Gotcha: don't shadow the allowlist with `cd`
+
+Cursor (and Claude Code) match the allowlist against the **leading command** of the shell line, not "any command in the chain". So this:
+
+```sh
+cd /path/to/repo && gh pr create --draft --title …
+```
+
+is matched as `cd …`, **not** `gh pr create …` — the `gh pr create` allowlist entry never fires, the command runs in the sandbox, and `api.github.com` is firewalled. This bit me hard while building the planning loop.
+
+Fixes (in order of preference):
+
+1. **Use the Shell tool's `working_directory` parameter** instead of `cd && …`. The system prompt for both agents documents this explicitly. The leading command is then the real one (`gh`, `git`, etc.) and the allowlist matches.
+2. `cd` is on the allowlist as belt-and-braces for the cases where you genuinely need a chained `cd` (e.g. inside a generated script). It still skips the sandbox, but you lose the per-command guardrails for whatever runs after the `&&`. Prefer (1).
+3. Don't chain at all when an allowlisted command can stand alone — `git push origin foo` from anywhere in the worktree works without `cd`.
 
 ## Xcode MCP Server
 
