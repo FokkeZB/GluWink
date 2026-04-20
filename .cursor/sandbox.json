@@ -1,0 +1,13 @@
+{
+  "// Note": "Repo-pinned Cursor sandbox config. Cursor reads this file automatically (unlike .cursor/permissions.json, which is per-user only). See AGENTS.md → 'Agent terminal allowlist' for the rationale. Filesystem: agent has read+write on the entire workspace (the whole repo). Network: allowlist is the bare minimum the planning loop needs (gh hits api.github.com). Widening either is a deliberate diff, not per-machine drift.",
+  "type": "workspace_readwrite",
+  "networkPolicy": {
+    "default": "deny",
+    "allow": [
+      "api.github.com",
+      "*.githubusercontent.com",
+      "github.com",
+      "uploads.github.com"
+    ]
+  }
+}

@@ -41,15 +41,16 @@ When bumping a pin: edit `mise.toml`, run `mise install`, commit. Skills assume 
 
 ### Agent terminal allowlist
 
-The **Self-managed planning loop** (below) needs the agent to invoke a curated subset of `gh` (and `git worktree`, `jq`) without prompting on every call. There is no fully cross-agent standard for "repo-pinned terminal allowlist" yet, so the curated set is shipped three ways, each doing the most it can:
+The **Self-managed planning loop** (below) needs the agent to invoke a curated subset of `gh` (and `git worktree`, `jq`) without prompting on every call, **and** to reach `api.github.com` without re-asking for network permission on every call. Two separate concerns, two separate mechanisms — and Cursor's mechanisms aren't quite the same as Claude Code's, so the curated set is shipped four ways, each doing the most it can:
 
-| Layer | File | Scope | Cross-agent? |
-|---|---|---|---|
-| Per-skill (in-skill calls only) | `.claude/skills/*/SKILL.md` frontmatter `allowed-tools:` | Active during that skill | **Yes** — read by both Claude Code and Cursor |
-| Repo-pinned global (Claude Code) | `.claude/settings.json` (`permissions.allow` / `deny`) | Always-on, this repo | Claude Code only |
-| Repo-pinned global (Cursor) | **`.cursor/permissions.example.json`** — Cursor doesn't read this; copy it into `~/.cursor/permissions.json` | Always-on, all of your Cursor | Cursor only, **manual install** |
+| Layer | File | What it controls | Scope | Cross-agent? |
+|---|---|---|---|---|
+| Per-skill (in-skill calls only) | `.claude/skills/*/SKILL.md` frontmatter `allowed-tools:` | Terminal commands | Active during that skill | **Yes** — Claude Code & Cursor |
+| Repo-pinned global (Claude Code) | `.claude/settings.json` (`permissions.allow` / `deny`) | Terminal commands | Always-on, this repo | Claude Code only |
+| Repo-pinned global (Cursor — terminal) | **`.cursor/permissions.example.json`** — Cursor doesn't read this; copy it into `~/.cursor/permissions.json` | Terminal commands | Always-on, all of your Cursor | Cursor only, **manual install** |
+| Repo-pinned global (Cursor — sandbox/network) | **`.cursor/sandbox.json`** — Cursor reads this automatically | Sandbox network allowlist (e.g. `api.github.com`) | Always-on, this repo | Cursor only, automatic |
 
-**Why three?** The first layer is the only true cross-agent one, but it only fires when the matching skill is active — useless if you ask "create an issue" in a fresh chat with no skill triggered. Claude Code lets us repo-pin a global allowlist (`.claude/settings.json` is read automatically). Cursor's IDE agent allowlist is documented as **per-user only — no per-project override exists** ([Cursor docs](https://cursor.com/docs/reference/permissions.md)), so the best we can do is ship a tracked example and tell each contributor to merge it locally.
+**Why four?** The first layer is the only true cross-agent one, but it only fires when the matching skill is active — useless if you ask "create an issue" in a fresh chat with no skill triggered. Claude Code lets us repo-pin a global terminal allowlist (`.claude/settings.json` is read automatically) and doesn't sandbox network. Cursor splits the concern: its **terminal allowlist** is documented as [per-user only — no per-project override](https://cursor.com/docs/reference/permissions.md), so the best we can do is ship a tracked example and tell each contributor to merge it locally; its **sandbox/network policy** ([`.cursor/sandbox.json`](https://cursor.com/docs/reference/sandbox.md)) **does** support a repo-level file, so we ship that one committed and Cursor picks it up automatically.
 
 #### Installing the Cursor allowlist (one-time, per machine)
 
@@ -67,6 +68,10 @@ jq -s '
 ```
 
 Cursor re-reads the file on save. The allowlist only fires when **Auto-Run** is on (Settings → Cursor Settings → Agents → Auto-Run, set to *Run in Sandbox* or *Run Everything*). In *Ask Every Time* mode the allowlist is ignored, by design.
+
+#### Cursor sandbox/network (`.cursor/sandbox.json`)
+
+Unlike `permissions.json`, **Cursor reads `.cursor/sandbox.json` directly from the repo** ([docs](https://cursor.com/docs/reference/sandbox.md)) — no manual install. The committed file allows the planning loop's network targets (`api.github.com`, `*.githubusercontent.com`, `github.com`, `uploads.github.com`) so `gh project item-list`, `gh issue list`, `gh pr list` etc. don't need a per-call `full_network` prompt. Allow lists are unioned across the repo file and your `~/.cursor/sandbox.json`; deny always wins. Widening the network allowlist is a deliberate diff in this repo, not per-machine drift — same principle as the terminal allowlist.
 
 #### Curated set (what's in, what's out)
 
