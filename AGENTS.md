@@ -71,7 +71,12 @@ Cursor re-reads the file on save. The allowlist only fires when **Auto-Run** is 
 
 #### Cursor sandbox/network (`.cursor/sandbox.json`)
 
-Unlike `permissions.json`, **Cursor reads `.cursor/sandbox.json` directly from the repo** ([docs](https://cursor.com/docs/reference/sandbox.md)) — no manual install. The committed file allows the planning loop's network targets (`api.github.com`, `*.githubusercontent.com`, `github.com`, `uploads.github.com`) so `gh project item-list`, `gh issue list`, `gh pr list` etc. don't need a per-call `full_network` prompt. Allow lists are unioned across the repo file and your `~/.cursor/sandbox.json`; deny always wins. Widening the network allowlist is a deliberate diff in this repo, not per-machine drift — same principle as the terminal allowlist.
+Unlike `permissions.json`, **Cursor reads `.cursor/sandbox.json` directly from the repo** ([docs](https://cursor.com/docs/reference/sandbox.md)) — no manual install. The committed file is intentionally minimal:
+
+- `type: workspace_readwrite` — the agent can read/write anywhere in the repo workspace, but writes outside the workspace are blocked. This is the meaningful guard: it prevents the agent from accidentally clobbering `~/.gitconfig`, `~/.ssh/`, or any other personal config while iterating in this repo. Per-user write exceptions (e.g. for global git hooks like the zapier-omni-hook log dir) belong in `~/.cursor/sandbox.json` via `additionalReadwritePaths`, not in the committed file.
+- `networkPolicy.default: allow` — no per-host filtering. We tried a curated allow list (`api.github.com`, `*.githubusercontent.com`, `github.com`, `uploads.github.com`) but it added friction without adding security: the planning loop's safety net is the curated terminal allowlist + explicit denies in `.claude/settings.json`, not "the agent can't reach random hosts". For a single-maintainer repo where you trust the allowlist, network sandboxing is theatre.
+
+If you want to *re-enable* per-host network filtering for your own clone — e.g. you're paranoid about a compromised dependency — set `networkPolicy.default: "deny"` plus an explicit `allow` list in your `~/.cursor/sandbox.json`. Allow lists are unioned across the repo file and yours, but `deny` always wins, so you can tighten unilaterally.
 
 #### Curated set (what's in, what's out)
 
