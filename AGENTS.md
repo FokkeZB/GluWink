@@ -67,7 +67,35 @@ The pattern this repo uses:
 - `make docs-audit` → `docs/scripts/lighthouse-audit.sh` (builds, serves, runs Lighthouse on `/` and `/nl/`, prints summary + failing audits)
 - `.claude/skills/site-audit/SKILL.md` (triggered by "audit the site", "lighthouse the site", etc. — runs the make target, decides whether action is needed, proposes to file an issue and implement fixes following the structure of #56)
 
-So now "audit the site" is a one-liner instead of ~15 minutes of judgement calls. **When you ship the next thing that smells like this, do the same**: ship the make target, ship the skill, mention both in the PR description, and add a one-line worked-example pointer here so future agents see the pattern.
+**Worked example — planning loop.** After a session spent manually picking what to work on next from a 40+ issue backlog (2026-04-19), the same workflow was extracted into the **GluWink Roadmap** GH Project + `.claude/skills/plan-next/SKILL.md` — see "Self-managed planning loop" below for the full pattern.
+
+So now "audit the site" or "what's next" is a one-liner instead of ~15 minutes of judgement calls. **When you ship the next thing that smells like this, do the same**: ship the make target (or the GH Project, or whatever the deterministic substrate is), ship the skill, mention both in the PR description, and add a one-line worked-example pointer here so future agents see the pattern.
+
+## Self-managed planning loop
+
+The owner defers backlog management to the agent. Workflow:
+
+1. Owner says "work on the project" / "what's next" / "let's continue".
+2. Agent re-assesses the **GluWink Roadmap** GH Project (`gh project --owner FokkeZB`, project number 1) plus open issues and PRs, proposes the next batch of 1–3 items.
+3. Owner approves.
+4. Agent creates one git worktree per approved issue under `.worktrees/<n>-<slug>/`, on a branch `<type>/<n>-<slug>`. Disjoint-area issues run as parallel subagents; same-area issues run serially.
+5. Each subagent implements the fix in its worktree, commits per `.claude/skills/git-commit/SKILL.md`, and opens a **draft** PR with `Closes #N` in the body.
+6. Owner reviews and merges. Agent moves the project card to `Done` and cleans up the worktree on the next plan-next invocation.
+
+**The agent never merges, never pushes to `main`, never force-pushes.** Owner-in-the-loop checkpoints: batch selection, blocking subagent questions, every merge.
+
+The full implementation lives in `.claude/skills/plan-next/SKILL.md` — including the project field IDs, the rediscovery commands if those IDs ever go stale, and the dispatch prompt template. **Read that skill before improvising new behaviour around the project board** — its conventions are how the loop stays self-consistent across sessions.
+
+The project's structure:
+
+| Field | Values | Notes |
+|---|---|---|
+| `Status` | `Backlog`, `Up Next`, `In Progress`, `In Review`, `Done` | Built-in field, options replaced via GraphQL |
+| `Priority` | `P0`, `P1`, `P2`, `P3` | P0 = must-fix, P3 = someday |
+| `Effort` | `XS`, `S`, `M`, `L` | XS < 1h, L = week+ |
+| `Area` | mirrors repo labels | `shield`, `widgets`, `healthkit`, `nightscout`, `watchos`, `attention`, `settings`, `docs`, `infra`, `a11y`, `polish` |
+
+**`.worktrees/`** at repo root is gitignored — it's where parallel subagents work. Inspect with `git worktree list`. Don't `rm -rf` a worktree directory directly; use `git worktree remove` so git's bookkeeping stays consistent.
 
 ## Device Prerequisites (manual, not part of the app)
 
