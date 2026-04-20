@@ -19,7 +19,14 @@ iOS/build/
 # Editor-local config (VS Code / Cursor). Workspace-scoped settings like
 # extension toggles are personal preferences, not project conventions —
 # project-wide editor rules belong in .editorconfig and AGENTS.md.
-.vscode/
+#
+# Exception: .vscode/settings.json is tracked because it pins the
+# repo-shared Cursor terminal allowlist for the planning loop (see
+# AGENTS.md → "Self-managed planning loop"). Personal extension prefs
+# can still go in there; reviewers will catch anything that shouldn't
+# be shared.
+.vscode/*
+!.vscode/settings.json
 
 # Fastlane (App Store metadata pipeline) — see iOS/fastlane/Fastfile.
 # Generated metadata is regenerated from AppStore/*.md before every push,
