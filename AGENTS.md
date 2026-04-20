@@ -25,6 +25,20 @@ This repo is worked on from multiple AI agents (Cursor, Claude Code, etc.). When
 
 **Rationale:** `.mcp.json` at the repo root is read by both Claude Code and Cursor. `AGENTS.md` is read by Claude Code natively and by Cursor via its rules system. Agent-specific config directories (`.cursor/`, `.claude/`) should only be used when there is no shared equivalent, or when behavior genuinely differs between agents.
 
+### Cursor terminal allowlist (workspace-pinned)
+
+`.vscode/settings.json` (partially un-gitignored — see `.gitignore`) pins `cursor.terminal.allowList` for this repo. It's the operational permission surface the **Self-managed planning loop** (below) runs on: a curated subset of `gh` subcommands the agent can invoke without prompting you.
+
+The allowlist is workspace-level on purpose, not user-level:
+
+- It's **part of the loop**. The skill that needs these commands lives in this repo; its permissions belong here too.
+- **PR-reviewable.** Adding `gh pr merge` (don't) or any other elevation lands as a visible diff.
+- **Future-you on another machine** picks it up automatically, same as `AGENTS.md` and `.mcp.json` do.
+
+Deliberately **excluded** so you stay in the loop: `gh pr merge`, `gh pr ready`, anything under `gh release / gh repo edit / gh workflow run / gh secret / gh variable / gh auth`, and `gh project create|delete|field-create|field-delete`. If a future skill genuinely needs one of those, propose it in a PR rather than working around the allowlist locally.
+
+Personal Cursor settings (your colour theme, font size, extension prefs) still go in your user `settings.json` — only the shared allowlist (and the existing `djlint.showInstallError` muting) lives in the tracked workspace file.
+
 ## Xcode MCP Server
 
 The project includes an MCP server (`.mcp.json`) that connects to a running Xcode instance via `xcrun mcpbridge`. **Xcode must be open** for the server to work. When available, prefer MCP tools over shell-based alternatives:

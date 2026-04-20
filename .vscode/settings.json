@@ -1,0 +1,48 @@
+{
+  "djlint.showInstallError": false,
+
+  // Cursor terminal allowlist for the self-managed planning loop.
+  // See AGENTS.md → "Self-managed planning loop" for the rationale.
+  // Strings are prefix-matched against the literal command line, so
+  // "gh issue" allows "gh issue create ...", "gh issue list ...", etc.
+  //
+  // Deliberately excluded (the agent must ask before doing these):
+  //   gh pr merge      — owner merges, always
+  //   gh pr ready      — marking draft → ready is the owner's "I'm done" signal
+  //   gh release *     — App Store-adjacent, owner signs off
+  //   gh repo edit/delete/archive
+  //   gh workflow run/enable/disable
+  //   gh secret/variable *
+  //   gh auth *
+  //   gh project create/delete/field-create/field-delete  — board-shape changes
+  "cursor.terminal.allowList": [
+    "gh issue list",
+    "gh issue view",
+    "gh issue create",
+    "gh issue edit",
+    "gh issue comment",
+    "gh issue close",
+    "gh pr list",
+    "gh pr view",
+    "gh pr diff",
+    "gh pr checks",
+    "gh pr create",
+    "gh pr edit",
+    "gh pr comment",
+    "gh project view",
+    "gh project item-list",
+    "gh project item-add",
+    "gh project item-edit",
+    "gh project item-archive",
+    "gh project field-list",
+    "gh repo view",
+    "gh release list",
+    "gh release view",
+    "gh run list",
+    "gh run view",
+    "gh workflow list",
+    "gh workflow view",
+    "gh api graphql",
+    "gh api repos/FokkeZB/"
+  ]
+}
