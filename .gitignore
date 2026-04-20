@@ -1,6 +1,12 @@
 .DS_Store
 private/
 
+# Parallel agent worktrees (see "Self-managed planning loop" in AGENTS.md).
+# `.claude/skills/plan-next/SKILL.md` creates one git worktree per concurrent
+# subagent under .worktrees/<issue-number>-<slug>/. Worktree contents are
+# real git checkouts on real branches — diffs go to PRs, not into main.
+.worktrees/
+
 # Build artifacts (Xcode + SwiftPM derived data)
 .build/
 iOS/build/

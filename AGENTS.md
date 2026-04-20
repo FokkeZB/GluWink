@@ -25,6 +25,52 @@ This repo is worked on from multiple AI agents (Cursor, Claude Code, etc.). When
 
 **Rationale:** `.mcp.json` at the repo root is read by both Claude Code and Cursor. `AGENTS.md` is read by Claude Code natively and by Cursor via its rules system. Agent-specific config directories (`.cursor/`, `.claude/`) should only be used when there is no shared equivalent, or when behavior genuinely differs between agents.
 
+### Agent terminal allowlist
+
+The **Self-managed planning loop** (below) needs the agent to invoke a curated subset of `gh` (and `git worktree`, `jq`) without prompting on every call. There is no fully cross-agent standard for "repo-pinned terminal allowlist" yet, so the curated set is shipped three ways, each doing the most it can:
+
+| Layer | File | Scope | Cross-agent? |
+|---|---|---|---|
+| Per-skill (in-skill calls only) | `.claude/skills/*/SKILL.md` frontmatter `allowed-tools:` | Active during that skill | **Yes** — read by both Claude Code and Cursor |
+| Repo-pinned global (Claude Code) | `.claude/settings.json` (`permissions.allow` / `deny`) | Always-on, this repo | Claude Code only |
+| Repo-pinned global (Cursor) | **`.cursor/permissions.example.json`** — Cursor doesn't read this; copy it into `~/.cursor/permissions.json` | Always-on, all of your Cursor | Cursor only, **manual install** |
+
+**Why three?** The first layer is the only true cross-agent one, but it only fires when the matching skill is active — useless if you ask "create an issue" in a fresh chat with no skill triggered. Claude Code lets us repo-pin a global allowlist (`.claude/settings.json` is read automatically). Cursor's IDE agent allowlist is documented as **per-user only — no per-project override exists** ([Cursor docs](https://cursor.com/docs/reference/permissions.md)), so the best we can do is ship a tracked example and tell each contributor to merge it locally.
+
+#### Installing the Cursor allowlist (one-time, per machine)
+
+```sh
+# If you don't have a permissions.json yet:
+cp .cursor/permissions.example.json ~/.cursor/permissions.json
+
+# If you already have one, merge the terminalAllowlist arrays:
+jq -s '
+  (.[0] // {}) as $cur | (.[1] // {}) as $new |
+  $cur * $new
+  | .terminalAllowlist = ((($cur.terminalAllowlist // []) + ($new.terminalAllowlist // [])) | unique)
+' ~/.cursor/permissions.json .cursor/permissions.example.json > /tmp/p.json \
+  && mv /tmp/p.json ~/.cursor/permissions.json
+```
+
+Cursor re-reads the file on save. The allowlist only fires when **Auto-Run** is on (Settings → Cursor Settings → Agents → Auto-Run, set to *Run in Sandbox* or *Run Everything*). In *Ask Every Time* mode the allowlist is ignored, by design.
+
+#### Curated set (what's in, what's out)
+
+Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the same curated `gh` subset, plus `git worktree`, `git status`/`log`/`diff`/`branch`/`fetch`, and `jq`. Read-heavy `gh` (issue/pr/project/repo/release/run/workflow `view|list|diff|checks`), the writes the planning loop needs (`issue create|edit|comment|close`, `pr create|edit|comment`, `project item-add|edit|archive`), and `gh api graphql` + `gh api repos/FokkeZB/` for the few REST sidesteps the loop relies on.
+
+**Deliberately excluded** so you stay in the loop:
+
+- `gh pr merge` — owner merges, always.
+- `gh pr ready` — marking draft → ready is the owner's *I'm done* signal.
+- `gh release create|delete|edit` — App Store-adjacent.
+- `gh repo edit|delete|archive`.
+- `gh workflow run|enable|disable` — actively triggers CI.
+- `gh secret`, `gh variable`, `gh auth`.
+- `gh project create|delete|field-create|field-delete` — board-shape changes.
+- `git push --force`, `git push origin main`, `git reset --hard`, `rm -rf .worktrees` (Claude Code only — Cursor's allowlist matches command-prefixes, not full lines, so these need to stay in your judgement loop on Cursor).
+
+If a future skill genuinely needs one of these, propose the allowlist diff in the same PR rather than working around it locally — `.claude/settings.json` lands automatically, and `.cursor/permissions.example.json` is the heads-up for Cursor users to re-merge.
+
 ## Xcode MCP Server
 
 The project includes an MCP server (`.mcp.json`) that connects to a running Xcode instance via `xcrun mcpbridge`. **Xcode must be open** for the server to work. When available, prefer MCP tools over shell-based alternatives:
@@ -67,7 +113,35 @@ The pattern this repo uses:
 - `make docs-audit` → `docs/scripts/lighthouse-audit.sh` (builds, serves, runs Lighthouse on `/` and `/nl/`, prints summary + failing audits)
 - `.claude/skills/site-audit/SKILL.md` (triggered by "audit the site", "lighthouse the site", etc. — runs the make target, decides whether action is needed, proposes to file an issue and implement fixes following the structure of #56)
 
-So now "audit the site" is a one-liner instead of ~15 minutes of judgement calls. **When you ship the next thing that smells like this, do the same**: ship the make target, ship the skill, mention both in the PR description, and add a one-line worked-example pointer here so future agents see the pattern.
+**Worked example — planning loop.** After a session spent manually picking what to work on next from a 40+ issue backlog (2026-04-19), the same workflow was extracted into the **GluWink Roadmap** GH Project + `.claude/skills/plan-next/SKILL.md` — see "Self-managed planning loop" below for the full pattern.
+
+So now "audit the site" or "what's next" is a one-liner instead of ~15 minutes of judgement calls. **When you ship the next thing that smells like this, do the same**: ship the make target (or the GH Project, or whatever the deterministic substrate is), ship the skill, mention both in the PR description, and add a one-line worked-example pointer here so future agents see the pattern.
+
+## Self-managed planning loop
+
+The owner defers backlog management to the agent. Workflow:
+
+1. Owner says "work on the project" / "what's next" / "let's continue".
+2. Agent re-assesses the **GluWink Roadmap** GH Project (`gh project --owner FokkeZB`, project number 1) plus open issues and PRs, proposes the next batch of 1–3 items.
+3. Owner approves.
+4. Agent creates one git worktree per approved issue under `.worktrees/<n>-<slug>/`, on a branch `<type>/<n>-<slug>`. Disjoint-area issues run as parallel subagents; same-area issues run serially.
+5. Each subagent implements the fix in its worktree, commits per `.claude/skills/git-commit/SKILL.md`, and opens a **draft** PR with `Closes #N` in the body.
+6. Owner reviews and merges. Agent moves the project card to `Done` and cleans up the worktree on the next plan-next invocation.
+
+**The agent never merges, never pushes to `main`, never force-pushes.** Owner-in-the-loop checkpoints: batch selection, blocking subagent questions, every merge.
+
+The full implementation lives in `.claude/skills/plan-next/SKILL.md` — including the project field IDs, the rediscovery commands if those IDs ever go stale, and the dispatch prompt template. **Read that skill before improvising new behaviour around the project board** — its conventions are how the loop stays self-consistent across sessions.
+
+The project's structure:
+
+| Field | Values | Notes |
+|---|---|---|
+| `Status` | `Backlog`, `Up Next`, `In Progress`, `In Review`, `Done` | Built-in field, options replaced via GraphQL |
+| `Priority` | `P0`, `P1`, `P2`, `P3` | P0 = must-fix, P3 = someday |
+| `Effort` | `XS`, `S`, `M`, `L` | XS < 1h, L = week+ |
+| `Area` | mirrors repo labels | `shield`, `widgets`, `healthkit`, `nightscout`, `watchos`, `attention`, `settings`, `docs`, `infra`, `a11y`, `polish` |
+
+**`.worktrees/`** at repo root is gitignored — it's where parallel subagents work. Inspect with `git worktree list`. Don't `rm -rf` a worktree directory directly; use `git worktree remove` so git's bookkeeping stays consistent.
 
 ## Device Prerequisites (manual, not part of the app)
 
