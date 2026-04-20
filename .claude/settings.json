@@ -14,6 +14,7 @@
       "Bash(gh pr checks:*)",
       "Bash(gh pr create:*)",
       "Bash(gh pr edit:*)",
+      "Bash(gh pr ready:*)",
       "Bash(gh pr comment:*)",
       "Bash(gh project view:*)",
       "Bash(gh project item-list:*)",
@@ -44,7 +45,6 @@
     ],
     "deny": [
       "Bash(gh pr merge:*)",
-      "Bash(gh pr ready:*)",
       "Bash(gh release create:*)",
       "Bash(gh release delete:*)",
       "Bash(gh release edit:*)",

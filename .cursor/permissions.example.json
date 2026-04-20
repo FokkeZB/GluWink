@@ -14,6 +14,7 @@
     "gh pr checks",
     "gh pr create",
     "gh pr edit",
+    "gh pr ready",
     "gh pr comment",
     "gh project view",
     "gh project item-list",

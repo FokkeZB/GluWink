@@ -75,7 +75,6 @@ Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the sam
 **Deliberately excluded** so you stay in the loop:
 
 - `gh pr merge` — owner merges, always.
-- `gh pr ready` — marking draft → ready is the owner's *I'm done* signal.
 - `gh release create|delete|edit` — App Store-adjacent.
 - `gh repo edit|delete|archive`.
 - `gh workflow run|enable|disable` — actively triggers CI.

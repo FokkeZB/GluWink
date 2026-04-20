@@ -186,8 +186,12 @@ they actually run concurrently, each with its own worktree.
 When a subagent returns:
 
 - **PR opened?** → Move card to `In Review` (option `53d70cfd`),
-  surface the PR URL + a one-line summary to the owner.
-- **Returned with a question?** → Move card back to `Up Next` (option
+  mark the PR ready (`gh pr ready <n> --repo FokkeZB/GluWink`), then
+  surface the PR URL + a one-line summary to the owner. The
+  ready-state *is* the "please look at this now" signal — leaving it
+  draft buries the request.
+- **Returned with a question?** → Leave the PR draft (still
+  work-in-progress), move the card back to `Up Next` (option
   `e7fff5ae`), relay the question, wait for owner answer, decide
   whether to re-dispatch (same subagent via `resume`) or fold the
   decision into the issue and re-queue later.
@@ -213,8 +217,9 @@ The skill **must** stop and wait for the owner at:
    explicit "go".
 2. **Subagent blocking question** (step 5). Don't answer for the
    owner; relay verbatim.
-3. **Any merge.** Subagents open drafts. The owner promotes to ready
-   and merges. The skill never runs `gh pr merge`.
+3. **Any merge.** Subagents open drafts; the skill marks ready when
+   handing off to the owner for review (see step 5). The owner
+   merges. The skill never runs `gh pr merge`.
 4. **Any push to `main`.** Forbidden. The skill works on
    `<type>/<n>-<slug>` branches only.
 5. **Anything destructive on the project board** (deleting fields,
