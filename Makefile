@@ -89,27 +89,27 @@ _capture-screenshots:
 docs-sync-screenshots:
 	bash docs/scripts/sync-screenshots.sh
 
-# Prepend asdf shims so the Ruby pinned in docs/.tool-versions wins over
-# any Homebrew Ruby earlier in $PATH (a common gotcha on macOS).
-DOCS_PATH := $(HOME)/.asdf/shims:$(PATH)
+# `mise exec ruby --` resolves `bundle` / `ruby` to the Ruby pinned in
+# mise.toml + docs/.ruby-version. Scoped to `ruby` so we don't trigger
+# install of unrelated tools from the contributor's global mise config.
+RUN_RUBY := mise exec ruby --
 
-## One-time: install Ruby per docs/.tool-versions and gem deps for the
-## marketing site. Requires asdf (https://asdf-vm.com/) and the asdf-ruby
-## build deps on macOS: `brew install openssl@3 readline libyaml gmp`.
+## One-time: install pinned tools (mise.toml) + gem deps for the
+## marketing site. Requires mise (https://mise.jdx.dev/) and the
+## Ruby build deps on macOS: `brew install openssl@3 readline libyaml gmp`.
 ## Idempotent — safe to re-run after pulling changes to docs/Gemfile.
 docs-bootstrap:
-	@command -v asdf >/dev/null || { echo "ERROR: asdf not found. Install with 'brew install asdf' and follow https://asdf-vm.com/guide/getting-started.html to source it in your shell." >&2; exit 1; }
-	@asdf plugin list 2>/dev/null | grep -qx ruby || asdf plugin add ruby
-	cd docs && asdf install
-	cd docs && PATH="$(DOCS_PATH)" bundle config set --local path 'vendor/bundle' && PATH="$(DOCS_PATH)" bundle install
+	@command -v mise >/dev/null || { echo "ERROR: mise not found. Install with 'brew install mise && echo \"eval \\\"\\$$(mise activate zsh)\\\"\" >> ~/.zshrc && exec zsh'." >&2; exit 1; }
+	mise install ruby gh jq
+	cd docs && $(RUN_RUBY) bundle config set --local path 'vendor/bundle' && $(RUN_RUBY) bundle install
 
 ## Serve the marketing site locally on http://127.0.0.1:4000/.
 ## Run `make docs-bootstrap` once first. Aborts early if the active Ruby
-## doesn't match docs/.tool-versions (the github-pages gem can't run on
+## doesn't match docs/.ruby-version (the github-pages gem can't run on
 ## Ruby 4.x — Liquid 4.0 still calls Object#tainted?).
 docs-serve:
-	@cd docs && PATH="$(DOCS_PATH)" ruby -e 'exit RUBY_VERSION.start_with?("3.3.") ? 0 : 1' || { echo "ERROR: docs/ requires Ruby 3.3.x (see docs/.tool-versions). Run 'make docs-bootstrap' first." >&2; exit 1; }
-	cd docs && PATH="$(DOCS_PATH)" bundle exec jekyll serve --livereload
+	@cd docs && $(RUN_RUBY) ruby -e 'exit RUBY_VERSION.start_with?("3.3.") ? 0 : 1' || { echo "ERROR: docs/ requires Ruby 3.3.x (see docs/.ruby-version). Run 'make docs-bootstrap' first." >&2; exit 1; }
+	cd docs && $(RUN_RUBY) bundle exec jekyll serve --livereload
 
 ## Wipe Jekyll's build output and caches under docs/. Safe to run anytime;
 ## the next `docs-build` / `docs-serve` will regenerate everything.
@@ -121,8 +121,8 @@ docs-clean:
 ## any production-only conditionals fire. Always starts from a clean tree
 ## so cached or stale output can't mask a real publish-time failure.
 docs-build: docs-clean
-	@cd docs && PATH="$(DOCS_PATH)" ruby -e 'exit RUBY_VERSION.start_with?("3.3.") ? 0 : 1' || { echo "ERROR: docs/ requires Ruby 3.3.x (see docs/.tool-versions). Run 'make docs-bootstrap' first." >&2; exit 1; }
-	cd docs && PATH="$(DOCS_PATH)" JEKYLL_ENV=production bundle exec jekyll build
+	@cd docs && $(RUN_RUBY) ruby -e 'exit RUBY_VERSION.start_with?("3.3.") ? 0 : 1' || { echo "ERROR: docs/ requires Ruby 3.3.x (see docs/.ruby-version). Run 'make docs-bootstrap' first." >&2; exit 1; }
+	cd docs && JEKYLL_ENV=production $(RUN_RUBY) bundle exec jekyll build
 
 ## Final pre-merge sanity check: clean production build, then serve the
 ## static docs/_site/ from a vanilla HTTP server on http://127.0.0.1:4001/.

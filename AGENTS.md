@@ -25,6 +25,20 @@ This repo is worked on from multiple AI agents (Cursor, Claude Code, etc.). When
 
 **Rationale:** `.mcp.json` at the repo root is read by both Claude Code and Cursor. `AGENTS.md` is read by Claude Code natively and by Cursor via its rules system. Agent-specific config directories (`.cursor/`, `.claude/`) should only be used when there is no shared equivalent, or when behavior genuinely differs between agents.
 
+### Tool versions
+
+All toolchain pins live in **`mise.toml`** at the repo root — Ruby, `gh`, `jq`. One file, one install command:
+
+```sh
+brew install mise                              # one-time
+echo 'eval "$(mise activate zsh)"' >> ~/.zshrc # one-time, then `exec zsh`
+mise install                                   # in this repo
+```
+
+When bumping a pin: edit `mise.toml`, run `mise install`, commit. Skills assume pinned versions are present and don't carry version-detection or REST workarounds — bump the floor instead. Canonical example: `gh ≥ 2.80` clears the [`gh pr edit` classic-projects deprecation bug](https://github.com/cli/cli/issues/12640).
+
+`.claude/skills/plan-next/SKILL.md` runs `mise install --quiet || true` at the top of its workflow as belt-and-braces (auto-installs after a pin bump; `|| true` swallows install failures from tools in your *global* `~/.tool-versions` that this repo doesn't care about).
+
 ### Agent terminal allowlist
 
 The **Self-managed planning loop** (below) needs the agent to invoke a curated subset of `gh` (and `git worktree`, `jq`) without prompting on every call. There is no fully cross-agent standard for "repo-pinned terminal allowlist" yet, so the curated set is shipped three ways, each doing the most it can:
@@ -95,6 +109,19 @@ The project includes an MCP server (`.mcp.json`) that connects to a running Xcod
 ## Quirks & Gotchas
 
 **`QUIRKS.md`** (repo root) documents platform quirks, API limitations, Xcode build gotchas, and other hard-won lessons. Read it before making changes to avoid repeating mistakes.
+
+## Forward-only by default
+
+This is a single-maintainer repo with no external contributors and no released APIs. **Don't preserve old paths or carry compatibility shims unless a concrete in-flight regression demands it.** When a tool/library/format moves, move with it — bump the floor, delete the old code path, delete the migration story.
+
+Concretely, when changing how something works:
+
+- **Code:** delete the old branch, don't add a fallback "for now". If a new dev needs the old path, they'll see an error message and an upgrade command, not a quietly-different code path.
+- **Skills/scripts:** assume pinned tool versions are present (see "Tool versions"). Don't write `if version < X` branches; bump the pin.
+- **Docs:** describe the destination, not the journey. No "previously we used X, now we use Y" — just "we use Y". A new agent reading `AGENTS.md` from scratch should see only what's true today.
+- **Commit messages and PR descriptions** are the right place for the journey: *why* the change happened, what was wrong before, alternatives considered. That history lives in `git log`, not in code or docs that future readers have to skim past.
+
+If you catch yourself writing a "this still works for the old way" footnote, a `try/except` for a deprecated import, or a paragraph explaining what got replaced — stop and delete it. Adding context costs everyone every time they read it; deleting context costs only once.
 
 ## Always think automation
 

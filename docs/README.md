@@ -39,38 +39,20 @@ docs/
 
 ## Local dev
 
-Ruby pin lives in `docs/.tool-versions` (`ruby 3.3.4`) so [asdf] activates
-the right version automatically the moment you `cd docs`. We need 3.3.x
-specifically because the `github-pages` gem still pins Jekyll 3.10 /
-Liquid 4.0, which call `Object#tainted?` — removed in Ruby 3.2 and
-absent from macOS Homebrew's Ruby 4.x. GitHub Pages itself runs on
-Ruby 3.3, so local and production stay aligned.
+All tool pins (Ruby + `gh` + `jq`) live in [`mise.toml`](../mise.toml) at the
+repo root. Ruby 3.3.x is required: the `github-pages` gem pins Jekyll 3.10 /
+Liquid 4.0, which call `Object#tainted?` (removed in Ruby 3.2). GitHub Pages
+itself runs on Ruby 3.3, so local matches production.
 
 ### One-time bootstrap
 
-If you already have asdf and its Ruby plugin's build deps, this is the
-whole story:
-
 ```sh
-make docs-bootstrap
-```
+brew install mise
+echo 'eval "$(mise activate zsh)"' >> ~/.zshrc && exec zsh
 
-That target asks asdf to install the plugin (idempotent), reads
-`docs/.tool-versions`, installs Ruby 3.3.4, and runs `bundle install` into
-`docs/vendor/bundle/` (gitignored).
+brew install openssl@3 readline libyaml gmp   # Ruby build deps (macOS)
 
-If you don't have asdf yet:
-
-```sh
-brew install asdf
-# Add asdf to your shell once — see https://asdf-vm.com/guide/getting-started.html
-echo '. /opt/homebrew/opt/asdf/libexec/asdf.sh' >> ~/.zshrc
-exec zsh
-
-# Build deps for compiling Ruby on macOS (one-time):
-brew install openssl@3 readline libyaml gmp
-
-make docs-bootstrap
+make docs-bootstrap   # mise install + bundle install into docs/vendor/bundle/
 ```
 
 ### Serve
@@ -85,12 +67,12 @@ Open <http://127.0.0.1:4000/>. NL lives at <http://127.0.0.1:4000/nl/>.
 The target sanity-checks the active Ruby and aborts with a pointer to
 `make docs-bootstrap` if you're on the wrong version.
 
-The Make targets prepend `~/.asdf/shims` to `PATH` so they work even when
-Homebrew's Ruby sits earlier in your shell `PATH`. If you'd rather run
-`bundle` / `jekyll` directly (without Make), put the shims dir first in
-your own `PATH` or run them through `asdf exec` from inside `docs/`.
+The Make targets call `mise exec ruby --` so they work regardless of what's
+earlier in `$PATH`. To run `bundle` / `jekyll` directly: either activate mise
+in your shell (`eval "$(mise activate zsh)"`, recommended — does this for
+every command) or prefix one-offs with `mise exec ruby -- bundle …`.
 
-[asdf]: https://asdf-vm.com/
+[mise]: https://mise.jdx.dev/
 
 ### Pre-merge production check
 

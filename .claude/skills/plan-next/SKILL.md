@@ -1,7 +1,7 @@
 ---
 name: plan-next
 description: Re-assess the GluWink Roadmap GH Project + open issues, propose the next batch of work, and — on owner approval — dispatch parallel subagents in worktrees to implement them as draft PRs. Use when the user says "work on the project", "what's next", "plan next", "let's continue", "pick up work", "what should we do next", or any variant. The skill never merges and never pushes to main; the owner stays in the loop for batch selection, blocking questions, and every merge.
-allowed-tools: Bash(gh project:*), Bash(gh issue:*), Bash(gh pr:*), Bash(gh api:*), Bash(git worktree:*), Bash(git checkout:*), Bash(git branch:*), Bash(git status:*), Bash(git log:*), Bash(jq:*), Read, Write, StrReplace, Task
+allowed-tools: Bash(mise install:*), Bash(mise exec:*), Bash(gh project:*), Bash(gh issue:*), Bash(gh pr:*), Bash(gh api:*), Bash(git worktree:*), Bash(git checkout:*), Bash(git branch:*), Bash(git status:*), Bash(git log:*), Bash(jq:*), Read, Write, StrReplace, Task
 ---
 
 # Plan-next (GH Project → batch → worktree subagents → draft PRs)
@@ -47,7 +47,16 @@ gh project field-list 1 --owner FokkeZB --format json
 
 ### 1. Pull the world
 
-Always parallelise these — they're independent reads:
+First, belt-and-braces: make sure the pinned `gh` (≥ 2.80, see
+`mise.toml`) is installed. The `|| true` swallows unrelated install
+failures from tools the contributor pins globally but this repo
+doesn't care about.
+
+```bash
+mise install --quiet || true
+```
+
+Then parallelise these — they're independent reads:
 
 ```bash
 gh project item-list 1 --owner FokkeZB --limit 100 --format json > /tmp/plan-items.json
@@ -225,20 +234,11 @@ The skill **must** stop and wait for the owner at:
   body to add `Closes #N` so the project's "Linked pull requests"
   field auto-populates and the issue closes on merge.
 - **`gh pr edit` / `gh pr view` errors with "Projects (classic) is
-  being deprecated".** `gh` still queries the legacy `projectCards`
-  relation on PRs and treats GitHub's deprecation warning as a hard
-  error, even when you're not touching projects. Sidestep with REST:
-
-  ```bash
-  jq -Rs '{body: .}' /tmp/pr-body.md > /tmp/pr-body.json
-  gh api -X PATCH repos/FokkeZB/GluWink/pulls/<n> --input /tmp/pr-body.json
-  gh api repos/FokkeZB/GluWink/pulls/<n> \
-    --jq '{state, draft, url, body_first_line: (.body | split("\n") | .[0])}'
-  ```
-
-  Both endpoints are covered by the repo's allowlist
-  (`gh api repos/FokkeZB/` — see AGENTS.md → "Agent terminal
-  allowlist").
+  being deprecated".** `gh` is below the `mise.toml` floor (2.80,
+  per [cli/cli#12640](https://github.com/cli/cli/issues/12640)).
+  Run `mise install` — the step-1 belt-and-braces should already
+  have caught it, so this means mise itself isn't installed: see
+  AGENTS.md → "Tool versions".
 - **Project field IDs are wrong** (someone re-created Status). Re-run
   the rediscovery commands at the top of "Project + repo facts" and
   update this file in the same PR — the IDs are baked into the skill

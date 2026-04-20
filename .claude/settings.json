@@ -36,7 +36,11 @@
       "Bash(git diff:*)",
       "Bash(git branch:*)",
       "Bash(git fetch:*)",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "Bash(mise install:*)",
+      "Bash(mise exec:*)",
+      "Bash(mise current:*)",
+      "Bash(mise ls:*)"
     ],
     "deny": [
       "Bash(gh pr merge:*)",

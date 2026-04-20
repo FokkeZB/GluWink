@@ -36,6 +36,10 @@
     "git diff",
     "git branch",
     "git fetch",
-    "jq"
+    "jq",
+    "mise install",
+    "mise exec",
+    "mise current",
+    "mise ls"
   ]
 }
