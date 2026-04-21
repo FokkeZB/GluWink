@@ -1,5 +1,5 @@
 {
-  "// Note": "Repo-shared Claude Code settings. See AGENTS.md → 'Agent terminal allowlist'. Personal overrides go in .claude/settings.local.json (gitignored).",
+  "// Note": "Repo-shared Claude Code settings. See AGENTS.md → 'Agent terminal allowlist'. Personal overrides go in .claude/settings.local.json (gitignored). Mirror the curated set in .cursor/permissions.example.json so both agents behave the same way.",
   "permissions": {
     "allow": [
       "Bash(gh issue list:*)",
@@ -38,12 +38,42 @@
       "Bash(git branch:*)",
       "Bash(git fetch:*)",
       "Bash(git push:*)",
+      "Bash(git show:*)",
       "Bash(cd:*)",
       "Bash(jq:*)",
       "Bash(mise install:*)",
       "Bash(mise exec:*)",
       "Bash(mise current:*)",
-      "Bash(mise ls:*)"
+      "Bash(mise ls:*)",
+      "Bash(mise trust:*)",
+      "Bash(make build:*)",
+      "Bash(make docs-bootstrap:*)",
+      "Bash(make docs-build:*)",
+      "Bash(make docs-clean:*)",
+      "Bash(make docs-serve:*)",
+      "Bash(make docs-publish-check:*)",
+      "Bash(make docs-audit:*)",
+      "Bash(make docs-sync-screenshots:*)",
+      "Bash(make appstore-sync:*)",
+      "Bash(make appstore-pull:*)",
+      "Bash(make screenshot:*)",
+      "Bash(make venv-clean:*)",
+      "Bash(make cursor-perms-sync:*)",
+      "Bash(make install:*)",
+      "Bash(make deploy:*)",
+      "Bash(make tunneld:*)",
+      "Bash(bash .claude/skills/:*)",
+      "Bash(bash docs/scripts/:*)",
+      "Bash(ls:*)",
+      "Bash(echo:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(sed:*)",
+      "Bash(wc:*)",
+      "Bash(awk:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)"
     ],
     "deny": [
       "Bash(gh pr merge:*)",
@@ -68,7 +98,11 @@
       "Bash(git push origin main:*)",
       "Bash(git push origin master:*)",
       "Bash(git reset --hard:*)",
-      "Bash(rm -rf .worktrees:*)"
+      "Bash(rm -rf .worktrees:*)",
+      "Bash(make appstore-push:*)",
+      "Bash(make appstore-beta:*)",
+      "Bash(make appstore-screenshots:*)",
+      "Bash(make appstore-bootstrap:*)"
     ]
   }
 }

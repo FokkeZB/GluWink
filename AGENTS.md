@@ -52,22 +52,19 @@ The **Self-managed planning loop** (below) needs the agent to invoke a curated s
 
 **Why four?** The first layer is the only true cross-agent one, but it only fires when the matching skill is active — useless if you ask "create an issue" in a fresh chat with no skill triggered. Claude Code lets us repo-pin a global terminal allowlist (`.claude/settings.json` is read automatically) and doesn't sandbox network. Cursor splits the concern: its **terminal allowlist** is documented as [per-user only — no per-project override](https://cursor.com/docs/reference/permissions.md), so the best we can do is ship a tracked example and tell each contributor to merge it locally; its **sandbox/network policy** ([`.cursor/sandbox.json`](https://cursor.com/docs/reference/sandbox.md)) **does** support a repo-level file, so we ship that one committed and Cursor picks it up automatically.
 
-#### Installing the Cursor allowlist (one-time, per machine)
+#### Installing / re-syncing the Cursor allowlist
+
+One command — additive, idempotent, safe to re-run after every pull that touches `.cursor/permissions.example.json`:
 
 ```sh
-# If you don't have a permissions.json yet:
-cp .cursor/permissions.example.json ~/.cursor/permissions.json
-
-# If you already have one, merge the terminalAllowlist arrays:
-jq -s '
-  (.[0] // {}) as $cur | (.[1] // {}) as $new |
-  $cur * $new
-  | .terminalAllowlist = ((($cur.terminalAllowlist // []) + ($new.terminalAllowlist // [])) | unique)
-' ~/.cursor/permissions.json .cursor/permissions.example.json > /tmp/p.json \
-  && mv /tmp/p.json ~/.cursor/permissions.json
+make cursor-perms-sync
 ```
 
-Cursor re-reads the file on save. The allowlist only fires when **Auto-Run** is on (Settings → Cursor Settings → Agents → Auto-Run, set to *Run in Sandbox* or *Run Everything*). In *Ask Every Time* mode the allowlist is ignored, by design.
+Under the hood it copies `.cursor/permissions.example.json` to `~/.cursor/permissions.json` if you don't have one yet, otherwise it `jq`-merges the `terminalAllowlist` arrays so any personal entries you've added survive. Cursor re-reads the file on save — no restart.
+
+The allowlist only fires when **Auto-Run** is on (Settings → Cursor Settings → Agents → Auto-Run, set to *Run in Sandbox* or *Run Everything*). In *Ask Every Time* mode the allowlist is ignored, by design.
+
+**When the curated set changes** (someone adds an entry to `.cursor/permissions.example.json`), re-run `make cursor-perms-sync` after pulling. The sync target only adds entries — it never removes them — so a tightening change (entry deleted upstream) stays in your local file until you prune it by hand. That's deliberate: Cursor's `permissions.json` is global across all your projects, so we err on the side of not yanking entries another project of yours might rely on.
 
 #### Cursor sandbox/network (`.cursor/sandbox.json`)
 
@@ -80,7 +77,14 @@ If you want to *re-enable* per-host network filtering for your own clone — e.g
 
 #### Curated set (what's in, what's out)
 
-Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the same curated `gh` subset, plus `git worktree`, `git status`/`log`/`diff`/`branch`/`fetch`/`push`, and `jq`. Read-heavy `gh` (issue/pr/project/repo/release/run/workflow `view|list|diff|checks`), the writes the planning loop needs (`issue create|edit|comment|close`, `pr create|edit|comment`, `project item-add|edit|archive`), and `gh api graphql` + `gh api repos/FokkeZB/` for the few REST sidesteps the loop relies on. `git push` is allowed so subagents can publish their branches; the explicit denies below catch the dangerous variants on Claude Code, and on Cursor the prefix-match limitation means *you* stay in the loop on `git push --force` / `git push origin main`.
+Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the same curated set:
+
+- **`gh` subset**: read-heavy commands (`issue`/`pr`/`project`/`repo`/`release`/`run`/`workflow` `view|list|diff|checks`), the writes the planning loop needs (`issue create|edit|comment|close`, `pr create|edit|comment|ready`, `project item-add|edit|archive`), and `gh api graphql` + `gh api repos/FokkeZB/` for the few REST sidesteps the loop relies on.
+- **`git`**: `worktree`, `status`, `log`, `diff`, `branch`, `fetch`, `push`, `show`. `git push` is allowed so subagents can publish their branches; the explicit denies below catch the dangerous variants on Claude Code, and on Cursor the prefix-match limitation means *you* stay in the loop on `git push --force` / `git push origin main`.
+- **`mise`**: `install`, `exec`, `current`, `ls`, `trust`.
+- **`make`** (specific safe targets only — see deny list for what's excluded): `build`, `install`, `deploy`, `tunneld`, `docs-bootstrap|build|clean|serve|publish-check|audit|sync-screenshots`, `appstore-sync|pull`, `screenshot`, `venv-clean`, `cursor-perms-sync`. `install`/`deploy` push the current build to the connected iPhone — that's a side effect on a physical device, but it's the inner loop of every test cycle and the device itself is the gate (must be unlocked + USB-attached), so the prompt friction wasn't earning its keep. `tunneld` needs `sudo` and will still prompt for your password interactively — allowlisting just removes the *agent's* prompt, not the OS's. We deliberately do **not** allow bare `make` — Cursor has no deny list, so a wildcard would also auto-run `make appstore-push` (pushes to App Store Connect), `make appstore-beta` (uploads TestFlight build), etc.
+- **`bash` scoped to repo scripts**: `bash .claude/skills/` and `bash docs/scripts/` — every skill and audit script lives under one of these prefixes, so the allowlist matches them without opening the door to arbitrary `bash`.
+- **Plain Unix utilities** for inspecting output: `ls`, `cat`, `head`, `tail`, `sed`, `awk`, `wc`, `sort`, `uniq`, `echo`, plus `jq` and `cd`. None of them mutate state; chains like `… && tail -40` or `… | sed -n '70,80p'` work without prompting.
 
 **Deliberately excluded** so you stay in the loop:
 
@@ -90,25 +94,37 @@ Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the sam
 - `gh workflow run|enable|disable` — actively triggers CI.
 - `gh secret`, `gh variable`, `gh auth`.
 - `gh project create|delete|field-create|field-delete` — board-shape changes.
+- `make appstore-push`, `make appstore-beta`, `make appstore-screenshots`, `make appstore-bootstrap` — touch App Store Connect, fastlane state, or take a long time and burn battery.
 - `git push --force`, `git push origin main`, `git reset --hard`, `rm -rf .worktrees` (Claude Code only — Cursor's allowlist matches command-prefixes, not full lines, so these need to stay in your judgement loop on Cursor).
 
-If a future skill genuinely needs one of these, propose the allowlist diff in the same PR rather than working around it locally — `.claude/settings.json` lands automatically, and `.cursor/permissions.example.json` is the heads-up for Cursor users to re-merge.
+If a future skill genuinely needs one of these, propose the allowlist diff in the same PR rather than working around it locally — `.claude/settings.json` lands automatically, and `.cursor/permissions.example.json` is the heads-up for Cursor users to re-merge with `make cursor-perms-sync`.
 
-#### Gotcha: don't shadow the allowlist with `cd`
+#### Gotcha: chained commands and `cd` shadowing
 
-Cursor (and Claude Code) match the allowlist against the **leading command** of the shell line, not "any command in the chain". So this:
+Two related traps when chaining commands with `&&`, `||`, or `;`:
+
+**1. The leading command shadows everything after it.** Cursor (and Claude Code) match the allowlist against the leading command of the shell line, not "any command in the chain". So this:
 
 ```sh
 cd /path/to/repo && gh pr create --draft --title …
 ```
 
-is matched as `cd …`, **not** `gh pr create …` — the `gh pr create` allowlist entry never fires, the command runs in the sandbox, and `api.github.com` is firewalled. This bit me hard while building the planning loop.
+is matched as `cd …`, **not** `gh pr create …` — the `gh pr create` allowlist entry never fires, the command runs in the sandbox, and (if network sandboxing is on) `api.github.com` is firewalled.
+
+**2. A non-allowlisted command anywhere in the chain re-prompts.** Even if the leading command IS allowlisted, Cursor inspects the whole chain and prompts if any segment isn't covered. So this:
+
+```sh
+gh issue view 36 --repo FokkeZB/GluWink && echo '---' && gh issue view 37 --repo FokkeZB/GluWink
+```
+
+still prompts — `gh issue view` is allowlisted, but `echo` wasn't (until we added it). The fix is either to allowlist the chain segments (we did this for the common shell utilities — see "Curated set" above) or to split the chain into separate tool calls.
 
 Fixes (in order of preference):
 
 1. **Use the Shell tool's `working_directory` parameter** instead of `cd && …`. The system prompt for both agents documents this explicitly. The leading command is then the real one (`gh`, `git`, etc.) and the allowlist matches.
-2. `cd` is on the allowlist as belt-and-braces for the cases where you genuinely need a chained `cd` (e.g. inside a generated script). It still skips the sandbox, but you lose the per-command guardrails for whatever runs after the `&&`. Prefer (1).
-3. Don't chain at all when an allowlisted command can stand alone — `git push origin foo` from anywhere in the worktree works without `cd`.
+2. **Don't chain when separate calls work.** Two `gh issue view` calls as two tool invocations are unambiguously allowlisted; chained with `&& echo … &&` they're a single line that has to be re-checked end-to-end. Use chains when you actually need shell semantics (`make build 2>&1 | tail -40`), not as a way to batch unrelated reads.
+3. `cd` is on the allowlist as belt-and-braces for the cases where you genuinely need a chained `cd` (e.g. inside a generated script). Prefer (1).
+4. Don't chain at all when an allowlisted command can stand alone — `git push origin foo` from anywhere in the worktree works without `cd`.
 
 ## Xcode MCP Server
 
