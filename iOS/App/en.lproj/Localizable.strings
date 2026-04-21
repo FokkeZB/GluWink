@@ -7,6 +7,11 @@
 "home.welcome.title %@" = "Welcome to %@";
 "home.welcome.tagline %@" = "Turn your iPhone and Apple Watch from your biggest distraction into your best tool. Glucose and carbs everywhere. Apps blocked when something needs your attention.";
 
+/* Home - HealthKit denied warning */
+"home.healthKitDenied.title" = "Apple Health isn't sharing data";
+"home.healthKitDenied.body %@" = "%@ asked Apple Health for glucose and carb data, but nothing is coming through. Open the Health app to grant access, or pick another data source below.";
+"home.healthKitDenied.openHealth" = "Open Health app";
+
 /* Setup Checklist */
 "setup.checklist.title" = "Set up";
 "setup.checklist.hide" = "Hide";

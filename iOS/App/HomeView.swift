@@ -1,6 +1,8 @@
 import Combine
+import HealthKit
 import SharedKit
 import SwiftUI
+import UIKit
 
 /// The app's main screen. Shown unconditionally — no more "setup vs active"
 /// branching. Renders:
@@ -12,7 +14,15 @@ import SwiftUI
 /// - The `SetupChecklistCard` below everything, surfacing optional
 ///   next-step setup until the user configures or dismisses each item.
 struct HomeView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showSettings = false
+    /// Cached "has the user been asked for HealthKit read access?" — refreshed
+    /// on appear and on `scenePhase == .active` so toggling Health-app
+    /// permissions while we're backgrounded is reflected the moment the user
+    /// returns. iOS doesn't tell us if read access is currently granted (see
+    /// `SharedDataManager.healthKitEverDelivered`), so this is just the
+    /// "moved past .notDetermined" signal.
+    @State private var healthKitAsked: Bool = false
 
     #if targetEnvironment(simulator)
     @State private var glucose: Double = 6.4
@@ -147,6 +157,24 @@ struct HomeView: View {
         #endif
     }
 
+    /// True when the user was asked for HealthKit read access AND no data
+    /// has ever been delivered AND no other data source is configured. iOS
+    /// privacy-masks read-auth status so we can't tell "denied" from
+    /// "granted but no data yet" directly — see
+    /// `SharedDataManager.healthKitEverDelivered`. We approximate denial
+    /// by the lack of any sample after we've prompted, gated on no other
+    /// source being live so we don't pester users who deliberately
+    /// chose Nightscout or Demo instead.
+    private var showsHealthKitDeniedWarning: Bool {
+        #if targetEnvironment(simulator)
+        return false
+        #else
+        guard healthKitAsked else { return false }
+        let data = SharedDataManager.shared
+        return !data.healthKitEverDelivered && !data.hasAnyDataSource
+        #endif
+    }
+
     var body: some View {
         let _ = checklistRefreshToken
         let currentContent = content
@@ -182,6 +210,10 @@ struct HomeView: View {
                             shieldingEnabled: effectiveShieldingEnabled,
                             shieldsArmed: shieldsArmed
                         )
+                    }
+
+                    if showsHealthKitDeniedWarning {
+                        healthKitDeniedWarning
                     }
 
                     SetupChecklistCard(refreshToken: $checklistRefreshToken)
@@ -255,6 +287,7 @@ struct HomeView: View {
         .onAppear {
             pinTitleIfNeeded()
             refreshDisarmedState()
+            refreshHealthKitAskedState()
             SharedDataManager.shared.refreshAttentionBadge()
             checklistRefreshToken &+= 1
         }
@@ -262,6 +295,12 @@ struct HomeView: View {
             pinnedTitle = nil
             pinTitleIfNeeded()
             SharedDataManager.shared.refreshAttentionBadge()
+        }
+        .onChange(of: scenePhase) {
+            if scenePhase == .active {
+                refreshHealthKitAskedState()
+                checklistRefreshToken &+= 1
+            }
         }
         .onReceive(timer) {
             tick = $0
@@ -311,6 +350,67 @@ struct HomeView: View {
                 .padding(.horizontal, 32)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    // MARK: - HealthKit Denied Warning
+
+    /// Surfaced when we asked Apple Health for read access but no sample
+    /// has ever arrived (i.e. the user almost certainly denied) and no
+    /// other source is filling the gap. Without this the welcome panel
+    /// silently sits with no glucose/carb data and the user has no
+    /// signal that they need to grant access.
+    private var healthKitDeniedWarning: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                    .font(.title3)
+                Text("home.healthKitDenied.title", tableName: "Localizable")
+                    .font(.headline)
+            }
+
+            Text("home.healthKitDenied.body \(Constants.displayName)", tableName: "Localizable")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                openHealthApp()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.up.right.square")
+                    Text("home.healthKitDenied.openHealth", tableName: "Localizable")
+                }
+                .font(.subheadline.weight(.semibold))
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.orange)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 16)
+    }
+
+    /// `x-apple-health://` lands inside the Health app — there's no
+    /// public deep-link to the per-app permissions page, but it's
+    /// where the user manages read access. Mirrors
+    /// `HealthKitSettingsView.openHealthApp()`.
+    private func openHealthApp() {
+        if let url = URL(string: "x-apple-health://"), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+        }
+    }
+
+    private func refreshHealthKitAskedState() {
+        #if !targetEnvironment(simulator)
+        let status = HKHealthStore().authorizationStatus(for: HKQuantityType(.bloodGlucose))
+        let asked = status != .notDetermined
+        if asked != healthKitAsked {
+            healthKitAsked = asked
+        }
+        #endif
     }
 
     // MARK: - Status Panel

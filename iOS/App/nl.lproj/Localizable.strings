@@ -7,6 +7,11 @@
 "home.welcome.title %@" = "Welkom bij %@";
 "home.welcome.tagline %@" = "Verander je iPhone en Apple Watch van je grootste afleider in je beste hulpmiddel. Glucose en koolhydraten overal zichtbaar. Apps blokkeren als iets je aandacht vraagt.";
 
+/* Home - Apple Gezondheid geweigerd */
+"home.healthKitDenied.title" = "Apple Gezondheid deelt geen gegevens";
+"home.healthKitDenied.body %@" = "%@ heeft Apple Gezondheid om glucose- en koolhydraatgegevens gevraagd, maar er komt niets binnen. Open de Gezondheid-app om toegang te geven, of kies hieronder een andere gegevensbron.";
+"home.healthKitDenied.openHealth" = "Open Gezondheid-app";
+
 /* Set-up Checklist */
 "setup.checklist.title" = "Instellen";
 "setup.checklist.hide" = "Verberg";
