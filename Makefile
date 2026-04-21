@@ -8,6 +8,31 @@ VENV_DIR := $(HOME)/.cache/ios-screenshot-venv
 VENV_PYTHON := $(VENV_DIR)/bin/python3
 PMD3 := $(VENV_DIR)/bin/pymobiledevice3
 
+# --- Agent config ---
+
+.PHONY: cursor-perms-sync
+
+## Merge .cursor/permissions.example.json into ~/.cursor/permissions.json.
+## Cursor's terminal allowlist is per-user only — this keeps your personal
+## file in sync with the curated set we ship in the repo. Idempotent and
+## additive (entries already in your file are preserved). Re-run after
+## pulling changes that touch .cursor/permissions.example.json.
+## See AGENTS.md → 'Agent terminal allowlist' for the rationale.
+cursor-perms-sync:
+	@set -e; \
+	mkdir -p $(HOME)/.cursor; \
+	if [ -f $(HOME)/.cursor/permissions.json ]; then \
+		jq -s '(.[0] // {}) as $$cur | (.[1] // {}) as $$new | $$cur * $$new | .terminalAllowlist = ((($$cur.terminalAllowlist // []) + ($$new.terminalAllowlist // [])) | unique)' \
+			$(HOME)/.cursor/permissions.json .cursor/permissions.example.json \
+			> $(HOME)/.cursor/permissions.json.tmp; \
+		mv $(HOME)/.cursor/permissions.json.tmp $(HOME)/.cursor/permissions.json; \
+		echo "Merged .cursor/permissions.example.json into $(HOME)/.cursor/permissions.json."; \
+	else \
+		cp .cursor/permissions.example.json $(HOME)/.cursor/permissions.json; \
+		echo "Created $(HOME)/.cursor/permissions.json from .cursor/permissions.example.json."; \
+	fi; \
+	echo "Cursor will re-read the file on save — no restart needed."
+
 # --- Build & deploy ---
 
 .PHONY: build install deploy tunneld screenshot venv-clean
