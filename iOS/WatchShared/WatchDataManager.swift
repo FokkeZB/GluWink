@@ -4,11 +4,15 @@ import SharedKit
 enum WatchDataManager {
     private static let defaults = UserDefaults(suiteName: Constants.appGroupID)
 
-    private static let highGlucoseThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
-    private static let lowGlucoseThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
-    private static let glucoseStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
-    private static let carbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
-    private static let carbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
+    /// xcconfig fallbacks. Watch resolution stays a 3-tier chain
+    /// (`bridgeContext > defaults > xcconfig`) — see `content(now:)` — so the
+    /// extra simulator-bridge layer is preserved on top of `ThresholdResolver`'s
+    /// defaults+fallback. This keeps Phase-5 / screenshot-harness flows working.
+    private static let fallbackHighGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
+    private static let fallbackLowGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
+    private static let fallbackStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
+    private static let fallbackCarbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
+    private static let fallbackCarbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
 
     static var isMockModeEnabled: Bool {
         if let bridgeContext = SimulatorWatchBridge.loadContext(),
@@ -41,20 +45,15 @@ enum WatchDataManager {
             ?? .mmolL
 
         let high = (bridgeContext?["highGlucoseThreshold"] as? Double)
-            ?? defaults?.object(forKey: "highGlucoseThreshold") as? Double
-            ?? highGlucoseThreshold
+            ?? ThresholdResolver.highGlucose(defaults: defaults, fallback: fallbackHighGlucose)
         let low = (bridgeContext?["lowGlucoseThreshold"] as? Double)
-            ?? defaults?.object(forKey: "lowGlucoseThreshold") as? Double
-            ?? lowGlucoseThreshold
+            ?? ThresholdResolver.lowGlucose(defaults: defaults, fallback: fallbackLowGlucose)
         let stale = (bridgeContext?["glucoseStaleMinutes"] as? Int)
-            ?? defaults?.object(forKey: "glucoseStaleMinutes") as? Int
-            ?? glucoseStaleMinutes
+            ?? ThresholdResolver.staleMinutes(defaults: defaults, fallback: fallbackStaleMinutes)
         let graceHour = (bridgeContext?["carbGraceHour"] as? Int)
-            ?? defaults?.object(forKey: "carbGraceHour") as? Int
-            ?? carbGraceHour
+            ?? ThresholdResolver.carbGraceHour(defaults: defaults, fallback: fallbackCarbGraceHour)
         let graceMinute = (bridgeContext?["carbGraceMinute"] as? Int)
-            ?? defaults?.object(forKey: "carbGraceMinute") as? Int
-            ?? carbGraceMinute
+            ?? ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: fallbackCarbGraceMinute)
         let customChecks = customChecks(from: bridgeContext) ?? AttentionScenario.loadCustomChecks(from: defaults)
 
         return ShieldContent(

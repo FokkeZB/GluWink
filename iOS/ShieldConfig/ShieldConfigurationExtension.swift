@@ -6,11 +6,13 @@ import UIKit
 
 class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     private static let appGroupID = Bundle.main.object(forInfoDictionaryKey: "AppGroupID") as! String
-    private static let highGlucoseThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
-    private static let lowGlucoseThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
-    private static let glucoseStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
-    private static let carbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
-    private static let carbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
+    /// xcconfig fallbacks — the resolver picks user override or these,
+    /// per render, so settings changes show up in the shield UI.
+    private static let fallbackHighGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
+    private static let fallbackLowGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
+    private static let fallbackStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
+    private static let fallbackCarbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
+    private static let fallbackCarbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
 
     override func configuration(shielding application: Application) -> ShieldConfiguration {
         makeConfiguration()
@@ -47,11 +49,11 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
             glucoseFetchedAt: glucoseDate,
             lastCarbGrams: carbGrams > 0 ? carbGrams : nil,
             lastCarbEntryAt: carbDate,
-            highGlucoseThreshold: Self.highGlucoseThreshold,
-            lowGlucoseThreshold: Self.lowGlucoseThreshold,
-            glucoseStaleMinutes: Self.glucoseStaleMinutes,
-            carbGraceHour: Self.carbGraceHour,
-            carbGraceMinute: Self.carbGraceMinute,
+            highGlucoseThreshold: ThresholdResolver.highGlucose(defaults: defaults, fallback: Self.fallbackHighGlucose),
+            lowGlucoseThreshold: ThresholdResolver.lowGlucose(defaults: defaults, fallback: Self.fallbackLowGlucose),
+            glucoseStaleMinutes: ThresholdResolver.staleMinutes(defaults: defaults, fallback: Self.fallbackStaleMinutes),
+            carbGraceHour: ThresholdResolver.carbGraceHour(defaults: defaults, fallback: Self.fallbackCarbGraceHour),
+            carbGraceMinute: ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: Self.fallbackCarbGraceMinute),
             glucoseUnit: unit,
             customChecks: customChecks,
             strings: .fromPackage()

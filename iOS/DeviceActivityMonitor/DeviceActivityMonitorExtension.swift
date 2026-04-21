@@ -4,14 +4,42 @@ import Foundation
 import ManagedSettings
 import os
 
+/// Duplicate of `SharedKit.ThresholdResolver` — this extension does not link
+/// SharedKit (kept lean per the extension memory cap), so the contract is
+/// re-stated locally. Keep in sync with SharedKit/ThresholdResolver.swift.
+private enum ThresholdResolver {
+    static func highGlucose(defaults: UserDefaults?, fallback: Double) -> Double {
+        (defaults?.object(forKey: "highGlucoseThreshold") as? Double) ?? fallback
+    }
+
+    static func lowGlucose(defaults: UserDefaults?, fallback: Double) -> Double {
+        (defaults?.object(forKey: "lowGlucoseThreshold") as? Double) ?? fallback
+    }
+
+    static func staleMinutes(defaults: UserDefaults?, fallback: Int) -> Int {
+        (defaults?.object(forKey: "glucoseStaleMinutes") as? Int) ?? fallback
+    }
+
+    static func carbGraceHour(defaults: UserDefaults?, fallback: Int) -> Int {
+        (defaults?.object(forKey: "carbGraceHour") as? Int) ?? fallback
+    }
+
+    static func carbGraceMinute(defaults: UserDefaults?, fallback: Int) -> Int {
+        (defaults?.object(forKey: "carbGraceMinute") as? Int) ?? fallback
+    }
+}
+
 class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     private static let bundlePrefix = Bundle.main.object(forInfoDictionaryKey: "BundlePrefix") as! String
     private static let appGroupID = Bundle.main.object(forInfoDictionaryKey: "AppGroupID") as! String
-    private static let highGlucoseThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
-    private static let lowGlucoseThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
-    private static let glucoseStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
-    private static let carbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
-    private static let carbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
+    /// xcconfig fallbacks. The resolver picks override-or-fallback per
+    /// re-arm decision so user threshold changes take effect on the next
+    /// monitoring interval.
+    private static let fallbackHighGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
+    private static let fallbackLowGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
+    private static let fallbackStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
+    private static let fallbackCarbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
+    private static let fallbackCarbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
 
     private let logger = Logger(subsystem: "\(bundlePrefix).DeviceActivityMonitor", category: "monitor")
     private let defaults = UserDefaults(suiteName: appGroupID)
@@ -68,13 +96,19 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     private func needsAttention() -> Bool {
         let now = Date()
 
+        let highThreshold = ThresholdResolver.highGlucose(defaults: defaults, fallback: Self.fallbackHighGlucose)
+        let lowThreshold = ThresholdResolver.lowGlucose(defaults: defaults, fallback: Self.fallbackLowGlucose)
+        let staleMinutes = ThresholdResolver.staleMinutes(defaults: defaults, fallback: Self.fallbackStaleMinutes)
+        let graceHour = ThresholdResolver.carbGraceHour(defaults: defaults, fallback: Self.fallbackCarbGraceHour)
+        let graceMinute = ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: Self.fallbackCarbGraceMinute)
+
         let glucose = defaults?.double(forKey: "currentGlucose") ?? 0
         if let isoStr = defaults?.string(forKey: "glucoseFetchedAt"),
            let fetchedAt = ISO8601DateFormatter().date(from: isoStr) {
-            if glucose < Self.lowGlucoseThreshold || glucose > Self.highGlucoseThreshold {
+            if glucose < lowThreshold || glucose > highThreshold {
                 return true
             }
-            if now.timeIntervalSince(fetchedAt) / 60 > Double(Self.glucoseStaleMinutes) {
+            if now.timeIntervalSince(fetchedAt) / 60 > Double(staleMinutes) {
                 return true
             }
         } else {
@@ -84,8 +118,8 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         let cal = Calendar.current
         let hour = cal.component(.hour, from: now)
         let minute = cal.component(.minute, from: now)
-        let isMorningGrace = hour < Self.carbGraceHour
-            || (hour == Self.carbGraceHour && minute < Self.carbGraceMinute)
+        let isMorningGrace = hour < graceHour
+            || (hour == graceHour && minute < graceMinute)
 
         if !isMorningGrace {
             if let isoStr = defaults?.string(forKey: "lastCarbEntryAt"),

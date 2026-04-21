@@ -2,6 +2,31 @@ import Foundation
 import ManagedSettings
 import os
 
+/// Duplicate of `SharedKit.ThresholdResolver` — this extension does not link
+/// SharedKit (kept lean per the extension memory cap), so the contract is
+/// re-stated locally. Keep in sync with SharedKit/ThresholdResolver.swift.
+private enum ThresholdResolver {
+    static func highGlucose(defaults: UserDefaults?, fallback: Double) -> Double {
+        (defaults?.object(forKey: "highGlucoseThreshold") as? Double) ?? fallback
+    }
+
+    static func lowGlucose(defaults: UserDefaults?, fallback: Double) -> Double {
+        (defaults?.object(forKey: "lowGlucoseThreshold") as? Double) ?? fallback
+    }
+
+    static func staleMinutes(defaults: UserDefaults?, fallback: Int) -> Int {
+        (defaults?.object(forKey: "glucoseStaleMinutes") as? Int) ?? fallback
+    }
+
+    static func carbGraceHour(defaults: UserDefaults?, fallback: Int) -> Int {
+        (defaults?.object(forKey: "carbGraceHour") as? Int) ?? fallback
+    }
+
+    static func carbGraceMinute(defaults: UserDefaults?, fallback: Int) -> Int {
+        (defaults?.object(forKey: "carbGraceMinute") as? Int) ?? fallback
+    }
+}
+
 class ShieldActionExtension: ShieldActionDelegate {
     private static let bundlePrefix = Bundle.main.object(forInfoDictionaryKey: "BundlePrefix") as! String
     private static let appGroupID = Bundle.main.object(forInfoDictionaryKey: "AppGroupID") as! String
@@ -34,11 +59,17 @@ class ShieldActionExtension: ShieldActionDelegate {
         let carbDate = defaults?.string(forKey: "lastCarbEntryAt")
             .flatMap { ISO8601DateFormatter().date(from: $0) }
 
-        let highThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
-        let lowThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
-        let staleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
-        let carbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
-        let carbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
+        let fallbackHigh = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
+        let fallbackLow = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
+        let fallbackStale = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
+        let fallbackGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
+        let fallbackGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
+
+        let highThreshold = ThresholdResolver.highGlucose(defaults: defaults, fallback: fallbackHigh)
+        let lowThreshold = ThresholdResolver.lowGlucose(defaults: defaults, fallback: fallbackLow)
+        let staleMinutes = ThresholdResolver.staleMinutes(defaults: defaults, fallback: fallbackStale)
+        let carbGraceHour = ThresholdResolver.carbGraceHour(defaults: defaults, fallback: fallbackGraceHour)
+        let carbGraceMinute = ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: fallbackGraceMinute)
 
         let now = Date()
         let cal = Calendar.current

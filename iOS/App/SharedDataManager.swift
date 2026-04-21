@@ -82,11 +82,11 @@ final class SharedDataManager {
         let carbDate = defaults?.string(forKey: "lastCarbEntryAt")
             .flatMap { ISO8601DateFormatter().date(from: $0) }
 
-        let highThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
-        let lowThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
-        let staleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
-        let carbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
-        let carbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
+        let highThreshold = effectiveHighGlucoseThreshold
+        let lowThreshold = effectiveLowGlucoseThreshold
+        let staleMinutes = effectiveGlucoseStaleMinutes
+        let carbGraceHour = effectiveCarbGraceHour
+        let carbGraceMinute = effectiveCarbGraceMinute
 
         let now = Date()
         let cal = Calendar.current
@@ -292,6 +292,32 @@ final class SharedDataManager {
 
     var carbGraceMinute: Int? {
         get { defaults?.object(forKey: "carbGraceMinute") as? Int }
+    }
+
+    // MARK: - Effective thresholds (override → xcconfig fallback)
+
+    /// Resolved `highGlucoseThreshold`: user override if set, otherwise the
+    /// xcconfig default from `SettingsDefaults`. Use these from every App
+    /// surface that evaluates attention so the override contract documented
+    /// in `AGENTS.md` → "Settings override precedence" can't drift.
+    var effectiveHighGlucoseThreshold: Double {
+        ThresholdResolver.highGlucose(defaults: defaults, fallback: SettingsDefaults.highGlucose)
+    }
+
+    var effectiveLowGlucoseThreshold: Double {
+        ThresholdResolver.lowGlucose(defaults: defaults, fallback: SettingsDefaults.lowGlucose)
+    }
+
+    var effectiveGlucoseStaleMinutes: Int {
+        ThresholdResolver.staleMinutes(defaults: defaults, fallback: SettingsDefaults.staleMinutes)
+    }
+
+    var effectiveCarbGraceHour: Int {
+        ThresholdResolver.carbGraceHour(defaults: defaults, fallback: SettingsDefaults.carbGraceHour)
+    }
+
+    var effectiveCarbGraceMinute: Int {
+        ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: SettingsDefaults.carbGraceMinute)
     }
 
     var attentionIntervalMinutes: Int? {
