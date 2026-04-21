@@ -71,12 +71,16 @@ Cursor re-reads the file on save. The allowlist only fires when **Auto-Run** is 
 
 #### Cursor sandbox/network (`.cursor/sandbox.json`)
 
+<<<<<<< Updated upstream
 Unlike `permissions.json`, **Cursor reads `.cursor/sandbox.json` directly from the repo** ([docs](https://cursor.com/docs/reference/sandbox.md)) — no manual install. The committed file is intentionally minimal:
 
 - `type: workspace_readwrite` — the agent can read/write anywhere in the repo workspace, but writes outside the workspace are blocked. This is the meaningful guard: it prevents the agent from accidentally clobbering `~/.gitconfig`, `~/.ssh/`, or any other personal config while iterating in this repo. Per-user write exceptions (e.g. for global git hooks like the zapier-omni-hook log dir) belong in `~/.cursor/sandbox.json` via `additionalReadwritePaths`, not in the committed file.
 - `networkPolicy.default: allow` — no per-host filtering. We tried a curated allow list (`api.github.com`, `*.githubusercontent.com`, `github.com`, `uploads.github.com`) but it added friction without adding security: the planning loop's safety net is the curated terminal allowlist + explicit denies in `.claude/settings.json`, not "the agent can't reach random hosts". For a single-maintainer repo where you trust the allowlist, network sandboxing is theatre.
 
 If you want to *re-enable* per-host network filtering for your own clone — e.g. you're paranoid about a compromised dependency — set `networkPolicy.default: "deny"` plus an explicit `allow` list in your `~/.cursor/sandbox.json`. Allow lists are unioned across the repo file and yours, but `deny` always wins, so you can tighten unilaterally.
+=======
+Unlike `permissions.json`, **Cursor reads `.cursor/sandbox.json` directly from the repo** ([docs](https://cursor.com/docs/reference/sandbox.md)) — no manual install. The committed file allows the planning loop's network targets (`api.github.com`, `*.githubusercontent.com`, `github.com`, `uploads.github.com`) so `gh project item-list`, `gh issue list`, `gh pr list` etc. don't need a per-call `full_network` prompt. Allow lists are unioned across the repo file and your `~/.cursor/sandbox.json`; deny always wins. Widening the network allowlist is a deliberate diff in this repo, not per-machine drift — same principle as the terminal allowlist.
+>>>>>>> Stashed changes
 
 #### Curated set (what's in, what's out)
 
@@ -181,6 +185,12 @@ The owner defers backlog management to the agent. Workflow:
 6. Owner reviews and merges. Agent moves the project card to `Done` and cleans up the worktree on the next plan-next invocation.
 
 **The agent never merges, never pushes to `main`, never force-pushes.** Owner-in-the-loop checkpoints: batch selection, blocking subagent questions, every merge.
+
+### Draft vs ready
+
+`--draft` is a *temporary* state, not the resting state. Open a PR as draft only while it's genuinely incomplete or blocked — unverified on device, missing tests the owner asked for, blocked on a question relayed back, or work-in-progress between commits. **The moment the work is verified and you're ready to hand off, mark it ready for review with `gh pr ready <n>`.** This is true whether the work was done by a subagent (the parent agent reaps and marks ready, per `plan-next` step 5) or directly by the parent agent (mark ready as the final step of the same turn that opened the PR).
+
+Leaving a verified PR in draft buries the request — GitHub hides drafts from review queues and notification roll-ups, and the owner has no signal that it's waiting on them. If the work is shippable, the PR must say so.
 
 The full implementation lives in `.claude/skills/plan-next/SKILL.md` — including the project field IDs, the rediscovery commands if those IDs ever go stale, and the dispatch prompt template. **Read that skill before improvising new behaviour around the project board** — its conventions are how the loop stays self-consistent across sessions.
 
