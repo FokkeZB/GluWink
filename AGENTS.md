@@ -83,6 +83,7 @@ Both `.claude/settings.json` and `.cursor/permissions.example.json` ship the sam
 - **`git`**: `worktree`, `status`, `log`, `diff`, `branch`, `fetch`, `push`, `show`. `git push` is allowed so subagents can publish their branches; the explicit denies below catch the dangerous variants on Claude Code, and on Cursor the prefix-match limitation means *you* stay in the loop on `git push --force` / `git push origin main`.
 - **`mise`**: `install`, `exec`, `current`, `ls`, `trust`.
 - **`make`** (specific safe targets only — see deny list for what's excluded): `build`, `install`, `deploy`, `tunneld`, `docs-bootstrap|build|clean|serve|publish-check|audit|sync-screenshots`, `appstore-sync|pull`, `screenshot`, `venv-clean`, `cursor-perms-sync`. `install`/`deploy` push the current build to the connected iPhone — that's a side effect on a physical device, but it's the inner loop of every test cycle and the device itself is the gate (must be unlocked + USB-attached), so the prompt friction wasn't earning its keep. `tunneld` needs `sudo` and will still prompt for your password interactively — allowlisting just removes the *agent's* prompt, not the OS's. We deliberately do **not** allow bare `make` — Cursor has no deny list, so a wildcard would also auto-run `make appstore-push` (pushes to App Store Connect), `make appstore-beta` (uploads TestFlight build), etc.
+- **`xcodebuild`** (any args). Used as the build-verification fallback when the Xcode MCP bridge is stale (see "When the bridge goes stale" in the Xcode MCP section). Wildcarded because the canonical invocation is long and varies by destination/configuration, and `xcodebuild` itself doesn't push, doesn't touch App Store Connect, and doesn't deploy to device — those side-effecting workflows live behind `make appstore-*` / `make install` / `make deploy` and are gated separately.
 - **`bash` scoped to repo scripts**: `bash .claude/skills/` and `bash docs/scripts/` — every skill and audit script lives under one of these prefixes, so the allowlist matches them without opening the door to arbitrary `bash`.
 - **Plain Unix utilities** for inspecting output: `ls`, `cat`, `head`, `tail`, `sed`, `awk`, `wc`, `sort`, `uniq`, `echo`, plus `jq` and `cd`. None of them mutate state; chains like `… && tail -40` or `… | sed -n '70,80p'` work without prompting.
 
@@ -146,6 +147,14 @@ The project includes an MCP server (`.mcp.json`) that connects to a running Xcod
 - **Device screenshot:** `ios-screenshot` skill — `RenderPreview` only renders previews, not the real device screen.
 
 **All MCP tools require a `tabIdentifier`.** Call `XcodeListWindows` first to get it.
+
+### When the bridge goes stale
+
+Symptom: `CallMcpTool` reports "MCP server does not exist", or the per-server `tools/` directory under `~/.cursor/projects/<project-slug>/mcps/project-*-xcode/` is missing/empty even though Xcode itself is open and `xcrun --find mcpbridge` resolves. This is the Cursor-side bridge having dropped the connection — Xcode is fine, the bridge just isn't holding a session.
+
+Restarting MCP servers isn't an agent-side action. **Tell the owner to disable and re-enable the `xcode` MCP in Cursor Settings → MCP** (toggle off, toggle back on). That resocks the bridge and re-introspects the tool list. Confirmed working 2026-04-21. Cursor restart is the fallback if the toggle doesn't take.
+
+Don't try to work around a stale bridge silently — flag it as soon as you notice (a subagent's build step falling back to `xcodebuild` is the usual tell), tell the owner what to do, and continue with the `xcodebuild` fallback for the current task.
 
 ## Quirks & Gotchas
 
