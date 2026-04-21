@@ -173,7 +173,23 @@ The prompt **must** include:
   other worktrees or the main checkout`.
 - `read /Users/fokkezb/Code/GluCoach/AGENTS.md and /Users/fokkezb/Code/GluCoach/QUIRKS.md before starting`.
 - `commit using the .claude/skills/git-commit/SKILL.md convention`.
-- `when done, push and open a draft PR with gh pr create --draft --base main, body must end with "Closes #<issue>"`.
+- **Build verification:** prefer the Xcode MCP `BuildProject` tool
+  (requires Xcode open and a `tabIdentifier` from `XcodeListWindows`).
+  Fallback if the MCP server is unavailable:
+  `xcodebuild -project iOS/App.xcodeproj -scheme App -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build`.
+  See AGENTS.md → "Xcode MCP Server" for the full tool table. **Note
+  the project is `iOS/App.xcodeproj` and the scheme is `App`** — the
+  product name is GluWink but the Xcode artifacts are deliberately
+  neutral (see AGENTS.md → "Renaming the App").
+- **PR readiness** (per AGENTS.md → "Draft vs ready"): if the work is
+  verified (build clean, behaviour confirmed where possible), open the
+  PR as **ready** —
+  `gh pr create --base main --title "<conventional commit subject>" --body "<body ending in 'Closes #N'>"`.
+  Open as draft (`--draft`) only when the work is genuinely incomplete
+  or blocked — unverified on hardware where hardware verification is
+  required, missing tests the owner asked for, blocked on a clarifying
+  question. The parent agent reaps and marks ready (step 5) for any
+  draft that turns out to be shippable.
 - `if you hit a blocking question (ambiguous spec, missing API, owner
   decision needed), DO NOT guess — return early with the question`.
 - `never merge, never push to main, never force-push`.
@@ -185,11 +201,15 @@ they actually run concurrently, each with its own worktree.
 
 When a subagent returns:
 
-- **PR opened?** → Move card to `In Review` (option `53d70cfd`),
-  mark the PR ready (`gh pr ready <n> --repo FokkeZB/GluWink`), then
-  surface the PR URL + a one-line summary to the owner. The
-  ready-state *is* the "please look at this now" signal — leaving it
-  draft buries the request.
+- **PR opened?** → Move card to `In Review` (option `53d70cfd`). If
+  the subagent already opened it as ready (the common case for
+  verified work — see step 4 "PR readiness"), no further action on
+  state. If it came in draft *and* the subagent's report says the
+  work is verified and shippable, mark it ready
+  (`gh pr ready <n> --repo FokkeZB/GluWink`). Then surface the PR URL
+  + a one-line summary to the owner. The ready-state *is* the "please
+  look at this now" signal — leaving a verified PR in draft buries the
+  request.
 - **Returned with a question?** → Leave the PR draft (still
   work-in-progress), move the card back to `Up Next` (option
   `e7fff5ae`), relay the question, wait for owner answer, decide
