@@ -94,6 +94,16 @@ final class HealthKitManager {
 
     // MARK: - Fetch Latest Values
 
+    /// Convenience: refresh both glucose and carbs *only* if the user has
+    /// ever been prompted for HealthKit. Safe to call from anywhere — does
+    /// nothing when authorization was never requested, so it won't trigger
+    /// a permission prompt as a side-effect.
+    func refreshIfAuthorized() async {
+        guard healthStore.authorizationStatus(for: glucoseType) != .notDetermined else { return }
+        await fetchLatestGlucose()
+        await fetchLatestCarbs()
+    }
+
     func fetchLatestGlucose() async {
         guard !SharedDataManager.shared.isMockModeEnabled else {
             logger.info("Mock mode active — skipping HealthKit glucose fetch")

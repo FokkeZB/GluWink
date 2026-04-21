@@ -34,7 +34,7 @@ struct SettingsView: View {
         _demoEnabled = State(initialValue: data.isMockModeEnabled)
         _glucoseUnit = State(initialValue: data.glucoseUnit)
         _nightscoutEnabled = State(initialValue: data.nightscoutEnabled)
-        _healthKitDelivering = State(initialValue: data.healthKitEverDelivered)
+        _healthKitDelivering = State(initialValue: data.healthKitDeliveringRecently)
     }
 
     var body: some View {
@@ -115,9 +115,12 @@ struct SettingsView: View {
                             // Apple Health can't tell us whether read
                             // access is currently granted (iOS privacy-
                             // masks that for read-only requests), so we
-                            // show "On" only once HealthKit has actually
-                            // delivered a sample — matching how the rest
-                            // of the app classifies it as a real source.
+                            // show "On" only when HK has delivered a
+                            // recent sample — matching how the rest of
+                            // the app classifies it as a real source
+                            // (see `SharedDataManager.healthKitDeliveringRecently`).
+                            // A revoked-in-Health-app source naturally
+                            // flips back to "Off" once samples go stale.
                             Text(healthKitDelivering
                                 ? String(localized: "settings.statusOn")
                                 : String(localized: "settings.statusOff"))
@@ -170,7 +173,7 @@ struct SettingsView: View {
                 shieldingEnabled = data.shieldingEnabled
                 demoEnabled = data.isMockModeEnabled
                 nightscoutEnabled = data.nightscoutEnabled
-                healthKitDelivering = data.healthKitEverDelivered
+                healthKitDelivering = data.healthKitDeliveringRecently
             }
             .navigationTitle(String(localized: "settings.title"))
             .navigationBarTitleDisplayMode(.inline)
@@ -669,10 +672,24 @@ struct MockDataSettingsView: View {
                 data.clearCarbData()
             }
         } else if data.isMockModeEnabled {
+            // `clearMockData` only wipes the cached values when no other
+            // in-app source is enabled (Nightscout/Demo share the same
+            // App Group keys as live sources). In that case, kick HK
+            // too — if it's still authorized and delivering, the UI
+            // repopulates within seconds; otherwise the cleared state
+            // is honest and HomeView returns to the welcome panel.
             data.clearMockData()
-            // Demo was the only source — turn shielding off too so the user
-            // doesn't end up with shielding enabled and nothing to evaluate.
+            // Disable shielding too if Demo was the last live source —
+            // there's nothing left to base attention decisions on.
             ShieldManager.shared.disableIfNoDataSource()
+            // Kick remaining live sources so the user sees their data
+            // immediately instead of waiting for the next poll cycle.
+            Task {
+                if data.nightscoutEnabled {
+                    await NightscoutManager.shared.fetchAll()
+                }
+                await HealthKitManager.shared.refreshIfAuthorized()
+            }
         }
         WatchSessionManager.shared.sendLatestContext()
         WidgetCenter.shared.reloadAllTimelines()
@@ -920,13 +937,23 @@ struct NightscoutSettingsView: View {
 
     private func disable() {
         enabled = false
-        SharedDataManager.shared.nightscoutEnabled = false
-        SharedDataManager.shared.flush()
+        let data = SharedDataManager.shared
+        data.nightscoutEnabled = false
+        data.flush()
         NightscoutManager.shared.configurationDidChange()
+        // Wipe Nightscout's last cached values when no other in-app
+        // source remains — otherwise the home screen keeps showing the
+        // disabled source's stale data with a green status. Live HK
+        // (if any) will repopulate via the kick below.
+        data.handleInAppSourceDisabled()
         // Disabling the last data source must also disable shielding —
         // there's nothing left to base attention decisions on.
         ShieldManager.shared.disableIfNoDataSource()
+        // Kick HK so users running HK-as-fallback see their data
+        // immediately instead of waiting for the next observer fire.
+        Task { await HealthKitManager.shared.refreshIfAuthorized() }
         WatchSessionManager.shared.sendLatestContext()
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }
 

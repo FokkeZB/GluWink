@@ -38,9 +38,12 @@ struct SetupChecklistCard: View {
     /// Mirror of `SharedDataManager.isMockModeEnabled` for the same reason
     /// as `nightscoutEnabled`.
     @State private var isMockModeEnabled: Bool
-    /// Mirror of `SharedDataManager.healthKitEverDelivered` for the same
-    /// reason as `nightscoutEnabled`.
-    @State private var healthKitEverDelivered: Bool
+    /// Mirror of `SharedDataManager.healthKitDeliveringRecently` for the
+    /// same reason as `nightscoutEnabled`. Recency-based rather than the
+    /// sticky `healthKitEverDelivered` so the card re-shows the
+    /// data-source rows when HK access is revoked or the sensor goes
+    /// offline (see issue #36 — no force-quit needed).
+    @State private var healthKitDeliveringRecently: Bool
     @State private var showHideConfirmation = false
 
     init(refreshToken: Binding<Int>) {
@@ -53,27 +56,39 @@ struct SetupChecklistCard: View {
         _shieldingEnabled = State(initialValue: data.shieldingEnabled)
         _nightscoutEnabled = State(initialValue: data.nightscoutEnabled)
         _isMockModeEnabled = State(initialValue: data.isMockModeEnabled)
-        _healthKitEverDelivered = State(initialValue: data.healthKitEverDelivered)
+        _healthKitDeliveringRecently = State(initialValue: data.healthKitDeliveringRecently)
     }
 
     var body: some View {
-        #if targetEnvironment(simulator)
-        if let scene = ScreenshotHarness.current, scene.hidesSetupChecklist {
-            EmptyView()
-        } else if shouldRender {
-            renderedCard
+        // Lifecycle modifiers MUST live on the outer container, not on
+        // `renderedCard` — when `shouldRender` is false the card is
+        // absent from the view tree, taking `.onChange(of: refreshToken)`
+        // with it. That stranded the @State mirrors when the user
+        // disabled the last data source from Settings: HomeView bumped
+        // the token on dismiss, but no `refresh()` ran, so
+        // `nightscoutEnabled` etc. stayed true, `shouldRender` stayed
+        // false, and the data-source tiles only reappeared after a
+        // force-quit. Keeping them up here means we always hear the
+        // ping, regardless of whether we're currently rendering.
+        Group {
+            #if targetEnvironment(simulator)
+            if let scene = ScreenshotHarness.current, scene.hidesSetupChecklist {
+                EmptyView()
+            } else if shouldRender {
+                renderedCard
+            }
+            #else
+            if shouldRender {
+                renderedCard
+            }
+            #endif
         }
-        #else
-        if shouldRender {
-            renderedCard
-        }
-        #endif
+        .onAppear { refresh() }
+        .onChange(of: refreshToken) { _, _ in refresh() }
     }
 
     private var renderedCard: some View {
         card
-            .onAppear { refresh() }
-            .onChange(of: refreshToken) { _, _ in refresh() }
             .sheet(item: $presentedSheet, onDismiss: { refresh() }) { sheet in
                 sheetContent(for: sheet)
             }
@@ -93,15 +108,18 @@ struct SetupChecklistCard: View {
 
     // MARK: - Visibility
 
-    /// The card always renders while no data source is configured — that's
-    /// the most important next step, so we don't let the user hide it. Once
-    /// at least one source is set up, the card respects `setupTipsHidden`
-    /// and disappears on demand. Disabling all data sources later brings
-    /// the card back automatically without any extra reset step.
+    /// In the welcome state (no data source configured) the data-source
+    /// picker is the *only* group that shows — and it shows
+    /// unconditionally, even if the user previously hid setup tips.
+    /// Picking a source is the one decision that unblocks every other
+    /// feature, so we never let it stay hidden.
+    ///
+    /// Once a source is connected, the card respects `setupTipsHidden`:
+    /// the recommended group (shielding, passphrase, notifications)
+    /// hides on demand. Disabling every source later brings the
+    /// data-source picker back automatically.
     private var shouldRender: Bool {
-        guard !visibleGroups.isEmpty else { return false }
-        if !hasAnyDataSource { return true }
-        return !SharedDataManager.shared.setupTipsHidden
+        !visibleGroups.isEmpty
     }
 
     /// True once the user has connected at least one data source. The whole
@@ -110,16 +128,11 @@ struct SetupChecklistCard: View {
     ///
     /// Mirrors `SharedDataManager.hasAnyDataSource` but reads from local
     /// @State so SwiftUI re-renders when any of the underlying flags
-    /// (`nightscoutEnabled`, `isMockModeEnabled`, `healthKitEverDelivered`)
+    /// (`nightscoutEnabled`, `isMockModeEnabled`, `healthKitDeliveringRecently`)
     /// changes. Reading the manager directly here would skip re-render
     /// because the body wouldn't observe those flags.
     private var hasAnyDataSource: Bool {
-        nightscoutEnabled || isMockModeEnabled || healthKitEverDelivered
-    }
-
-    private var dataSourceRows: [ChecklistRow] {
-        guard !hasAnyDataSource else { return [] }
-        return [.healthKit, .nightscout, .demo]
+        nightscoutEnabled || isMockModeEnabled || healthKitDeliveringRecently
     }
 
     /// The shielding row stays visible until shielding is actually enabled —
@@ -146,26 +159,32 @@ struct SetupChecklistCard: View {
     }
 
     private var visibleGroups: [ChecklistGroup] {
-        var groups: [ChecklistGroup] = []
-        let dataSources = dataSourceRows
-        if !dataSources.isEmpty {
-            groups.append(ChecklistGroup(
+        // Welcome state: nothing matters except picking a source. The
+        // recommended group is intentionally suppressed here — shielding
+        // can't enable, and burying the data-source picker under
+        // passphrase / notifications dilutes the one CTA the user
+        // actually needs.
+        if !hasAnyDataSource {
+            return [ChecklistGroup(
                 kind: .dataSources,
                 titleKey: "setup.checklist.dataSources",
                 footerKey: "setup.checklist.dataSourcesFooter",
-                rows: dataSources
-            ))
+                rows: [.healthKit, .nightscout, .demo]
+            )]
         }
+
+        // Configured state: show the recommended group unless the user
+        // explicitly dismissed it. The data-source group is always
+        // empty here (we just confirmed `hasAnyDataSource`).
+        guard !SharedDataManager.shared.setupTipsHidden else { return [] }
         let recommended = recommendedRows
-        if !recommended.isEmpty {
-            groups.append(ChecklistGroup(
-                kind: .recommended,
-                titleKey: "setup.checklist.recommended",
-                footerKey: nil,
-                rows: recommended
-            ))
-        }
-        return groups
+        guard !recommended.isEmpty else { return [] }
+        return [ChecklistGroup(
+            kind: .recommended,
+            titleKey: "setup.checklist.recommended",
+            footerKey: nil,
+            rows: recommended
+        )]
     }
 
     // MARK: - Card
@@ -307,7 +326,7 @@ struct SetupChecklistCard: View {
         shieldingEnabled = data.shieldingEnabled
         nightscoutEnabled = data.nightscoutEnabled
         isMockModeEnabled = data.isMockModeEnabled
-        healthKitEverDelivered = data.healthKitEverDelivered
+        healthKitDeliveringRecently = data.healthKitDeliveringRecently
         Task {
             let settings = await UNUserNotificationCenter.current().notificationSettings()
             await MainActor.run { notificationStatus = settings.authorizationStatus }
