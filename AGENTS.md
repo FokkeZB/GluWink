@@ -597,14 +597,14 @@ The iOS App ships **four icon variants** in `iOS/App/Assets.xcassets/`:
 
 The Watch target follows the same convention in `iOS/WatchApp/Assets.xcassets/`.
 
-**Rule:** Green and red may only be shown when we have real glucose or carb data to base the decision on (see `ShieldContent.hasNoData`). Before the first sample arrives, in-app surfaces fall back to the blue variant. The shield UI never reaches the no-data state because shielding can only be enabled once a data source is configured (see `ShieldManager.disableIfNoDataSource()`).
+**Rule:** Blue is the *welcome* variant — shown only when no data source has been configured yet (see `HomeView.showsWelcome`). Once the user has opted in to a source, in-app surfaces commit to red/green: missing or stale data with a configured source is a `needsAttention` (red) state, not a neutral one. The shield UI never reaches a no-data state because shielding can only be enabled once a data source is configured (see `ShieldManager.disableIfNoDataSource()`).
 
 ### Rules
 
 1. **Do NOT call `UIApplication.shared.setAlternateIconName(...)`.** We deliberately do not provide alternate `.appiconset`s and do not swap the home-screen icon — it's unreliable, racy with extensions, and confuses users. The home-screen signal is the badge (see `SharedDataManager.refreshAttentionBadge()`).
 2. **Use `AppIcon-Blue` / `AppIcon-Red` / `AppIcon-Green` for any surface where we control the rendering at attention-evaluation time.** Selection logic depends on the surface:
-   - **In-app surfaces** (e.g. `HomeView`): `hasNoData` → blue; else `needsAttention` → red; else green.
-   - **Shield UI** (`ShieldConfigurationExtension`): only red / green. Shielding is gated on having a data source, so `hasNoData` cannot occur; if the configured source has stopped delivering, that's a `needsAttention` case (red).
+   - **In-app surfaces** (e.g. `HomeView`): welcome state (no source configured) → blue; else `needsAttention` → red; else green. Note: `ShieldContent.hasNoData` exists as a descriptive flag but is NOT the trigger — a configured source with missing data is red, not blue.
+   - **Shield UI** (`ShieldConfigurationExtension`): only red / green. Shielding is gated on having a data source, so the no-data state cannot occur; if the configured source has stopped delivering, that's a `needsAttention` case (red).
    - Other examples that follow the in-app rule: future notification attachments / rich content, future widgets that want to show the brand mark with attention state.
 3. **In SwiftUI inside the App target:** `Image("AppIcon-Blue")` / `Image("AppIcon-Red")` / `Image("AppIcon-Green")` works because all three are `.imageset`s in the App's asset catalog.
 4. **In the ShieldConfig extension** (and any other extension that needs the variants): the App's asset catalog is **not** in the extension's bundle. Each extension that needs the artwork must ship its own copies. ShieldConfig keeps `iOS/ShieldConfig/AppIcon-Red.png` and `iOS/ShieldConfig/AppIcon-Green.png` as raw bundle resources and loads them with `UIImage(contentsOfFile: Bundle.main.path(forResource: "AppIcon-Red", ofType: "png"))`. There is intentionally no blue PNG in the extension. When adding the variants to a new extension, copy the PNGs into that target's folder; this project uses file-system synchronized groups so Xcode will pick them up automatically.

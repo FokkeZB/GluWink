@@ -11,11 +11,12 @@ public struct ShieldContent: Sendable {
     /// True when we have no glucose AND no carb data at all — e.g. right after
     /// initial configuration, before HealthKit has delivered anything.
     ///
-    /// In-app surfaces (`HomeView`) use this to render a neutral blue
-    /// "no data yet" variant instead of green/red. The shield UI does not
-    /// branch on this: shielding is gated on having a data source, and a
-    /// missing reading from a configured source is treated as "needs
-    /// attention" (red).
+    /// This is descriptive only. It is NOT the trigger for the in-app blue
+    /// "welcome" icon variant — that's gated by the App-layer welcome state
+    /// (no data source configured *and* no glucose history). Once a source
+    /// is configured, missing data is a `needsAttention` case (red), not a
+    /// neutral one. The shield UI similarly never reaches the no-data state
+    /// because shielding is gated on having a data source.
     public let hasNoData: Bool
     public let buttonLabel: String
     public let glucoseValue: Double

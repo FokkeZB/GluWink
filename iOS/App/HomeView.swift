@@ -274,7 +274,7 @@ struct HomeView: View {
     @ViewBuilder
     private func iconHeader(content: ShieldContent, shieldingEnabled: Bool, shieldsArmed: Bool) -> some View {
         ZStack(alignment: .bottom) {
-            Image(showsWelcome ? "AppIcon-Blue" : iconName(for: content))
+            Image(iconName(for: content))
                 .resizable()
                 .frame(width: 96, height: 96)
                 .clipShape(RoundedRectangle(cornerRadius: 22))
@@ -440,7 +440,7 @@ struct HomeView: View {
     }
 
     private func iconName(for content: ShieldContent) -> String {
-        if content.hasNoData { return "AppIcon-Blue" }
+        if showsWelcome { return "AppIcon-Blue" }
         return content.needsAttention ? "AppIcon-Red" : "AppIcon-Green"
     }
 
