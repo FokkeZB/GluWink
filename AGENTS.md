@@ -147,6 +147,14 @@ The project includes an MCP server (`.mcp.json`) that connects to a running Xcod
 
 **All MCP tools require a `tabIdentifier`.** Call `XcodeListWindows` first to get it.
 
+### When the bridge goes stale
+
+Symptom: `CallMcpTool` reports "MCP server does not exist", or the per-server `tools/` directory under `~/.cursor/projects/<project-slug>/mcps/project-*-xcode/` is missing/empty even though Xcode itself is open and `xcrun --find mcpbridge` resolves. This is the Cursor-side bridge having dropped the connection — Xcode is fine, the bridge just isn't holding a session.
+
+Restarting MCP servers isn't an agent-side action. **Tell the owner to disable and re-enable the `xcode` MCP in Cursor Settings → MCP** (toggle off, toggle back on). That resocks the bridge and re-introspects the tool list. Confirmed working 2026-04-21. Cursor restart is the fallback if the toggle doesn't take.
+
+Don't try to work around a stale bridge silently — flag it as soon as you notice (a subagent's build step falling back to `xcodebuild` is the usual tell), tell the owner what to do, and continue with the `xcodebuild` fallback for the current task.
+
 ## Quirks & Gotchas
 
 **`QUIRKS.md`** (repo root) documents platform quirks, API limitations, Xcode build gotchas, and other hard-won lessons. Read it before making changes to avoid repeating mistakes.
