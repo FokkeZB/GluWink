@@ -182,6 +182,12 @@ The owner defers backlog management to the agent. Workflow:
 
 **The agent never merges, never pushes to `main`, never force-pushes.** Owner-in-the-loop checkpoints: batch selection, blocking subagent questions, every merge.
 
+### Draft vs ready
+
+`--draft` is a *temporary* state, not the resting state. Open a PR as draft only while it's genuinely incomplete or blocked — unverified on device, missing tests the owner asked for, blocked on a question relayed back, or work-in-progress between commits. **The moment the work is verified and you're ready to hand off, mark it ready for review with `gh pr ready <n>`.** This is true whether the work was done by a subagent (the parent agent reaps and marks ready, per `plan-next` step 5) or directly by the parent agent (mark ready as the final step of the same turn that opened the PR).
+
+Leaving a verified PR in draft buries the request — GitHub hides drafts from review queues and notification roll-ups, and the owner has no signal that it's waiting on them. If the work is shippable, the PR must say so.
+
 The full implementation lives in `.claude/skills/plan-next/SKILL.md` — including the project field IDs, the rediscovery commands if those IDs ever go stale, and the dispatch prompt template. **Read that skill before improvising new behaviour around the project board** — its conventions are how the loop stays self-consistent across sessions.
 
 The project's structure:
