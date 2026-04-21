@@ -62,6 +62,7 @@
       "Bash(make install:*)",
       "Bash(make deploy:*)",
       "Bash(make tunneld:*)",
+      "Bash(xcodebuild:*)",
       "Bash(bash .claude/skills/:*)",
       "Bash(bash docs/scripts/:*)",
       "Bash(ls:*)",

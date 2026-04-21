@@ -62,6 +62,7 @@
     "make install",
     "make deploy",
     "make tunneld",
+    "xcodebuild",
     "bash .claude/skills/",
     "bash docs/scripts/",
     "ls",
