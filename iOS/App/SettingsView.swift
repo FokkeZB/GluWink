@@ -323,16 +323,25 @@ struct AttentionRulesSettingsView: View {
     }
 
     private func saveAttentionRules() {
-        SharedDataManager.shared.saveSettings(
+        let data = SharedDataManager.shared
+        data.saveSettings(
             highGlucoseThreshold: unit.toMmol(highThreshold),
             lowGlucoseThreshold: unit.toMmol(lowThreshold),
             glucoseStaleMinutes: Int(staleMinutes),
             carbGraceHour: carbGraceHour,
             carbGraceMinute: carbGraceMinute,
-            attentionIntervalMinutes: SharedDataManager.shared.attentionIntervalMinutes ?? ActivityScheduler.defaultAttentionInterval,
-            noAttentionIntervalMinutes: SharedDataManager.shared.noAttentionIntervalMinutes ?? ActivityScheduler.defaultNoAttentionInterval,
-            cooldownSeconds: SharedDataManager.shared.cooldownSeconds ?? 60
+            attentionIntervalMinutes: data.attentionIntervalMinutes ?? ActivityScheduler.defaultAttentionInterval,
+            noAttentionIntervalMinutes: data.noAttentionIntervalMinutes ?? ActivityScheduler.defaultNoAttentionInterval,
+            cooldownSeconds: data.cooldownSeconds ?? 60
         )
+        // A threshold/grace tweak is an explicit user action — re-arm or
+        // disarm shields immediately rather than waiting for the next
+        // DeviceActivityMonitor interval. Mirrors `saveShielding()` and
+        // keeps the badge in sync with the new rules.
+        if data.shieldingEnabled {
+            ShieldManager.shared.reevaluateShields()
+        }
+        data.refreshAttentionBadge()
         WidgetCenter.shared.reloadAllTimelines()
     }
 }
