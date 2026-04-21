@@ -28,11 +28,13 @@ struct StatusWidgetIntent: WidgetConfigurationIntent {
 
 private enum EntryBuilder {
     static let appGroupID = Bundle.main.object(forInfoDictionaryKey: "AppGroupID") as! String
-    static let highGlucoseThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
-    static let lowGlucoseThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
-    static let glucoseStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
-    static let carbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
-    static let carbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
+    /// xcconfig fallbacks for when no user override has been written to the
+    /// App Group yet. The resolver picks override-or-fallback per render.
+    static let fallbackHighGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
+    static let fallbackLowGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
+    static let fallbackStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
+    static let fallbackCarbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
+    static let fallbackCarbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
 
     static func makeEntry(now: Date, metric: MetricType) -> StatusEntry {
         let defaults = UserDefaults(suiteName: appGroupID)
@@ -54,11 +56,11 @@ private enum EntryBuilder {
             glucoseFetchedAt: glucoseDate,
             lastCarbGrams: carbGrams > 0 ? carbGrams : nil,
             lastCarbEntryAt: carbDate,
-            highGlucoseThreshold: highGlucoseThreshold,
-            lowGlucoseThreshold: lowGlucoseThreshold,
-            glucoseStaleMinutes: glucoseStaleMinutes,
-            carbGraceHour: carbGraceHour,
-            carbGraceMinute: carbGraceMinute,
+            highGlucoseThreshold: ThresholdResolver.highGlucose(defaults: defaults, fallback: fallbackHighGlucose),
+            lowGlucoseThreshold: ThresholdResolver.lowGlucose(defaults: defaults, fallback: fallbackLowGlucose),
+            glucoseStaleMinutes: ThresholdResolver.staleMinutes(defaults: defaults, fallback: fallbackStaleMinutes),
+            carbGraceHour: ThresholdResolver.carbGraceHour(defaults: defaults, fallback: fallbackCarbGraceHour),
+            carbGraceMinute: ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: fallbackCarbGraceMinute),
             glucoseUnit: unit,
             strings: strings,
             now: now

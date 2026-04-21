@@ -52,11 +52,9 @@ struct HomeView: View {
     /// area as the user scrolls.
     private static let bottomFadeHeight: CGFloat = 48
 
-    private static let highGlucoseThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
-    private static let lowGlucoseThreshold = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
-    private static let glucoseStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
-    private static let carbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
-    private static let carbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
+    /// Read per-render via `SharedDataManager.effective*` so user overrides
+    /// from Settings take effect immediately. We deliberately don't cache
+    /// these in `static let`s — that's the bug fixed by #77.
 
     init() {
         #if targetEnvironment(simulator)
@@ -80,6 +78,12 @@ struct HomeView: View {
     private var content: ShieldContent {
         let _ = tick
         let strings = ShieldContent.Strings.fromPackage()
+        let data = SharedDataManager.shared
+        let highThreshold = data.effectiveHighGlucoseThreshold
+        let lowThreshold = data.effectiveLowGlucoseThreshold
+        let staleMinutes = data.effectiveGlucoseStaleMinutes
+        let graceHour = data.effectiveCarbGraceHour
+        let graceMinute = data.effectiveCarbGraceMinute
 
         #if targetEnvironment(simulator)
         let now = overrideTime
@@ -96,27 +100,26 @@ struct HomeView: View {
             glucoseFetchedAt: glucoseDate,
             lastCarbGrams: hasCarbData ? carbGrams : nil,
             lastCarbEntryAt: carbDate,
-            highGlucoseThreshold: Self.highGlucoseThreshold,
-            lowGlucoseThreshold: Self.lowGlucoseThreshold,
-            glucoseStaleMinutes: Self.glucoseStaleMinutes,
-            carbGraceHour: Self.carbGraceHour,
-            carbGraceMinute: Self.carbGraceMinute,
-            glucoseUnit: SharedDataManager.shared.glucoseUnit,
+            highGlucoseThreshold: highThreshold,
+            lowGlucoseThreshold: lowThreshold,
+            glucoseStaleMinutes: staleMinutes,
+            carbGraceHour: graceHour,
+            carbGraceMinute: graceMinute,
+            glucoseUnit: data.glucoseUnit,
             strings: strings,
             now: now
         )
         #else
-        let data = SharedDataManager.shared
         return ShieldContent(
             glucose: data.currentGlucose ?? 0,
             glucoseFetchedAt: data.glucoseFetchedAt,
             lastCarbGrams: data.lastCarbGrams,
             lastCarbEntryAt: data.lastCarbEntryAt,
-            highGlucoseThreshold: Self.highGlucoseThreshold,
-            lowGlucoseThreshold: Self.lowGlucoseThreshold,
-            glucoseStaleMinutes: Self.glucoseStaleMinutes,
-            carbGraceHour: Self.carbGraceHour,
-            carbGraceMinute: Self.carbGraceMinute,
+            highGlucoseThreshold: highThreshold,
+            lowGlucoseThreshold: lowThreshold,
+            glucoseStaleMinutes: staleMinutes,
+            carbGraceHour: graceHour,
+            carbGraceMinute: graceMinute,
             glucoseUnit: data.glucoseUnit,
             customChecks: data.allCustomChecks(),
             strings: strings

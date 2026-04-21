@@ -64,11 +64,11 @@ final class ShieldManager {
         let data = SharedDataManager.shared
         let now = Date()
 
-        let highThreshold = data.highGlucoseThreshold ?? SettingsDefaults.highGlucose
-        let lowThreshold = data.lowGlucoseThreshold ?? SettingsDefaults.lowGlucose
-        let staleMinutes = data.glucoseStaleMinutes ?? SettingsDefaults.staleMinutes
-        let graceHour = data.carbGraceHour ?? SettingsDefaults.carbGraceHour
-        let graceMinute = data.carbGraceMinute ?? SettingsDefaults.carbGraceMinute
+        let highThreshold = data.effectiveHighGlucoseThreshold
+        let lowThreshold = data.effectiveLowGlucoseThreshold
+        let staleMinutes = data.effectiveGlucoseStaleMinutes
+        let graceHour = data.effectiveCarbGraceHour
+        let graceMinute = data.effectiveCarbGraceMinute
 
         let glucose = data.currentGlucose ?? 0
         if glucose > 0, let fetchedAt = data.glucoseFetchedAt {
