@@ -1,5 +1,4 @@
 import Combine
-import HealthKit
 import SharedKit
 import SwiftUI
 
@@ -125,9 +124,18 @@ struct HomeView: View {
         #endif
     }
 
-    /// True when the user hasn't hooked up any data source yet and has no
-    /// glucose history. Drives the welcome/empty state so the first-launch
-    /// screen explains what to do instead of showing "--".
+    /// True when no data source is currently active. Drives the
+    /// welcome/empty state so the first-launch (and post-disable-
+    /// everything) screen explains what to do instead of showing a
+    /// stale "--" or, worse, lying with green-on-old-data.
+    ///
+    /// Intentionally does NOT also check for cached glucose values:
+    /// without an active source those values are stale by definition
+    /// (see `SharedDataManager.hasAnyDataSource`'s recency window) and
+    /// surfacing them next to "no source configured" is confusing. The
+    /// launch-time migration in `MainApp` clears the cache in that
+    /// case, but if a user is mid-toggle and we momentarily race, the
+    /// welcome panel is still the correct UI to show.
     private var showsWelcome: Bool {
         #if targetEnvironment(simulator)
         if let preset = ScreenshotHarness.current?.homeViewPreset {
@@ -135,12 +143,7 @@ struct HomeView: View {
         }
         return false
         #else
-        let data = SharedDataManager.shared
-        let healthKitAsked = HKHealthStore()
-            .authorizationStatus(for: HKQuantityType(.bloodGlucose)) != .notDetermined
-        let hasDataSource = data.nightscoutEnabled || healthKitAsked || data.isMockModeEnabled
-        let hasAnyGlucose = data.currentGlucose != nil
-        return !hasDataSource && !hasAnyGlucose
+        return !SharedDataManager.shared.hasAnyDataSource
         #endif
     }
 

@@ -610,6 +610,41 @@ The Watch target follows the same convention in `iOS/WatchApp/Assets.xcassets/`.
 4. **In the ShieldConfig extension** (and any other extension that needs the variants): the App's asset catalog is **not** in the extension's bundle. Each extension that needs the artwork must ship its own copies. ShieldConfig keeps `iOS/ShieldConfig/AppIcon-Red.png` and `iOS/ShieldConfig/AppIcon-Green.png` as raw bundle resources and loads them with `UIImage(contentsOfFile: Bundle.main.path(forResource: "AppIcon-Red", ofType: "png"))`. There is intentionally no blue PNG in the extension. When adding the variants to a new extension, copy the PNGs into that target's folder; this project uses file-system synchronized groups so Xcode will pick them up automatically.
 5. **Keep the artworks in sync.** When the icon is redesigned, update: `AppIcon.appiconset`, `AppIcon-Blue.imageset`, `AppIcon-Red.imageset`, `AppIcon-Green.imageset` (in both the App and Watch catalogs where they exist), and the raw PNG copies inside any extension folder. The `icons/` folder at the repo root holds the master SVGs (`iOS.svg`, `iOS-green.svg`, `iOS-red.svg`, and their `watchOS.svg` counterparts; the blue `.imageset`s reuse `iOS.png` / `watchOS.png`).
 
+## Data Source State
+
+The app supports three data sources for glucose / carbs: **Apple Health**, **Nightscout**, and **Demo**. Most UI (`HomeView` welcome panel, `SetupChecklistCard`, shielding gate) needs to answer "is *anything* live right now?" — and we get that wrong the moment we treat history as configuration.
+
+**Rule:** "Has a data source" must reflect **current** state, never sticky history. Use `SharedDataManager.hasAnyDataSource` (and never re-implement the disjunction inline).
+
+### Definitions
+
+- **Nightscout / Demo:** straightforward — `nightscoutEnabled` / `isMockModeEnabled` are user-controlled toggles. Reading the flag is the truth.
+- **Apple Health:** iOS privacy-masks read-auth status (`HKHealthStore.authorizationStatus(for:)` returns `.sharingDenied` for both "user denied" and "we never asked", and `!= .notDetermined` once we've prompted — even after the user later revokes access). So we infer "active" from sample freshness via `SharedDataManager.healthKitDeliveringRecently`: HK has delivered at least once *and* the latest stored glucose timestamp is fresher than `glucoseStaleMinutes`.
+  - `healthKitEverDelivered` is kept as a stored flag, but only as the historical "we got data once" signal. Never use it as the gate for UI or shielding.
+
+### Disable handlers MUST clean up
+
+When the user toggles off Nightscout or Demo from Settings, the handler MUST call `SharedDataManager.handleInAppSourceDisabled()` after flipping the flag. That helper wipes the cached glucose / carb values **only** when no in-app source remains, so:
+
+- Disabling Demo while Nightscout is still on → values stay (Nightscout will keep them fresh on the next poll).
+- Disabling the last in-app source → values are cleared. If HK is still authorized + delivering, its next observer fire repopulates them within seconds; if not, the cleared state is honest and `HomeView` returns to the welcome panel.
+
+Disable paths should also kick remaining live sources (`NightscoutManager.fetchAll()`, `HealthKitManager.refreshIfAuthorized()`) so the UI reflects the new picture immediately instead of waiting for the next poll.
+
+The shield gate (`ShieldManager.disableIfNoDataSource()`) reads `hasAnyDataSource` too — when sources go quiet for longer than `glucoseStaleMinutes`, shielding auto-disables on the next launch / re-evaluation. That's deliberate: shielding without fresh data would treat every wake as `needsAttention` and never let the user back in.
+
+### Welcome state UI rules
+
+When `!hasAnyDataSource` the home screen is in *welcome* mode and must follow these rules — they keep the screen honest and focused:
+
+- **Icon:** blue (`AppIcon-Blue`). Never red/green: with no live source there's no signal to colour against.
+- **Status panel:** hidden entirely. No glucose number, no carb number, no attention checks. `HomeView.showsWelcome` returning `true` swaps the whole panel for `welcomePanel`.
+- **Cached values:** wiped by `handleInAppSourceDisabled()` whenever the last in-app source is turned off. We don't ship migrations for pre-release state — disable handlers are the only thing keeping the cache honest, so they must run on every disable path.
+- **Setup checklist:** *only* the data-source picker (Apple Health / Nightscout / Demo). The recommended group (shielding, passphrase, notifications) is suppressed in welcome state regardless of `setupTipsHidden`. Picking a source is the one decision that unblocks everything else; burying it under other rows dilutes the CTA.
+- **`setupTipsHidden` is overridden for the data-source picker.** Even if the user previously hid the checklist, the picker reappears the moment every source goes away. They have no other path back to a working app.
+
+Toggling a source on/off must always re-fetch (or wipe). Enable paths trigger the source's own fetch (`NightscoutManager.configurationDidChange()`, `HealthKitManager.requestAuthorization() → fetchLatest…`, `MockDataSettingsView.saveMockData()` writes directly). Disable paths run `handleInAppSourceDisabled()` + kick remaining live sources via `refreshIfAuthorized()` / `fetchAll()`. Never leave a stale value visible across a toggle.
+
 ## Coding Conventions
 
 - Swift 5.9+, SwiftUI for all UI

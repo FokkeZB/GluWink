@@ -152,27 +152,36 @@ final class SharedDataManager {
         defaults?.removeObject(forKey: "lastCarbEntryAt")
     }
 
+    /// Disable mock mode. The cached glucose / carb values share storage
+    /// with HealthKit and Nightscout (see `saveGlucose` doc), so we can't
+    /// safely wipe them unconditionally — Nightscout-or-HK-sourced
+    /// values would disappear too. `handleInAppSourceDisabled` only
+    /// clears when no in-app source remains, leaving live sources to
+    /// re-publish on their own poll/observer cycle.
     func clearMockData() {
         isMockModeEnabled = false
-        clearGlucoseData()
-        clearCarbData()
-        logger.info("Mock mode disabled, data cleared")
+        handleInAppSourceDisabled()
+        logger.info("Mock mode disabled")
     }
 
     // MARK: - Data Sources
 
     /// Set to true the first time Apple Health actually delivers a sample
-    /// (glucose or carb). Stays true afterwards — we have no reliable way to
-    /// detect that the user later revoked read access in the Health app, so
-    /// "has ever delivered" is the best "source is real" signal we have.
+    /// (glucose or carb). Stays true afterwards — we have no reliable way
+    /// to detect that the user later revoked read access in the Health
+    /// app, so "has ever delivered" is the most honest "we successfully
+    /// got data from HK at some point" signal.
     ///
     /// Why not just use `HKHealthStore.authorizationStatus`? For read-only
     /// requests iOS privacy-masks that status: it returns `.sharingDenied`
-    /// both when the user denied *and* when we haven't asked — and for a
-    /// user who denied we'd still see `!= .notDetermined`, making "was
-    /// prompted" useless as a "source is active" signal. A user who denied
-    /// HealthKit looks identical to a user who accepted it until a sample
-    /// arrives, so we wait for the sample.
+    /// both when the user denied *and* when we haven't asked. A user who
+    /// denied HealthKit looks identical to a user who accepted it until a
+    /// sample arrives, so we wait for the sample.
+    ///
+    /// Treat this as historical only — for the "is HK currently a source
+    /// I should trust?" question, use `healthKitDeliveringRecently`. The
+    /// `hasAnyDataSource` gate combines that with the user-controlled
+    /// Nightscout / Demo toggles.
     var healthKitEverDelivered: Bool {
         get { defaults?.bool(forKey: "healthKitEverDelivered") ?? false }
         set { defaults?.set(newValue, forKey: "healthKitEverDelivered") }
@@ -183,22 +192,66 @@ final class SharedDataManager {
         if healthKitEverDelivered { return }
         healthKitEverDelivered = true
         flush()
-        logger.info("HealthKit marked as delivering — shielding now allowed")
+        logger.info("HealthKit marked as delivering")
     }
 
-    /// True when at least one data source is actually usable:
+    /// True when Apple Health both has delivered at least one sample AND
+    /// the latest stored glucose timestamp is fresher than `glucoseStaleMinutes`.
+    /// Used as the "HK is currently active" proxy because iOS doesn't let
+    /// us read the actual read-auth status (see `healthKitEverDelivered`).
     ///
-    /// - Nightscout: user has toggled it on (credentials verified)
-    /// - Demo: user has toggled it on
-    /// - Apple Health: has delivered at least one sample (see
-    ///   `healthKitEverDelivered`)
+    /// `glucoseFetchedAt` is shared across HK and Nightscout — that's
+    /// fine: if anyone wrote a fresh sample recently, *something* is
+    /// alive. When the user disables Nightscout/Demo the disable handler
+    /// clears the cached values (see `handleInAppSourceDisabled`), so a
+    /// stale-but-non-nil timestamp left over from a since-disabled source
+    /// can't masquerade as HK delivery.
     ///
-    /// Shielding requires this: the feature can't make a red/green decision
-    /// without glucose or carb input, so enabling it before any source is
-    /// live is meaningless. Disabling the last source automatically
-    /// disables shielding (see `ShieldManager.disableIfNoDataSource()`).
+    /// Falls back to a 30-minute window when no user override is set so
+    /// we don't have to read `Info.plist` from extension bundles where
+    /// the key may not be present.
+    var healthKitDeliveringRecently: Bool {
+        guard healthKitEverDelivered, let last = glucoseFetchedAt else { return false }
+        let minutes = glucoseStaleMinutes ?? 30
+        return Date().timeIntervalSince(last) < TimeInterval(minutes * 60)
+    }
+
+    /// True when at least one data source can credibly be supplying data
+    /// **right now**:
+    ///
+    /// - Nightscout / Demo: user has toggled them on.
+    /// - Apple Health: has delivered a sample within `glucoseStaleMinutes`
+    ///   (see `healthKitDeliveringRecently`).
+    ///
+    /// Drives both UI surfaces (welcome panel, setup checklist) and the
+    /// shielding gate. Shielding can't make red/green decisions without
+    /// fresh input, so disabling the last live source also disables
+    /// shielding (see `ShieldManager.disableIfNoDataSource()`).
     var hasAnyDataSource: Bool {
-        nightscoutEnabled || isMockModeEnabled || healthKitEverDelivered
+        if nightscoutEnabled || isMockModeEnabled { return true }
+        return healthKitDeliveringRecently
+    }
+
+    /// Call after the user disables an in-app data-source toggle
+    /// (Nightscout, Demo). When no in-app source remains enabled, wipes
+    /// the cached glucose + carb values so the home screen returns to the
+    /// welcome state and the setup checklist re-shows the data-source
+    /// rows immediately, rather than the user staring at a stale "green
+    /// with data" panel and an empty checklist.
+    ///
+    /// HK is intentionally not in the "anything left" check here — we
+    /// can't programmatically tell whether HK read auth is still granted.
+    /// Two outcomes both end up correct:
+    /// - HK is still authorized and delivering → its next observer fire
+    ///   re-populates the cleared values within seconds.
+    /// - HK was revoked / never set up → the values stay cleared and the
+    ///   welcome / setup state is honest.
+    func handleInAppSourceDisabled() {
+        guard !nightscoutEnabled, !isMockModeEnabled else { return }
+        clearGlucoseData()
+        clearCarbData()
+        flush()
+        logger.info("All in-app data sources disabled — cleared cached glucose/carb values")
     }
 
     // MARK: - Glucose Unit
