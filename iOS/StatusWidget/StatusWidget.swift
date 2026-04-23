@@ -28,6 +28,9 @@ struct StatusWidgetIntent: WidgetConfigurationIntent {
 
 private enum EntryBuilder {
     static let appGroupID = Bundle.main.object(forInfoDictionaryKey: "AppGroupID") as! String
+    /// Shared accessor so the timeline providers and the entry builder read
+    /// from the exact same suite — `WidgetNightscoutRefresh` writes here too.
+    static let appGroupDefaults = UserDefaults(suiteName: appGroupID)
     /// xcconfig fallbacks for when no user override has been written to the
     /// App Group yet. The resolver picks override-or-fallback per render.
     static let fallbackHighGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
@@ -37,7 +40,7 @@ private enum EntryBuilder {
     static let fallbackCarbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
 
     static func makeEntry(now: Date, metric: MetricType) -> StatusEntry {
-        let defaults = UserDefaults(suiteName: appGroupID)
+        let defaults = appGroupDefaults
 
         let glucose = defaults?.double(forKey: "currentGlucose") ?? 0
         let glucoseDate = defaults?.string(forKey: "glucoseFetchedAt")
@@ -76,6 +79,31 @@ private enum EntryBuilder {
     }
 }
 
+// MARK: - Timeline policy
+
+private enum TimelinePolicy {
+    /// Number of entries returned per timeline. Spaced one minute apart so
+    /// the relative "X min ago" labels in `WidgetTileViews` visibly age
+    /// between iOS-driven reloads. iOS picks the next entry from the
+    /// timeline as the wall clock crosses each entry's date — no extra
+    /// process wakeups needed.
+    static let entryCount = 5
+
+    /// Spacing between successive entries.
+    static let entryInterval: TimeInterval = 60
+
+    /// Build a `[entryCount]`-long timeline starting at `now`, all sharing
+    /// the same content snapshot. The shared content is correct because
+    /// `ShieldContent.attentionState(now:)` re-evaluates against each entry's
+    /// `date` at render time — the only thing that changes per entry is the
+    /// "minutes ago" labels.
+    static func entries(from now: Date, build: (Date) -> StatusEntry) -> [StatusEntry] {
+        (0..<entryCount).map { index in
+            build(now.addingTimeInterval(TimeInterval(index) * entryInterval))
+        }
+    }
+}
+
 // MARK: - Static provider (no configuration)
 
 struct StatusTimelineProvider: TimelineProvider {
@@ -84,14 +112,21 @@ struct StatusTimelineProvider: TimelineProvider {
     }
 
     func getSnapshot(in _: Context, completion: @escaping (StatusEntry) -> Void) {
-        completion(EntryBuilder.makeEntry(now: Date(), metric: .glucose))
+        Task {
+            await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
+            completion(EntryBuilder.makeEntry(now: Date(), metric: .glucose))
+        }
     }
 
     func getTimeline(in _: Context, completion: @escaping (Timeline<StatusEntry>) -> Void) {
-        let now = Date()
-        let entry = EntryBuilder.makeEntry(now: now, metric: .glucose)
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 5, to: now)!
-        completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
+        Task {
+            await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
+            let now = Date()
+            let entries = TimelinePolicy.entries(from: now) { date in
+                EntryBuilder.makeEntry(now: date, metric: .glucose)
+            }
+            completion(Timeline(entries: entries, policy: .atEnd))
+        }
     }
 }
 
@@ -103,14 +138,17 @@ struct StatusIntentTimelineProvider: AppIntentTimelineProvider {
     }
 
     func snapshot(for configuration: StatusWidgetIntent, in _: Context) async -> StatusEntry {
-        EntryBuilder.makeEntry(now: Date(), metric: configuration.metric)
+        await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
+        return EntryBuilder.makeEntry(now: Date(), metric: configuration.metric)
     }
 
     func timeline(for configuration: StatusWidgetIntent, in _: Context) async -> Timeline<StatusEntry> {
+        await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
         let now = Date()
-        let entry = EntryBuilder.makeEntry(now: now, metric: configuration.metric)
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 5, to: now)!
-        return Timeline(entries: [entry], policy: .after(nextUpdate))
+        let entries = TimelinePolicy.entries(from: now) { date in
+            EntryBuilder.makeEntry(now: date, metric: configuration.metric)
+        }
+        return Timeline(entries: entries, policy: .atEnd)
     }
 }
 
