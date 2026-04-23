@@ -108,6 +108,12 @@ The widget extension has its own `Info.plist` — xcconfig values like `AppGroup
 ### Widget deployment target must match the device
 Xcode may default a new widget extension target to a higher iOS version than the rest of the project. If the widget doesn't appear in the gallery, check `IPHONEOS_DEPLOYMENT_TARGET` in the widget's build settings.
 
+### Nightscout widgets fetch from inside the timeline provider
+Unlike `ShieldConfig` / `ShieldAction` / `DeviceActivityMonitor`, **WidgetKit extensions DO have network access** — the no-network rule above applies only to Screen Time extensions. We use that to keep widgets fresh when `BGAppRefreshTask` doesn't fire: `WidgetNightscoutRefresh.refreshIfDue(...)` is called from every `getTimeline` / `snapshot` on the iPhone `StatusWidget` and writes glucose/carbs back to the App Group with "save if newer" semantics. Guards: skipped when Nightscout is disabled or mock mode is on, throttled to one fetch per `nightscoutLastFetchedAt + 60s` so snapshot/placeholder/timeline calls coalesce, and bounded by a 5s per-request timeout so a flaky server can't burn the timeline budget. iOS-imposed limits that remain: WidgetKit timeline calls have a budget of ~30s end-to-end, and iOS still decides when to ask us for a fresh timeline (we hint with `.atEnd` plus several entries spaced 1 minute apart, but the system can defer reloads when the device is in low-power mode or our refresh budget is exhausted).
+
+### `BGTaskScheduler.submit` replaces same-identifier requests
+Submitting a new `BGAppRefreshTaskRequest` with an identifier that already has a pending request replaces it — it does not stack. That's why `NightscoutManager.fetchAll()` can call `scheduleBackgroundRefresh()` at the end of every fetch (foreground poll, BG wake, scene transition) without piling up requests: there's always exactly one pending request, with the most recent `earliestBeginDate`.
+
 ## HealthKit
 
 ### Glucose unit conversion
