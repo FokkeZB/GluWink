@@ -22,6 +22,21 @@ enum WatchEntryBuilder {
     }
 }
 
+private enum WatchTimelinePolicy {
+    /// Mirrors the iPhone StatusWidget cadence: short entries spaced one
+    /// minute apart so the relative "X min ago" label visibly ages between
+    /// iOS-driven reloads, with `.atEnd` to ask WatchOS for a fresh timeline
+    /// as soon as the last entry is consumed.
+    static let entryCount = 5
+    static let entryInterval: TimeInterval = 60
+
+    static func entries(from now: Date, build: (Date) -> WatchEntry) -> [WatchEntry] {
+        (0..<entryCount).map { index in
+            build(now.addingTimeInterval(TimeInterval(index) * entryInterval))
+        }
+    }
+}
+
 struct WatchRectangularTimelineProvider: TimelineProvider {
     func placeholder(in _: Context) -> WatchEntry {
         WatchEntryBuilder.makeEntry(now: Date(), metric: .glucose)
@@ -33,9 +48,10 @@ struct WatchRectangularTimelineProvider: TimelineProvider {
 
     func getTimeline(in _: Context, completion: @escaping (Timeline<WatchEntry>) -> Void) {
         let now = Date()
-        let entry = WatchEntryBuilder.makeEntry(now: now, metric: .glucose)
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 5, to: now) ?? now.addingTimeInterval(300)
-        completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
+        let entries = WatchTimelinePolicy.entries(from: now) { date in
+            WatchEntryBuilder.makeEntry(now: date, metric: .glucose)
+        }
+        completion(Timeline(entries: entries, policy: .atEnd))
     }
 }
 
@@ -71,8 +87,9 @@ struct WatchMetricTimelineProvider: AppIntentTimelineProvider {
 
     func timeline(for configuration: WatchMetricIntent, in _: Context) async -> Timeline<WatchEntry> {
         let now = Date()
-        let entry = WatchEntryBuilder.makeEntry(now: now, metric: configuration.metric)
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 5, to: now) ?? now.addingTimeInterval(300)
-        return Timeline(entries: [entry], policy: .after(nextUpdate))
+        let entries = WatchTimelinePolicy.entries(from: now) { date in
+            WatchEntryBuilder.makeEntry(now: date, metric: configuration.metric)
+        }
+        return Timeline(entries: entries, policy: .atEnd)
     }
 }
