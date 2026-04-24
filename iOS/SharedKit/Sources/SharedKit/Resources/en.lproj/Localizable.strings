@@ -33,14 +33,14 @@
 "shield.checks.highGlucose.0" = "Enter all carbs";
 "shield.checks.highGlucose.1" = "Drink water";
 "shield.checks.highGlucose.2" = "Check pump";
-"shield.checks.criticalGlucose.0" = "Take corrective insulin";
+"shield.checks.criticalGlucose.0" = "Calculate and give your correction";
 "shield.checks.criticalGlucose.1" = "Drink water";
 "shield.checks.criticalGlucose.2" = "Tell someone";
 "shield.checks.lowGlucose.0" = "Eat something";
 "shield.checks.lowGlucose.1" = "Rest";
 "shield.checks.lowGlucose.2" = "Check pump";
 "shield.checks.staleSensor.0" = "Check sensor";
-"shield.checks.carbGap.0" = "Enter carbs";
+"shield.checks.carbGap.0" = "Enter all carbs";
 "shield.checks.noGlucoseData.0" = "Check sensor";
 "shield.checks.noGlucoseData.1" = "Check data source";
 "shield.checks.noCarbData.0" = "Check data source";

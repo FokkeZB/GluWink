@@ -33,14 +33,14 @@
 "shield.checks.highGlucose.0" = "Voer alle KH in";
 "shield.checks.highGlucose.1" = "Drink water";
 "shield.checks.highGlucose.2" = "Check pomp";
-"shield.checks.criticalGlucose.0" = "Geef correctie-insuline";
+"shield.checks.criticalGlucose.0" = "Bereken en geef correctie";
 "shield.checks.criticalGlucose.1" = "Drink water";
 "shield.checks.criticalGlucose.2" = "Licht iemand in";
 "shield.checks.lowGlucose.0" = "Eet iets";
 "shield.checks.lowGlucose.1" = "Rust";
 "shield.checks.lowGlucose.2" = "Check pomp";
 "shield.checks.staleSensor.0" = "Check sensor";
-"shield.checks.carbGap.0" = "Voer KH in";
+"shield.checks.carbGap.0" = "Voer alle KH in";
 "shield.checks.noGlucoseData.0" = "Check sensor";
 "shield.checks.noGlucoseData.1" = "Controleer gegevensbron";
 "shield.checks.noCarbData.0" = "Controleer gegevensbron";
