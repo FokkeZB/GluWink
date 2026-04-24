@@ -282,6 +282,13 @@ final class SharedDataManager {
         get { defaults?.object(forKey: "lowGlucoseThreshold") as? Double }
     }
 
+    /// Raw user override for the critical glucose threshold. `nil` when the
+    /// user hasn't changed the xcconfig default. The `> high` invariant is
+    /// enforced at write time by `SettingsValidation`, not by this accessor.
+    var criticalGlucoseThreshold: Double? {
+        get { defaults?.object(forKey: "criticalGlucoseThreshold") as? Double }
+    }
+
     var glucoseStaleMinutes: Int? {
         get { defaults?.object(forKey: "glucoseStaleMinutes") as? Int }
     }
@@ -306,6 +313,10 @@ final class SharedDataManager {
 
     var effectiveLowGlucoseThreshold: Double {
         ThresholdResolver.lowGlucose(defaults: defaults, fallback: SettingsDefaults.lowGlucose)
+    }
+
+    var effectiveCriticalGlucoseThreshold: Double {
+        ThresholdResolver.criticalGlucose(defaults: defaults, fallback: SettingsDefaults.criticalGlucose)
     }
 
     var effectiveGlucoseStaleMinutes: Int {
@@ -353,9 +364,16 @@ final class SharedDataManager {
         set { defaults?.set(newValue.rawValue, forKey: "glucoseBadgeMode") }
     }
 
+    /// Persist all attention + shielding tunables in one call.
+    ///
+    /// Callers are responsible for enforcing `criticalGlucoseThreshold >
+    /// highGlucoseThreshold` via `SettingsValidation.validateCriticalAboveHigh`
+    /// before invoking this. If the invariant is violated, the store still
+    /// accepts the values — surfacing the error is the Settings UI's job.
     func saveSettings(
         highGlucoseThreshold: Double,
         lowGlucoseThreshold: Double,
+        criticalGlucoseThreshold: Double,
         glucoseStaleMinutes: Int,
         carbGraceHour: Int,
         carbGraceMinute: Int,
@@ -365,13 +383,14 @@ final class SharedDataManager {
     ) {
         defaults?.set(highGlucoseThreshold, forKey: "highGlucoseThreshold")
         defaults?.set(lowGlucoseThreshold, forKey: "lowGlucoseThreshold")
+        defaults?.set(criticalGlucoseThreshold, forKey: "criticalGlucoseThreshold")
         defaults?.set(glucoseStaleMinutes, forKey: "glucoseStaleMinutes")
         defaults?.set(carbGraceHour, forKey: "carbGraceHour")
         defaults?.set(carbGraceMinute, forKey: "carbGraceMinute")
         defaults?.set(attentionIntervalMinutes, forKey: "attentionIntervalMinutes")
         defaults?.set(noAttentionIntervalMinutes, forKey: "noAttentionIntervalMinutes")
         defaults?.set(cooldownSeconds, forKey: "cooldownSeconds")
-        logger.info("Settings saved: high=\(highGlucoseThreshold) low=\(lowGlucoseThreshold) stale=\(glucoseStaleMinutes)m grace=\(carbGraceHour):\(carbGraceMinute) interval=\(attentionIntervalMinutes)/\(noAttentionIntervalMinutes)m cooldown=\(cooldownSeconds)s")
+        logger.info("Settings saved: high=\(highGlucoseThreshold) low=\(lowGlucoseThreshold) critical=\(criticalGlucoseThreshold) stale=\(glucoseStaleMinutes)m grace=\(carbGraceHour):\(carbGraceMinute) interval=\(attentionIntervalMinutes)/\(noAttentionIntervalMinutes)m cooldown=\(cooldownSeconds)s")
         WatchSessionManager.shared.sendLatestContext()
     }
 
@@ -431,7 +450,7 @@ final class SharedDataManager {
     /// Reset all settings to defaults, preserving passphrase, authorization mode, allowed apps, and health data.
     func resetAllSettings() {
         let settingsKeys = [
-            "highGlucoseThreshold", "lowGlucoseThreshold",
+            "highGlucoseThreshold", "lowGlucoseThreshold", "criticalGlucoseThreshold",
             "glucoseStaleMinutes", "carbGraceHour", "carbGraceMinute",
             "attentionIntervalMinutes", "noAttentionIntervalMinutes",
             "cooldownSeconds", "shieldingEnabled", "onlyShieldWhenAttention",

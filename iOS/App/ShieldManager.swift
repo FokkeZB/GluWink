@@ -138,11 +138,25 @@ final class ShieldManager {
 
     /// Disarm shields after the child completes check-in.
     /// Shields are removed now and re-armed after the attention interval.
-    func disarmShields() {
+    ///
+    /// Refuses (and returns `false`) when the current glucose reading is at
+    /// or above the critical threshold — the "cannot dismiss" contract from
+    /// issue #84 must hold for every disarm path, not just the Screen Time
+    /// `ShieldAction` extension. Without this gate, a user could bypass the
+    /// critical shield by opening GluWink directly and tapping check-in.
+    @discardableResult
+    func disarmShields() -> Bool {
+        let data = SharedDataManager.shared
+        let glucose = data.currentGlucose ?? 0
+        let criticalThreshold = data.effectiveCriticalGlucoseThreshold
+        if glucose > 0, glucose >= criticalThreshold {
+            logger.notice("Critical glucose \(glucose) >= \(criticalThreshold) — refusing to disarm")
+            return false
+        }
+
         store.shield.applicationCategories = nil
         store.shield.webDomainCategories = nil
 
-        let data = SharedDataManager.shared
         let intervalMinutes = data.attentionIntervalMinutes ?? ActivityScheduler.defaultAttentionInterval
         let rearmAt = Date().addingTimeInterval(TimeInterval(intervalMinutes * 60))
 
@@ -151,6 +165,7 @@ final class ShieldManager {
 
         scheduleRearm()
         logger.info("Shields disarmed — re-arm at \(rearmAt.ISO8601Format())")
+        return true
     }
 
     /// Check for any pending re-arm (e.g. from before the app was launched)

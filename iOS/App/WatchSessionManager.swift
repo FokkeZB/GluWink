@@ -68,6 +68,7 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
         var context: [String: Any] = [
             "highGlucoseThreshold": data.highGlucoseThreshold ?? SettingsDefaults.highGlucose,
             "lowGlucoseThreshold": data.lowGlucoseThreshold ?? SettingsDefaults.lowGlucose,
+            "criticalGlucoseThreshold": data.criticalGlucoseThreshold ?? SettingsDefaults.criticalGlucose,
             "glucoseStaleMinutes": data.glucoseStaleMinutes ?? SettingsDefaults.staleMinutes,
             "carbGraceHour": data.carbGraceHour ?? SettingsDefaults.carbGraceHour,
             "carbGraceMinute": data.carbGraceMinute ?? SettingsDefaults.carbGraceMinute,

@@ -69,6 +69,9 @@
 "settings.glucoseUnit" = "Glucose Unit";
 "settings.glucoseUnitFooter" = "Unit used for all glucose values in the app, widgets, and shields.";
 "settings.highThreshold" = "High";
+"settings.criticalThreshold" = "Critical";
+"settings.criticalThresholdFooter" = "At or above this value, the shield cannot be dismissed — the child must treat the high glucose first. Must be greater than the High threshold.";
+"settings.criticalValidationError" = "Critical must be above High. Raise Critical (or lower High) to continue.";
 "settings.lowThreshold" = "Low";
 "settings.dataHeader" = "Data Staleness";
 "settings.staleMinutes" = "Stale after";
@@ -116,6 +119,7 @@
 /* Attention Checks Settings */
 "settings.attentionChecksRow" = "Attention Checks";
 "settings.scenario.highGlucose" = "High Glucose";
+"settings.scenario.criticalGlucose" = "Critical Glucose";
 "settings.scenario.lowGlucose" = "Low Glucose";
 "settings.scenario.staleSensor" = "Stale Sensor";
 "settings.scenario.carbGap" = "Carb Gap (4+ hours)";

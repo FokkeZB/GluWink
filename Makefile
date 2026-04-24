@@ -1,8 +1,13 @@
 XCODE_PROJECT := iOS/App.xcodeproj
 SCHEME := App
-DEVICE_ID := $(shell xcrun devicectl list devices 2>/dev/null | grep -m1 'connected' | awk '{for(i=1;i<=NF;i++) if($$i ~ /^[0-9A-F].*-/) {print $$i; exit}}')
+DEVICE_ID = $(shell xcrun devicectl list devices 2>/dev/null | grep -m1 'connected' | awk '{for(i=1;i<=NF;i++) if($$i ~ /^[0-9A-F].*-/) {print $$i; exit}}')
 DERIVED_DATA := $(HOME)/Library/Developer/Xcode/DerivedData
-APP_PATH := $(shell ls -dt $(DERIVED_DATA)/App-*/Build/Products/*/App.app 2>/dev/null | head -1)
+# Lazy assignment (`=`) so APP_PATH is re-evaluated at recipe time — this matters
+# for `make deploy: build install`, otherwise APP_PATH is resolved before `build`
+# runs and points at a stale artifact. Glob is scoped to `*-iphoneos` so we
+# never accidentally pick a simulator build (devicectl rejects those with a
+# confusing code-signature error).
+APP_PATH = $(shell ls -dt $(DERIVED_DATA)/App-*/Build/Products/*-iphoneos/App.app 2>/dev/null | head -1)
 
 VENV_DIR := $(HOME)/.cache/ios-screenshot-venv
 VENV_PYTHON := $(VENV_DIR)/bin/python3

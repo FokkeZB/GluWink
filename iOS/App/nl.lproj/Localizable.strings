@@ -69,6 +69,9 @@
 "settings.glucoseUnit" = "Glucose-eenheid";
 "settings.glucoseUnitFooter" = "Eenheid voor alle glucosewaarden in de app, widgets en afscherming.";
 "settings.highThreshold" = "Hoog";
+"settings.criticalThreshold" = "Kritiek";
+"settings.criticalThresholdFooter" = "Op of boven deze waarde kan het schild niet worden weggedrukt — je moet de hoge glucose eerst behandelen. Moet hoger zijn dan de drempel \"Hoog\".";
+"settings.criticalValidationError" = "Kritiek moet hoger zijn dan Hoog. Verhoog Kritiek (of verlaag Hoog) om door te gaan.";
 "settings.lowThreshold" = "Laag";
 "settings.dataHeader" = "Veroudering Gegevens";
 "settings.staleMinutes" = "Verouderd na";
@@ -116,6 +119,7 @@
 /* Aandachtschecks Instellingen */
 "settings.attentionChecksRow" = "Aandachtschecks";
 "settings.scenario.highGlucose" = "Hoge Glucose";
+"settings.scenario.criticalGlucose" = "Kritieke Glucose";
 "settings.scenario.lowGlucose" = "Lage Glucose";
 "settings.scenario.staleSensor" = "Verouderde Sensor";
 "settings.scenario.carbGap" = "KH-gat (4+ uur)";

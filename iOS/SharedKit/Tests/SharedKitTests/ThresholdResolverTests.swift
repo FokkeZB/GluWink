@@ -30,6 +30,7 @@ final class ThresholdResolverTests: XCTestCase {
     func testFallbackUsedWhenNoOverride() {
         XCTAssertEqual(ThresholdResolver.highGlucose(defaults: defaults, fallback: 9.5), 9.5)
         XCTAssertEqual(ThresholdResolver.lowGlucose(defaults: defaults, fallback: 4.0), 4.0)
+        XCTAssertEqual(ThresholdResolver.criticalGlucose(defaults: defaults, fallback: 20.0), 20.0)
         XCTAssertEqual(ThresholdResolver.staleMinutes(defaults: defaults, fallback: 30), 30)
         XCTAssertEqual(ThresholdResolver.carbGraceHour(defaults: defaults, fallback: 9), 9)
         XCTAssertEqual(ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: 30), 30)
@@ -38,6 +39,7 @@ final class ThresholdResolverTests: XCTestCase {
     func testFallbackUsedWhenDefaultsIsNil() {
         XCTAssertEqual(ThresholdResolver.highGlucose(defaults: nil, fallback: 9.5), 9.5)
         XCTAssertEqual(ThresholdResolver.lowGlucose(defaults: nil, fallback: 4.0), 4.0)
+        XCTAssertEqual(ThresholdResolver.criticalGlucose(defaults: nil, fallback: 20.0), 20.0)
         XCTAssertEqual(ThresholdResolver.staleMinutes(defaults: nil, fallback: 30), 30)
         XCTAssertEqual(ThresholdResolver.carbGraceHour(defaults: nil, fallback: 9), 9)
         XCTAssertEqual(ThresholdResolver.carbGraceMinute(defaults: nil, fallback: 30), 30)
@@ -48,15 +50,33 @@ final class ThresholdResolverTests: XCTestCase {
     func testOverrideUsedWhenSet() {
         defaults.set(8.5, forKey: ThresholdResolver.highGlucoseKey)
         defaults.set(3.5, forKey: ThresholdResolver.lowGlucoseKey)
+        defaults.set(18.0, forKey: ThresholdResolver.criticalGlucoseKey)
         defaults.set(45, forKey: ThresholdResolver.staleMinutesKey)
         defaults.set(7, forKey: ThresholdResolver.carbGraceHourKey)
         defaults.set(15, forKey: ThresholdResolver.carbGraceMinuteKey)
 
         XCTAssertEqual(ThresholdResolver.highGlucose(defaults: defaults, fallback: 9.5), 8.5)
         XCTAssertEqual(ThresholdResolver.lowGlucose(defaults: defaults, fallback: 4.0), 3.5)
+        XCTAssertEqual(ThresholdResolver.criticalGlucose(defaults: defaults, fallback: 20.0), 18.0)
         XCTAssertEqual(ThresholdResolver.staleMinutes(defaults: defaults, fallback: 30), 45)
         XCTAssertEqual(ThresholdResolver.carbGraceHour(defaults: defaults, fallback: 9), 7)
         XCTAssertEqual(ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: 30), 15)
+    }
+
+    /// The resolver does **not** silently re-clamp at read time, even when
+    /// `critical <= high` (the invariant is enforced at write time by
+    /// `SettingsValidation`). If a stale value is in storage, the resolver
+    /// returns it as-is so the Settings UI can surface the validation
+    /// error instead of masking it.
+    func testCriticalResolverDoesNotReclampBelowHigh() {
+        defaults.set(14.0, forKey: ThresholdResolver.highGlucoseKey)
+        defaults.set(13.0, forKey: ThresholdResolver.criticalGlucoseKey)
+
+        XCTAssertEqual(
+            ThresholdResolver.criticalGlucose(defaults: defaults, fallback: 20.0),
+            13.0,
+            "Resolver must return the persisted value even when invariant is violated."
+        )
     }
 
     /// Exact reproduction of the issue-#77 scenario: the user pulls the high
@@ -89,6 +109,7 @@ final class ThresholdResolverTests: XCTestCase {
     func testKeyStringsMatchAppGroupContract() {
         XCTAssertEqual(ThresholdResolver.highGlucoseKey, "highGlucoseThreshold")
         XCTAssertEqual(ThresholdResolver.lowGlucoseKey, "lowGlucoseThreshold")
+        XCTAssertEqual(ThresholdResolver.criticalGlucoseKey, "criticalGlucoseThreshold")
         XCTAssertEqual(ThresholdResolver.staleMinutesKey, "glucoseStaleMinutes")
         XCTAssertEqual(ThresholdResolver.carbGraceHourKey, "carbGraceHour")
         XCTAssertEqual(ThresholdResolver.carbGraceMinuteKey, "carbGraceMinute")

@@ -67,6 +67,8 @@
     "make tunneld",
     "xcodebuild",
     "xcrun simctl list",
+    "swift test",
+    "swift build",
     "bash .claude/skills/",
     "bash docs/scripts/",
     "ls",

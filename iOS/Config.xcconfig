@@ -20,6 +20,10 @@ INFOPLIST_KEY_NSHealthShareUsageDescription = GluWink reads your glucose and car
 // Glucose thresholds in mmol/L
 HIGH_GLUCOSE_THRESHOLD = 14.0
 LOW_GLUCOSE_THRESHOLD = 4.0
+// Critical glucose threshold: at or above this value the shield cannot be
+// dismissed via check-in. Must always be strictly greater than
+// HIGH_GLUCOSE_THRESHOLD at save time (validated in Settings).
+CRITICAL_GLUCOSE_THRESHOLD = 20.0
 
 // Glucose data is considered stale after this many minutes
 GLUCOSE_STALE_MINUTES = 30

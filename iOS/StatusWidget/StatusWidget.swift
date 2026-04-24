@@ -35,6 +35,7 @@ private enum EntryBuilder {
     /// App Group yet. The resolver picks override-or-fallback per render.
     static let fallbackHighGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
     static let fallbackLowGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
+    static let fallbackCriticalGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "CriticalGlucoseThreshold") as! String)!
     static let fallbackStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
     static let fallbackCarbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
     static let fallbackCarbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
@@ -61,6 +62,7 @@ private enum EntryBuilder {
             lastCarbEntryAt: carbDate,
             highGlucoseThreshold: ThresholdResolver.highGlucose(defaults: defaults, fallback: fallbackHighGlucose),
             lowGlucoseThreshold: ThresholdResolver.lowGlucose(defaults: defaults, fallback: fallbackLowGlucose),
+            criticalGlucoseThreshold: ThresholdResolver.criticalGlucose(defaults: defaults, fallback: fallbackCriticalGlucose),
             glucoseStaleMinutes: ThresholdResolver.staleMinutes(defaults: defaults, fallback: fallbackStaleMinutes),
             carbGraceHour: ThresholdResolver.carbGraceHour(defaults: defaults, fallback: fallbackCarbGraceHour),
             carbGraceMinute: ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: fallbackCarbGraceMinute),

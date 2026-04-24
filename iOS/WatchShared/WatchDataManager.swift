@@ -10,6 +10,7 @@ enum WatchDataManager {
     /// defaults+fallback. This keeps Phase-5 / screenshot-harness flows working.
     private static let fallbackHighGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
     private static let fallbackLowGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
+    private static let fallbackCriticalGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "CriticalGlucoseThreshold") as! String)!
     private static let fallbackStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
     private static let fallbackCarbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
     private static let fallbackCarbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
@@ -48,6 +49,8 @@ enum WatchDataManager {
             ?? ThresholdResolver.highGlucose(defaults: defaults, fallback: fallbackHighGlucose)
         let low = (bridgeContext?["lowGlucoseThreshold"] as? Double)
             ?? ThresholdResolver.lowGlucose(defaults: defaults, fallback: fallbackLowGlucose)
+        let critical = (bridgeContext?["criticalGlucoseThreshold"] as? Double)
+            ?? ThresholdResolver.criticalGlucose(defaults: defaults, fallback: fallbackCriticalGlucose)
         let stale = (bridgeContext?["glucoseStaleMinutes"] as? Int)
             ?? ThresholdResolver.staleMinutes(defaults: defaults, fallback: fallbackStaleMinutes)
         let graceHour = (bridgeContext?["carbGraceHour"] as? Int)
@@ -63,6 +66,7 @@ enum WatchDataManager {
             lastCarbEntryAt: lastCarbEntryAt,
             highGlucoseThreshold: high,
             lowGlucoseThreshold: low,
+            criticalGlucoseThreshold: critical,
             glucoseStaleMinutes: stale,
             carbGraceHour: graceHour,
             carbGraceMinute: graceMinute,
@@ -120,6 +124,7 @@ enum WatchDataManager {
         let numericKeys = [
             "highGlucoseThreshold",
             "lowGlucoseThreshold",
+            "criticalGlucoseThreshold",
             "glucoseStaleMinutes",
             "carbGraceHour",
             "carbGraceMinute",

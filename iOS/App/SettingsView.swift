@@ -8,6 +8,7 @@ import WidgetKit
 struct SettingsDefaults {
     static let highGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
     static let lowGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
+    static let criticalGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "CriticalGlucoseThreshold") as! String)!
     static let staleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
     static let carbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
     static let carbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
@@ -222,9 +223,14 @@ struct SettingsView: View {
 struct AttentionRulesSettingsView: View {
     @State private var highThreshold: Double
     @State private var lowThreshold: Double
+    @State private var criticalThreshold: Double
     @State private var staleMinutes: Double
     @State private var carbGraceHour: Int
     @State private var carbGraceMinute: Int
+    /// Surfaced when the user tries to drag `critical` at or below `high`,
+    /// or when high is raised above critical. Cleared as soon as the values
+    /// are coherent again. Drives the inline validation banner.
+    @State private var criticalValidationError: String?
 
     private let unit: GlucoseUnit
 
@@ -234,8 +240,10 @@ struct AttentionRulesSettingsView: View {
         unit = u
         let highMmol = data.highGlucoseThreshold ?? SettingsDefaults.highGlucose
         let lowMmol = data.lowGlucoseThreshold ?? SettingsDefaults.lowGlucose
+        let criticalMmol = data.criticalGlucoseThreshold ?? SettingsDefaults.criticalGlucose
         _highThreshold = State(initialValue: u.displayValue(highMmol))
         _lowThreshold = State(initialValue: u.displayValue(lowMmol))
+        _criticalThreshold = State(initialValue: u.displayValue(criticalMmol))
         _staleMinutes = State(initialValue: Double(data.glucoseStaleMinutes ?? SettingsDefaults.staleMinutes))
         _carbGraceHour = State(initialValue: data.carbGraceHour ?? SettingsDefaults.carbGraceHour)
         _carbGraceMinute = State(initialValue: data.carbGraceMinute ?? SettingsDefaults.carbGraceMinute)
@@ -263,6 +271,20 @@ struct AttentionRulesSettingsView: View {
         unit == .mmolL ? 0.1 : 1
     }
 
+    /// Critical range floor auto-bumps with `high` so the slider can't land
+    /// at or below it. We keep the ceiling well above `highRange` so there's
+    /// always somewhere to go.
+    private var criticalRange: ClosedRange<Double> {
+        let ceiling: Double = unit == .mmolL ? 33 : 600
+        let step = highStep
+        let floor = SettingsValidation.minimumCritical(above: highThreshold, step: step)
+        return floor...max(ceiling, floor + step)
+    }
+
+    private var criticalStep: Double {
+        highStep
+    }
+
     private var thresholdFormat: String {
         unit == .mmolL ? "%.1f" : "%.0f"
     }
@@ -280,6 +302,21 @@ struct AttentionRulesSettingsView: View {
                 Slider(value: $highThreshold, in: highRange, step: highStep)
 
                 HStack {
+                    Text("settings.criticalThreshold", tableName: "Localizable")
+                    Spacer()
+                    Text(String(format: thresholdFormat, criticalThreshold))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+                Slider(value: $criticalThreshold, in: criticalRange, step: criticalStep)
+
+                if let criticalValidationError {
+                    Label(criticalValidationError, systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.caption)
+                }
+
+                HStack {
                     Text("settings.lowThreshold", tableName: "Localizable")
                     Spacer()
                     Text(String(format: thresholdFormat, lowThreshold))
@@ -289,6 +326,8 @@ struct AttentionRulesSettingsView: View {
                 Slider(value: $lowThreshold, in: lowRange, step: lowStep)
             } header: {
                 Text(String(localized: "settings.glucoseHeader \(unit.label)"))
+            } footer: {
+                Text("settings.criticalThresholdFooter", tableName: "Localizable")
             }
 
             Section {
@@ -315,8 +354,20 @@ struct AttentionRulesSettingsView: View {
         }
         .navigationTitle(String(localized: "settings.attentionRulesRow"))
         .navigationBarTitleDisplayMode(.inline)
-        .onChange(of: highThreshold) { saveAttentionRules() }
+        .onChange(of: highThreshold) {
+            // Raising `high` at or above `critical` violates the invariant;
+            // auto-bump critical to the next legal step on the same grid so
+            // the user never lands in an invalid state via the high slider.
+            // The validation error still surfaces (and clears on save) so
+            // the adjustment is not silent.
+            let minCritical = SettingsValidation.minimumCritical(above: highThreshold, step: criticalStep)
+            if criticalThreshold < minCritical {
+                criticalThreshold = minCritical
+            }
+            saveAttentionRules()
+        }
         .onChange(of: lowThreshold) { saveAttentionRules() }
+        .onChange(of: criticalThreshold) { saveAttentionRules() }
         .onChange(of: staleMinutes) { saveAttentionRules() }
         .onChange(of: carbGraceHour) { saveAttentionRules() }
         .onChange(of: carbGraceMinute) { saveAttentionRules() }
@@ -324,9 +375,22 @@ struct AttentionRulesSettingsView: View {
 
     private func saveAttentionRules() {
         let data = SharedDataManager.shared
+        let highMmol = unit.toMmol(highThreshold)
+        let criticalMmol = unit.toMmol(criticalThreshold)
+        do {
+            try SettingsValidation.validateCriticalAboveHigh(critical: criticalMmol, high: highMmol)
+            criticalValidationError = nil
+        } catch {
+            // Per AGENTS.md → "Shared App Group Container" → validation
+            // contract: surface the error, do not silently re-clamp. We
+            // still persist the values so state is consistent; the Settings
+            // UI keeps the banner visible until the user fixes it.
+            criticalValidationError = String(localized: "settings.criticalValidationError")
+        }
         data.saveSettings(
-            highGlucoseThreshold: unit.toMmol(highThreshold),
+            highGlucoseThreshold: highMmol,
             lowGlucoseThreshold: unit.toMmol(lowThreshold),
+            criticalGlucoseThreshold: criticalMmol,
             glucoseStaleMinutes: Int(staleMinutes),
             carbGraceHour: carbGraceHour,
             carbGraceMinute: carbGraceMinute,
@@ -498,6 +562,7 @@ struct ShieldingSettingsView: View {
         data.saveSettings(
             highGlucoseThreshold: data.highGlucoseThreshold ?? SettingsDefaults.highGlucose,
             lowGlucoseThreshold: data.lowGlucoseThreshold ?? SettingsDefaults.lowGlucose,
+            criticalGlucoseThreshold: data.criticalGlucoseThreshold ?? SettingsDefaults.criticalGlucose,
             glucoseStaleMinutes: data.glucoseStaleMinutes ?? SettingsDefaults.staleMinutes,
             carbGraceHour: data.carbGraceHour ?? SettingsDefaults.carbGraceHour,
             carbGraceMinute: data.carbGraceMinute ?? SettingsDefaults.carbGraceMinute,
@@ -1048,6 +1113,7 @@ struct AttentionChecksSettingsView: View {
     private func scenarioName(_ scenario: AttentionScenario) -> String {
         switch scenario {
         case .highGlucose: return String(localized: "settings.scenario.highGlucose")
+        case .criticalGlucose: return String(localized: "settings.scenario.criticalGlucose")
         case .lowGlucose: return String(localized: "settings.scenario.lowGlucose")
         case .staleSensor: return String(localized: "settings.scenario.staleSensor")
         case .carbGap: return String(localized: "settings.scenario.carbGap")
