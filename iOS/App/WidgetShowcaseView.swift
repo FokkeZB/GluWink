@@ -112,6 +112,7 @@ struct WidgetShowcaseView: View {
             lastCarbEntryAt: carbDate,
             highGlucoseThreshold: SettingsDefaults.highGlucose,
             lowGlucoseThreshold: SettingsDefaults.lowGlucose,
+            criticalGlucoseThreshold: SettingsDefaults.criticalGlucose,
             glucoseStaleMinutes: SettingsDefaults.staleMinutes,
             carbGraceHour: SettingsDefaults.carbGraceHour,
             carbGraceMinute: SettingsDefaults.carbGraceMinute,

@@ -14,6 +14,10 @@ private enum ThresholdResolver {
         (defaults?.object(forKey: "lowGlucoseThreshold") as? Double) ?? fallback
     }
 
+    static func criticalGlucose(defaults: UserDefaults?, fallback: Double) -> Double {
+        (defaults?.object(forKey: "criticalGlucoseThreshold") as? Double) ?? fallback
+    }
+
     static func staleMinutes(defaults: UserDefaults?, fallback: Int) -> Int {
         (defaults?.object(forKey: "glucoseStaleMinutes") as? Int) ?? fallback
     }
@@ -61,12 +65,14 @@ class ShieldActionExtension: ShieldActionDelegate {
 
         let fallbackHigh = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
         let fallbackLow = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
+        let fallbackCritical = Double(Bundle.main.object(forInfoDictionaryKey: "CriticalGlucoseThreshold") as! String)!
         let fallbackStale = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
         let fallbackGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
         let fallbackGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
 
         let highThreshold = ThresholdResolver.highGlucose(defaults: defaults, fallback: fallbackHigh)
         let lowThreshold = ThresholdResolver.lowGlucose(defaults: defaults, fallback: fallbackLow)
+        let criticalThreshold = ThresholdResolver.criticalGlucose(defaults: defaults, fallback: fallbackCritical)
         let staleMinutes = ThresholdResolver.staleMinutes(defaults: defaults, fallback: fallbackStale)
         let carbGraceHour = ThresholdResolver.carbGraceHour(defaults: defaults, fallback: fallbackGraceHour)
         let carbGraceMinute = ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: fallbackGraceMinute)
@@ -77,6 +83,16 @@ class ShieldActionExtension: ShieldActionDelegate {
         let currentMin = cal.component(.minute, from: now)
         let isMorningGrace = currentHour < carbGraceHour
             || (currentHour == carbGraceHour && currentMin < carbGraceMinute)
+
+        // Critical glucose is a hard gate: the shield never dismisses at or
+        // above critical, even if the rest of the check-in flow would.
+        // Logged separately from the generic "attention" branch so the
+        // device diagnostics can distinguish the two.
+        if glucose > 0, glucose >= criticalThreshold {
+            logger.notice("Critical glucose \(glucose) >= \(criticalThreshold) — refusing to dismiss")
+            completionHandler(.close)
+            return
+        }
 
         var needsAttention = false
         if glucose > 0, let gDate = glucoseDate {

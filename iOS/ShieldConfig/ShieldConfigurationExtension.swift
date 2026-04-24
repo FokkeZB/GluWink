@@ -10,6 +10,7 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     /// per render, so settings changes show up in the shield UI.
     private static let fallbackHighGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
     private static let fallbackLowGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!
+    private static let fallbackCriticalGlucose = Double(Bundle.main.object(forInfoDictionaryKey: "CriticalGlucoseThreshold") as! String)!
     private static let fallbackStaleMinutes = Int(Bundle.main.object(forInfoDictionaryKey: "GlucoseStaleMinutes") as! String)!
     private static let fallbackCarbGraceHour = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceHour") as! String)!
     private static let fallbackCarbGraceMinute = Int(Bundle.main.object(forInfoDictionaryKey: "CarbGraceMinute") as! String)!
@@ -51,6 +52,7 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
             lastCarbEntryAt: carbDate,
             highGlucoseThreshold: ThresholdResolver.highGlucose(defaults: defaults, fallback: Self.fallbackHighGlucose),
             lowGlucoseThreshold: ThresholdResolver.lowGlucose(defaults: defaults, fallback: Self.fallbackLowGlucose),
+            criticalGlucoseThreshold: ThresholdResolver.criticalGlucose(defaults: defaults, fallback: Self.fallbackCriticalGlucose),
             glucoseStaleMinutes: ThresholdResolver.staleMinutes(defaults: defaults, fallback: Self.fallbackStaleMinutes),
             carbGraceHour: ThresholdResolver.carbGraceHour(defaults: defaults, fallback: Self.fallbackCarbGraceHour),
             carbGraceMinute: ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: Self.fallbackCarbGraceMinute),

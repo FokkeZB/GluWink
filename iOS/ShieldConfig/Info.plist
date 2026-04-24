@@ -8,6 +8,8 @@
 	<string>$(CARB_GRACE_HOUR)</string>
 	<key>CarbGraceMinute</key>
 	<string>$(CARB_GRACE_MINUTE)</string>
+	<key>CriticalGlucoseThreshold</key>
+	<string>$(CRITICAL_GLUCOSE_THRESHOLD)</string>
 	<key>GlucoseStaleMinutes</key>
 	<string>$(GLUCOSE_STALE_MINUTES)</string>
 	<key>HighGlucoseThreshold</key>

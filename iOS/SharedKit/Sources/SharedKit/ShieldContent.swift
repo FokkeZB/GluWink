@@ -8,6 +8,11 @@ public struct ShieldContent: Sendable {
     public let needsAttention: Bool
     public let glucoseNeedsAttention: Bool
     public let carbsNeedsAttention: Bool
+    /// True when the current glucose reading is at or above the critical
+    /// threshold. In this state the shield cannot be dismissed — the
+    /// shield UI must surface the explanatory subtitle and the primary
+    /// button must be non-actionable (ShieldAction refuses `.defer`).
+    public let isCriticalGlucose: Bool
     /// True when we have no glucose AND no carb data at all — e.g. right after
     /// initial configuration, before HealthKit has delivered anything.
     ///
@@ -37,6 +42,7 @@ public struct ShieldContent: Sendable {
         lastCarbEntryAt: Date?,
         highGlucoseThreshold: Double,
         lowGlucoseThreshold: Double,
+        criticalGlucoseThreshold: Double,
         glucoseStaleMinutes: Int,
         carbGraceHour: Int,
         carbGraceMinute: Int,
@@ -67,6 +73,11 @@ public struct ShieldContent: Sendable {
 
             if glucose < lowGlucoseThreshold {
                 scenarios.append(.lowGlucose)
+            } else if glucose >= criticalGlucoseThreshold {
+                // Critical replaces high when both would apply so the
+                // shield copy, checks, and scenario membership reflect the
+                // stronger "cannot dismiss" state exactly once.
+                scenarios.append(.criticalGlucose)
             } else if glucose > highGlucoseThreshold {
                 scenarios.append(.highGlucose)
             }
@@ -106,10 +117,11 @@ public struct ShieldContent: Sendable {
 
         activeScenarios = scenarios
 
-        let glucoseScenarioSet: Set<AttentionScenario> = [.highGlucose, .lowGlucose, .staleSensor, .noGlucoseData]
+        let glucoseScenarioSet: Set<AttentionScenario> = [.highGlucose, .criticalGlucose, .lowGlucose, .staleSensor, .noGlucoseData]
         let carbScenarioSet: Set<AttentionScenario> = [.carbGap, .noCarbData]
         glucoseNeedsAttention = scenarios.contains(where: { glucoseScenarioSet.contains($0) })
         carbsNeedsAttention = scenarios.contains(where: { carbScenarioSet.contains($0) })
+        isCriticalGlucose = scenarios.contains(.criticalGlucose)
 
         var allChecks: [String] = []
         var seen = Set<String>()
@@ -135,6 +147,11 @@ public struct ShieldContent: Sendable {
 
         dataText = dataLines.joined(separator: "\n")
         var sections = [dataText]
+        if isCriticalGlucose {
+            // Surface the "cannot dismiss" explanation first in the critical
+            // state so the child reads it before the regular check-in copy.
+            sections.append(strings.criticalCannotDismiss)
+        }
         if !allChecks.isEmpty {
             let checksBlock = strings.openAppTo + "\n" + allChecks.joined(separator: ", ")
             sections.append(checksBlock)
@@ -142,7 +159,17 @@ public struct ShieldContent: Sendable {
         let joined = sections.joined(separator: "\n\n")
         subtitle = "\n" + joined
 
-        buttonLabel = needsAttention ? strings.checkInButton : strings.doneButton
+        if isCriticalGlucose {
+            // The ShieldConfiguration API has no "disabled" style, so the
+            // copy itself carries the affordance: "Treat high glucose" reads
+            // as an instruction, not an action. ShieldAction hard-rejects
+            // `.defer` for this state so the button can't dismiss either.
+            buttonLabel = strings.criticalCannotDismissButton
+        } else if needsAttention {
+            buttonLabel = strings.checkInButton
+        } else {
+            buttonLabel = strings.doneButton
+        }
     }
 
     private static func shortAgo(_ minutes: Int, strings: Strings) -> String {
@@ -160,6 +187,13 @@ public extension ShieldContent {
         public let attentionTitles: [String]
         public let doneButton: String
         public let checkInButton: String
+        /// Shown as the shield primary-button label when glucose is critical.
+        /// Reads as an instruction ("Treat high glucose") rather than an
+        /// action, because the button cannot dismiss the shield.
+        public let criticalCannotDismissButton: String
+        /// Shown near the top of the shield subtitle when glucose is critical,
+        /// explaining why the shield cannot be dismissed.
+        public let criticalCannotDismiss: String
         public let openAppTo: String
         public let glucose: String
         public let glucoseNoData: String
@@ -194,6 +228,8 @@ public extension ShieldContent {
                 attentionTitles: loadList(bundle: bundle, prefix: "shield.attentionTitle"),
                 doneButton: bundle.localizedString(forKey: "shield.doneButton", value: "Done", table: nil),
                 checkInButton: bundle.localizedString(forKey: "shield.checkInButton", value: "I will", table: nil),
+                criticalCannotDismissButton: bundle.localizedString(forKey: "shield.criticalCannotDismissButton", value: "Treat high glucose first", table: nil),
+                criticalCannotDismiss: bundle.localizedString(forKey: "shield.criticalCannotDismiss", value: "Your glucose is critically high. The shield cannot be dismissed until your glucose comes down.", table: nil),
                 openAppTo: String(format: openFmt, appName),
                 glucose: bundle.localizedString(forKey: "shield.glucose %@ %@ %@", value: "%@ · %@ (%@ ago)", table: nil),
                 glucoseNoData: bundle.localizedString(forKey: "shield.glucoseNoData", value: "No glucose data available.", table: nil),

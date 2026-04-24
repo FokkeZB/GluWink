@@ -81,6 +81,7 @@ struct HomeView: View {
         let data = SharedDataManager.shared
         let highThreshold = data.effectiveHighGlucoseThreshold
         let lowThreshold = data.effectiveLowGlucoseThreshold
+        let criticalThreshold = data.effectiveCriticalGlucoseThreshold
         let staleMinutes = data.effectiveGlucoseStaleMinutes
         let graceHour = data.effectiveCarbGraceHour
         let graceMinute = data.effectiveCarbGraceMinute
@@ -102,6 +103,7 @@ struct HomeView: View {
             lastCarbEntryAt: carbDate,
             highGlucoseThreshold: highThreshold,
             lowGlucoseThreshold: lowThreshold,
+            criticalGlucoseThreshold: criticalThreshold,
             glucoseStaleMinutes: staleMinutes,
             carbGraceHour: graceHour,
             carbGraceMinute: graceMinute,
@@ -117,6 +119,7 @@ struct HomeView: View {
             lastCarbEntryAt: data.lastCarbEntryAt,
             highGlucoseThreshold: highThreshold,
             lowGlucoseThreshold: lowThreshold,
+            criticalGlucoseThreshold: criticalThreshold,
             glucoseStaleMinutes: staleMinutes,
             carbGraceHour: graceHour,
             carbGraceMinute: graceMinute,

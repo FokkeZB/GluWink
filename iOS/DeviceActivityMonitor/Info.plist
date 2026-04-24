@@ -6,6 +6,8 @@
 	<string>$(APP_GROUP_ID)</string>
 	<key>BundlePrefix</key>
 	<string>$(BUNDLE_PREFIX)</string>
+	<key>CriticalGlucoseThreshold</key>
+	<string>$(CRITICAL_GLUCOSE_THRESHOLD)</string>
 	<key>HighGlucoseThreshold</key>
 	<string>$(HIGH_GLUCOSE_THRESHOLD)</string>
 	<key>LowGlucoseThreshold</key>

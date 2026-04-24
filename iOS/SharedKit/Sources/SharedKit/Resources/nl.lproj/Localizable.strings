@@ -2,6 +2,8 @@
 "shield.closeButton" = "Sluit App";
 "shield.doneButton" = "Doorgaan";
 "shield.checkInButton" = "Ga ik doen";
+"shield.criticalCannotDismissButton" = "Behandel hoge glucose eerst";
+"shield.criticalCannotDismiss" = "Je glucose is kritiek hoog. Het schild kan pas weer weg als je glucose daalt.";
 
 /* Positive titles (no attention needed) */
 "shield.positiveTitle.0" = "Goed bezig!";
@@ -32,6 +34,9 @@
 "shield.checks.highGlucose.0" = "Voer alle KH in";
 "shield.checks.highGlucose.1" = "Drink water";
 "shield.checks.highGlucose.2" = "Check pomp";
+"shield.checks.criticalGlucose.0" = "Geef correctie-insuline";
+"shield.checks.criticalGlucose.1" = "Drink water";
+"shield.checks.criticalGlucose.2" = "Waarschuw een volwassene";
 "shield.checks.lowGlucose.0" = "Eet iets";
 "shield.checks.lowGlucose.1" = "Rust";
 "shield.checks.lowGlucose.2" = "Check pomp";

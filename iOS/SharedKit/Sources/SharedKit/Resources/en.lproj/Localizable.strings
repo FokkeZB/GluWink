@@ -2,6 +2,8 @@
 "shield.closeButton" = "Close App";
 "shield.doneButton" = "Continue";
 "shield.checkInButton" = "I will";
+"shield.criticalCannotDismissButton" = "Treat high glucose first";
+"shield.criticalCannotDismiss" = "Your glucose is critically high. The shield cannot be dismissed until your glucose comes down.";
 
 /* Positive titles (no attention needed) */
 "shield.positiveTitle.0" = "Looking good!";
@@ -32,6 +34,9 @@
 "shield.checks.highGlucose.0" = "Enter all carbs";
 "shield.checks.highGlucose.1" = "Drink water";
 "shield.checks.highGlucose.2" = "Check pump";
+"shield.checks.criticalGlucose.0" = "Take corrective insulin";
+"shield.checks.criticalGlucose.1" = "Drink water";
+"shield.checks.criticalGlucose.2" = "Tell an adult";
 "shield.checks.lowGlucose.0" = "Eat something";
 "shield.checks.lowGlucose.1" = "Rest";
 "shield.checks.lowGlucose.2" = "Check pump";
