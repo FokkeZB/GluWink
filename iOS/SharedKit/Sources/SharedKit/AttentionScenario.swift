@@ -5,8 +5,11 @@ public enum AttentionScenario: String, CaseIterable, Codable, Identifiable, Send
     case highGlucose
     /// Glucose is at or above `criticalGlucoseThreshold`. The shield cannot
     /// be dismissed in this state — the child must treat the high first.
-    /// Strictly mutually exclusive with `.highGlucose` (critical replaces
-    /// high when both would apply).
+    /// Additive with `.highGlucose`: a critical reading also satisfies the
+    /// high condition, so `ShieldContent` adds both scenarios and unions
+    /// their check-in items (deduped by string). Callers branching on UI
+    /// state should use `ShieldContent.isCriticalGlucose` rather than
+    /// inspecting scenario membership.
     case criticalGlucose
     case lowGlucose
     case staleSensor

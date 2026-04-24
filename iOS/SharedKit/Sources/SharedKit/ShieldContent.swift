@@ -81,9 +81,20 @@ public struct ShieldContent: Sendable {
             if glucose < lowGlucoseThreshold {
                 scenarios.append(.lowGlucose)
             } else if glucose >= criticalGlucoseThreshold {
-                // Critical replaces high when both would apply so the
-                // shield copy, checks, and scenario membership reflect the
-                // stronger "cannot dismiss" state exactly once.
+                // Critical is additive: a critical reading also satisfies
+                // the high condition, so the user sees baseline high-glucose
+                // hygiene (log carbs, drink water, check pump) *plus* the
+                // critical-specific escalations (calculate correction, tell
+                // someone). High is appended first so the check order reads
+                // as baseline → escalation. `allChecks` below dedupes by
+                // string so items shared across scenarios (e.g. "Drink
+                // water") appear only once.
+                //
+                // `isCriticalGlucose` is still the source of truth for UI
+                // differentiation (cannot-dismiss copy, button label,
+                // in-app swap from interactive to read-only list) — see
+                // `AttentionScenario.criticalGlucose` for the contract.
+                scenarios.append(.highGlucose)
                 scenarios.append(.criticalGlucose)
             } else if glucose > highGlucoseThreshold {
                 scenarios.append(.highGlucose)
