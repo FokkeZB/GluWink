@@ -67,6 +67,8 @@
       "Bash(make tunneld:*)",
       "Bash(xcodebuild:*)",
       "Bash(xcrun simctl list:*)",
+      "Bash(swift test:*)",
+      "Bash(swift build:*)",
       "Bash(bash .claude/skills/:*)",
       "Bash(bash docs/scripts/:*)",
       "Bash(ls:*)",
