@@ -102,6 +102,11 @@ final class NightscoutManager {
         WidgetCenter.shared.reloadAllTimelines()
         SharedDataManager.shared.nightscoutLastFetchedAt = Date()
         WatchSessionManager.shared.sendLatestContext()
+        // Always keep a pending BG refresh queued so iOS has *something* to
+        // schedule against when the app goes to sleep, regardless of who
+        // triggered this fetch (foreground poll, scene activation, settings
+        // change, BG handler). The system coalesces duplicate submissions.
+        scheduleBackgroundRefresh()
     }
 
     private func fetchGlucose(using client: NightscoutClient) async {

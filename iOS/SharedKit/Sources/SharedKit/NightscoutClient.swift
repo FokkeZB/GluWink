@@ -44,23 +44,25 @@ public struct NightscoutClient: Sendable {
     public let baseURL: URL
     public let token: String?
     private let session: URLSession
+    private let requestTimeout: TimeInterval
 
-    public init(baseURL: URL, token: String?, session: URLSession = .shared) {
+    public init(baseURL: URL, token: String?, session: URLSession = .shared, requestTimeout: TimeInterval = 15) {
         self.baseURL = baseURL
         self.token = token
         self.session = session
+        self.requestTimeout = requestTimeout
     }
 
     /// Convenience: build a client from user-provided strings. Returns nil if
     /// the URL cannot be parsed.
-    public init?(baseURLString: String, token: String?, session: URLSession = .shared) {
+    public init?(baseURLString: String, token: String?, session: URLSession = .shared, requestTimeout: TimeInterval = 15) {
         let trimmed = baseURLString.trimmingCharacters(in: .whitespacesAndNewlines)
         guard var components = URLComponents(string: trimmed) else { return nil }
         if components.scheme == nil {
             components.scheme = "https"
         }
         guard let url = components.url, url.host?.isEmpty == false else { return nil }
-        self.init(baseURL: url, token: token, session: session)
+        self.init(baseURL: url, token: token, session: session, requestTimeout: requestTimeout)
     }
 
     // MARK: - Public fetches
@@ -140,7 +142,7 @@ public struct NightscoutClient: Sendable {
         }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.timeoutInterval = 15
+        request.timeoutInterval = requestTimeout
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         return request
     }
