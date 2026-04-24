@@ -35,7 +35,7 @@
 "shield.checks.highGlucose.2" = "Check pump";
 "shield.checks.criticalGlucose.0" = "Take corrective insulin";
 "shield.checks.criticalGlucose.1" = "Drink water";
-"shield.checks.criticalGlucose.2" = "Tell an adult";
+"shield.checks.criticalGlucose.2" = "Tell someone";
 "shield.checks.lowGlucose.0" = "Eat something";
 "shield.checks.lowGlucose.1" = "Rest";
 "shield.checks.lowGlucose.2" = "Check pump";
