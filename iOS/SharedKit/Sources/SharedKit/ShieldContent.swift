@@ -13,6 +13,13 @@ public struct ShieldContent: Sendable {
     /// shield UI must surface the explanatory subtitle and the primary
     /// button must be non-actionable (ShieldAction refuses `.defer`).
     public let isCriticalGlucose: Bool
+    /// Fully-formatted "shield cannot be dismissed until glucose is below X"
+    /// copy in the user's display unit, for callers that want to surface the
+    /// same explanation the shield subtitle shows (e.g. the in-app home view
+    /// when the interactive check-in is hidden). `nil` outside the critical
+    /// state. Single source of truth for the critical-state explanation so
+    /// the shield extension and the main app can't drift.
+    public let criticalCannotDismissText: String?
     /// True when we have no glucose AND no carb data at all — e.g. right after
     /// initial configuration, before HealthKit has delivered anything.
     ///
@@ -146,14 +153,21 @@ public struct ShieldContent: Sendable {
         }
 
         dataText = dataLines.joined(separator: "\n")
-        var sections = [dataText]
         if isCriticalGlucose {
+            // Format the threshold in the user's display unit to match the
+            // main glucose readout above. Stored as a public property so the
+            // home view can reuse the same copy on its disabled check-in
+            // panel without recomputing the format.
+            let formattedThreshold = glucoseUnit.formatted(criticalGlucoseThreshold)
+            criticalCannotDismissText = String(format: strings.criticalCannotDismiss, formattedThreshold)
+        } else {
+            criticalCannotDismissText = nil
+        }
+        var sections = [dataText]
+        if let criticalCannotDismissText {
             // Surface the "cannot dismiss" explanation first in the critical
             // state so the child reads it before the regular check-in copy.
-            // The threshold is formatted in the user's display unit to match
-            // the main glucose readout above.
-            let formattedThreshold = glucoseUnit.formatted(criticalGlucoseThreshold)
-            sections.append(String(format: strings.criticalCannotDismiss, formattedThreshold))
+            sections.append(criticalCannotDismissText)
         }
         if !allChecks.isEmpty {
             let checksBlock = strings.openAppTo + "\n" + allChecks.joined(separator: ", ")

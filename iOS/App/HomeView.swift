@@ -332,7 +332,25 @@ struct HomeView: View {
                 .padding(.horizontal, 32)
 
             if content.needsAttention && !content.attentionItems.isEmpty {
-                if shieldsArmed {
+                if content.isCriticalGlucose {
+                    // Critical glucose: the shield cannot be dismissed, so
+                    // don't offer the interactive check-in that pretends it
+                    // can. Show the read-only list plus the explanatory
+                    // text, matching the shield extension's non-dismissible
+                    // state. The hard gate also lives in
+                    // `ShieldManager.disarmShields()` — this branch is UX
+                    // polish, not the security boundary.
+                    VStack(spacing: 12) {
+                        AttentionListView(items: content.attentionItems)
+                        if let criticalText = content.criticalCannotDismissText {
+                            Text(criticalText)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
+                        }
+                    }
+                } else if shieldsArmed {
                     CheckInView(items: content.attentionItems) {
                         handleDisarm()
                     }
@@ -434,7 +452,12 @@ struct HomeView: View {
         #if targetEnvironment(simulator)
         withAnimation { mockDisarmed = true }
         #else
-        ShieldManager.shared.disarmShields()
+        // Respect the critical-glucose refusal from ShieldManager. Under
+        // normal UI flow we don't even reach here in the critical state
+        // (`CheckInView` is swapped out in `statusPanel`), but any future
+        // disarm path must still see the authoritative gate honoured.
+        let disarmed = ShieldManager.shared.disarmShields()
+        guard disarmed else { return }
         withAnimation { isDisarmed = true }
         #endif
     }
