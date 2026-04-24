@@ -313,6 +313,7 @@ Stored keys:
 | `checkInIntervalMinutes` | Int | Main app (hard-coded, default 30) | DeviceActivityMonitor |
 | `authorizationMember` | String ("child" or "individual") | Main app (setup) | Main app (re-auth on launch) |
 | `highGlucoseThreshold` | Double (mmol/L) or absent | Main app (settings / WatchConnectivity sync) | ShieldConfig, ShieldAction, WatchApp, WatchWidget |
+| `criticalGlucoseThreshold` | Double (mmol/L) or absent | Main app (settings / WatchConnectivity sync) | ShieldConfig, ShieldAction, WatchApp, WatchWidget |
 | `lowGlucoseThreshold` | Double (mmol/L) or absent | Main app (settings / WatchConnectivity sync) | ShieldConfig, ShieldAction, WatchApp, WatchWidget |
 | `glucoseStaleMinutes` | Int or absent | Main app (settings / WatchConnectivity sync) | ShieldConfig, WatchApp, WatchWidget |
 | `carbGraceHour` | Int or absent | Main app (settings / WatchConnectivity sync) | ShieldConfig, WatchApp, WatchWidget |
@@ -321,6 +322,8 @@ Stored keys:
 | `glucoseBadgeMode` | String ("off", "always", "onlyWhenAttention") or absent | Main app (settings) | Main app (badge update) |
 
 > **Settings override precedence:** Extensions read settings keys from App Group first; if absent (never changed), they fall back to `Info.plist` values (from xcconfig). The passphrase itself is NOT in the App Group — it's in the device Keychain.
+
+> **Validation contract (issue #84):** `criticalGlucoseThreshold > highGlucoseThreshold` is an invariant enforced **at write time** in the Settings UI via `SharedKit.SettingsValidation.validateCriticalAboveHigh`. If a user lowers the high threshold below the stored critical, or a stale value otherwise violates the invariant, the resolver **does not** silently re-clamp at read time — the Settings UI surfaces the validation error on the next save so the child / guardian is aware. `criticalGlucoseThreshold` also gates shield dismissal in `ShieldAction`: at or above critical, the shield button is labelled "treat first" and `handleAction` refuses to dismiss regardless of check-in state.
 
 > **Note:** HealthKit stores glucose in mg/dL internally. Convert to mmol/L (÷ 18.018) before writing to the App Group, since that's what's used in the Netherlands.
 
@@ -537,15 +540,24 @@ The shield check-in logic lives in the ShieldAction extension. Rules determine w
 ALWAYS required:
 - [ ] "I have checked my pump"
 
-IF currentGlucose > 14.0 mmol/L:
-- [ ] "My glucose is high. I have taken corrective action."
-- Shield CANNOT be dismissed (child must manage glucose first)
-  → OR: shield CAN be dismissed but re-arms after 10 minutes instead of 30
+IF currentGlucose >= criticalGlucoseThreshold (default 20.0 mmol/L):
+- Shield CANNOT be dismissed by any check-in path. The primary button is
+  labelled "Treat high glucose first" and `ShieldAction.handleAction`
+  refuses to dismiss regardless of acknowledgements. Re-arm interval is
+  irrelevant in this state (shield never disarmed).
+  Contract enforced in: `SharedKit.ShieldContent` (UI) + ShieldAction
+  extension (gate). See issue #84.
 
-IF currentGlucose < 4.0 mmol/L:
+ELSE IF currentGlucose > highGlucoseThreshold (default 14.0 mmol/L):
+- [ ] "My glucose is high. I have taken corrective action."
+- Shield CAN be dismissed after acknowledgement; re-arms after the
+  configured "needs attention" interval.
+
+IF currentGlucose < lowGlucoseThreshold (default 4.0 mmol/L):
 - [ ] "My glucose is low. I am treating it now."
-- Shield CANNOT be dismissed (child must treat low first)
-  → OR: shield CAN be dismissed but re-arms after 10 minutes instead of 30
+- Shield CAN be dismissed after acknowledgement; re-arms after the
+  configured "needs attention" interval. (Lows are time-sensitive in a
+  different way — there is no "critical low" counterpart in this app.)
 
 IF no carb entry in last 4 hours AND currentGlucose is in range:
 - [ ] "I have entered my recent carbs"
