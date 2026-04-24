@@ -66,6 +66,8 @@ The allowlist only fires when **Auto-Run** is on (Settings → Cursor Settings �
 
 **When the curated set changes** (someone adds an entry to `.cursor/permissions.example.json`), re-run `make cursor-perms-sync` after pulling. The sync target only adds entries — it never removes them — so a tightening change (entry deleted upstream) stays in your local file until you prune it by hand. That's deliberate: Cursor's `permissions.json` is global across all your projects, so we err on the side of not yanking entries another project of yours might rely on.
 
+**Agent-initiated changes:** when the agent itself edits `.cursor/permissions.example.json` in a session (e.g. as a follow-up after hitting a sandbox/allowlist wall), it **must** offer to run `make cursor-perms-sync` so the owner benefits in the same session — but **must not** run the sync silently. The owner stays the gatekeeper for which entries land in `~/.cursor/permissions.json`; the agent widens the committed curated set, the owner approves the merge into their personal file. Typical phrasing: *"I've added `<entries>` to `.cursor/permissions.example.json`. Want me to run `make cursor-perms-sync` now so they're live in this session?"* Same discipline if a committed allowlist change comes in via `git pull`.
+
 #### Cursor sandbox/network (`.cursor/sandbox.json`)
 
 Unlike `permissions.json`, **Cursor reads `.cursor/sandbox.json` directly from the repo** ([docs](https://cursor.com/docs/reference/sandbox.md)) — no manual install. The committed file is intentionally minimal:
