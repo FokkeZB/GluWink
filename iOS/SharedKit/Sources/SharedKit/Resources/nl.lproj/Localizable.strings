@@ -2,8 +2,7 @@
 "shield.closeButton" = "Sluit App";
 "shield.doneButton" = "Doorgaan";
 "shield.checkInButton" = "Ga ik doen";
-"shield.criticalCannotDismissButton" = "Behandel hoge glucose eerst";
-"shield.criticalCannotDismiss" = "Je glucose is kritiek hoog. Het schild kan pas weer weg als je glucose daalt.";
+"shield.criticalCannotDismiss %@" = "Je glucose is kritiek hoog. Het schild kan pas weer weg als je glucose onder %@ is.";
 
 /* Positive titles (no attention needed) */
 "shield.positiveTitle.0" = "Goed bezig!";

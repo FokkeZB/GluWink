@@ -2,8 +2,7 @@
 "shield.closeButton" = "Close App";
 "shield.doneButton" = "Continue";
 "shield.checkInButton" = "I will";
-"shield.criticalCannotDismissButton" = "Treat high glucose first";
-"shield.criticalCannotDismiss" = "Your glucose is critically high. The shield cannot be dismissed until your glucose comes down.";
+"shield.criticalCannotDismiss %@" = "Your glucose is critically high. The shield cannot be dismissed until your glucose is below %@.";
 
 /* Positive titles (no attention needed) */
 "shield.positiveTitle.0" = "Looking good!";

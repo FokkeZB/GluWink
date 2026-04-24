@@ -544,10 +544,13 @@ ALWAYS required:
 - [ ] "I have checked my pump"
 
 IF currentGlucose >= criticalGlucoseThreshold (default 20.0 mmol/L):
-- Shield CANNOT be dismissed by any check-in path. The primary button is
-  labelled "Treat high glucose first" and `ShieldAction.handleAction`
-  refuses to dismiss regardless of acknowledgements. Re-arm interval is
-  irrelevant in this state (shield never disarmed).
+- Shield CANNOT be dismissed by any check-in path. The primary button
+  re-uses the regular check-in label, but tapping it is a no-op: the
+  subtitle explains the condition ("The shield cannot be dismissed until
+  your glucose is below X", with X formatted in the user's display
+  unit), and `ShieldAction.handleAction` refuses to dismiss regardless
+  of acknowledgements. Re-arm interval is irrelevant in this state
+  (shield never disarmed).
   Contract enforced in: `SharedKit.ShieldContent` (UI) + ShieldAction
   extension (gate). See issue #84.
 

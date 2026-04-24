@@ -150,7 +150,10 @@ public struct ShieldContent: Sendable {
         if isCriticalGlucose {
             // Surface the "cannot dismiss" explanation first in the critical
             // state so the child reads it before the regular check-in copy.
-            sections.append(strings.criticalCannotDismiss)
+            // The threshold is formatted in the user's display unit to match
+            // the main glucose readout above.
+            let formattedThreshold = glucoseUnit.formatted(criticalGlucoseThreshold)
+            sections.append(String(format: strings.criticalCannotDismiss, formattedThreshold))
         }
         if !allChecks.isEmpty {
             let checksBlock = strings.openAppTo + "\n" + allChecks.joined(separator: ", ")
@@ -159,13 +162,12 @@ public struct ShieldContent: Sendable {
         let joined = sections.joined(separator: "\n\n")
         subtitle = "\n" + joined
 
-        if isCriticalGlucose {
-            // The ShieldConfiguration API has no "disabled" style, so the
-            // copy itself carries the affordance: "Treat high glucose" reads
-            // as an instruction, not an action. ShieldAction hard-rejects
-            // `.defer` for this state so the button can't dismiss either.
-            buttonLabel = strings.criticalCannotDismissButton
-        } else if needsAttention {
+        if needsAttention {
+            // Critical glucose reuses the regular check-in button label.
+            // The "cannot dismiss" affordance lives entirely in the subtitle
+            // copy (see `criticalCannotDismiss` above) and the hard gate in
+            // `ShieldAction.handleAction`, which rejects `.defer` in the
+            // critical state regardless of which button was tapped.
             buttonLabel = strings.checkInButton
         } else {
             buttonLabel = strings.doneButton
@@ -187,12 +189,11 @@ public extension ShieldContent {
         public let attentionTitles: [String]
         public let doneButton: String
         public let checkInButton: String
-        /// Shown as the shield primary-button label when glucose is critical.
-        /// Reads as an instruction ("Treat high glucose") rather than an
-        /// action, because the button cannot dismiss the shield.
-        public let criticalCannotDismissButton: String
         /// Shown near the top of the shield subtitle when glucose is critical,
-        /// explaining why the shield cannot be dismissed.
+        /// explaining why the shield cannot be dismissed. Format string with
+        /// one `%@` placeholder for the critical threshold value in the user's
+        /// display unit (no unit suffix — the shield already shows the unit
+        /// on the main readout).
         public let criticalCannotDismiss: String
         public let openAppTo: String
         public let glucose: String
@@ -228,8 +229,7 @@ public extension ShieldContent {
                 attentionTitles: loadList(bundle: bundle, prefix: "shield.attentionTitle"),
                 doneButton: bundle.localizedString(forKey: "shield.doneButton", value: "Done", table: nil),
                 checkInButton: bundle.localizedString(forKey: "shield.checkInButton", value: "I will", table: nil),
-                criticalCannotDismissButton: bundle.localizedString(forKey: "shield.criticalCannotDismissButton", value: "Treat high glucose first", table: nil),
-                criticalCannotDismiss: bundle.localizedString(forKey: "shield.criticalCannotDismiss", value: "Your glucose is critically high. The shield cannot be dismissed until your glucose comes down.", table: nil),
+                criticalCannotDismiss: bundle.localizedString(forKey: "shield.criticalCannotDismiss %@", value: "Your glucose is critically high. The shield cannot be dismissed until your glucose is below %@.", table: nil),
                 openAppTo: String(format: openFmt, appName),
                 glucose: bundle.localizedString(forKey: "shield.glucose %@ %@ %@", value: "%@ · %@ (%@ ago)", table: nil),
                 glucoseNoData: bundle.localizedString(forKey: "shield.glucoseNoData", value: "No glucose data available.", table: nil),
