@@ -71,7 +71,7 @@ final class SharedDataManager {
     /// Recompute the attention state and update the app icon badge.
     ///
     /// The home-screen icon itself never changes — it always uses `AppIcon`. The
-    /// red/green variants (`AppIcon-Red`, `AppIcon-Green`) are only used by
+    /// green/orange/red variants (`AppIcon-Green`, `AppIcon-Orange`, `AppIcon-Red`) are only used by
     /// surfaces we can pick at render time (shield UI, in-app screens, future
     /// notification attachments).
     @MainActor

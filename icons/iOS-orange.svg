@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#F5A623"/>
+  <radialGradient id="glow" cx="50%" cy="48%" r="40%">
+    <stop offset="0%" stop-color="#F7BC5A" stop-opacity="0.4"/>
+    <stop offset="100%" stop-color="#F5A623" stop-opacity="0"/>
+  </radialGradient>
+  <circle cx="512" cy="480" r="420" fill="url(#glow)"/>
+  <path d="M512 160 L720 260 L720 520 Q720 700 512 800 Q304 700 304 520 L304 260 Z" fill="#FDE8C4" stroke="#8C5A0A" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M512 200 L690 288 L690 510 Q690 672 512 762 Q334 672 334 510 L334 288 Z" fill="none" stroke="#FEF0D8" stroke-width="3" stroke-linejoin="round" opacity="0.6"/>
+  <!-- Glucose wave -->
+  <path d="M370 440 L415 390 L450 460 L490 360 L530 450 L570 380 L610 430 L655 440" fill="none" stroke="#8C5A0A" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M370 448 L415 398 L450 468 L490 368 L530 458 L570 388 L610 438 L655 448" fill="none" stroke="#6B4408" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.15"/>
+  <!-- Worried eyebrows -->
+  <path d="M405 520 Q440 505 470 524" fill="none" stroke="#8C5A0A" stroke-width="8" stroke-linecap="round"/>
+  <path d="M554 524 Q584 505 619 520" fill="none" stroke="#8C5A0A" stroke-width="8" stroke-linecap="round"/>
+  <!-- Eyes -->
+  <circle cx="440" cy="560" r="20" fill="#8C5A0A"/>
+  <circle cx="446" cy="554" r="6" fill="#FDE8C4" opacity="0.5"/>
+  <circle cx="584" cy="560" r="20" fill="#8C5A0A"/>
+  <circle cx="590" cy="554" r="6" fill="#FDE8C4" opacity="0.5"/>
+  <!-- Slight frown -->
+  <path d="M450 640 Q512 610 574 640" fill="none" stroke="#8C5A0A" stroke-width="14" stroke-linecap="round"/>
+  <!-- Cheek blush -->
+  <ellipse cx="400" cy="600" rx="28" ry="18" fill="#8C5A0A" opacity="0.15"/>
+  <ellipse cx="624" cy="600" rx="28" ry="18" fill="#8C5A0A" opacity="0.15"/>
+</svg>

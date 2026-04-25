@@ -207,6 +207,56 @@ public struct ShieldContent: Sendable {
     }
 }
 
+/// Three-way attention signal used by every surface that paints the
+/// app-icon variant or a status tint. Kept in SharedKit so the shield
+/// extension, main app, widgets, watch app and watch widget agree on the
+/// mapping without each call site re-deriving it from `needsAttention` +
+/// `isCriticalGlucose`.
+public enum AttentionLevel: Sendable {
+    /// All clear — green tint, `AppIcon-Green`.
+    case clear
+    /// Needs attention but not critical — orange tint, `AppIcon-Orange`.
+    /// Covers high glucose below critical, lows, stale sensor, carb gap,
+    /// no glucose data.
+    case attention
+    /// Critical glucose (≥ `criticalGlucoseThreshold`) — red tint,
+    /// `AppIcon-Red`. Shield cannot be dismissed in this state; see
+    /// `ShieldContent.isCriticalGlucose`.
+    case critical
+
+    /// Asset-catalog / bundle-resource name for this level. Matches the
+    /// `AppIcon-*` imagesets in the app + watch catalogs and the raw PNG
+    /// copies that extensions ship alongside their binary.
+    public var iconName: String {
+        switch self {
+        case .clear: return "AppIcon-Green"
+        case .attention: return "AppIcon-Orange"
+        case .critical: return "AppIcon-Red"
+        }
+    }
+}
+
+public extension ShieldContent {
+    /// Overall attention level for surfaces that paint one tint for the
+    /// whole content (shield UI, home icon, widget background).
+    var attentionLevel: AttentionLevel {
+        if isCriticalGlucose { return .critical }
+        if needsAttention { return .attention }
+        return .clear
+    }
+
+    /// Attention level for a single metric slot (e.g. the glucose-only
+    /// or carbs-only watch complication). Only glucose can be critical;
+    /// carbs max out at `.attention`.
+    func attentionLevel(forGlucose: Bool) -> AttentionLevel {
+        if forGlucose {
+            if isCriticalGlucose { return .critical }
+            return glucoseNeedsAttention ? .attention : .clear
+        }
+        return carbsNeedsAttention ? .attention : .clear
+    }
+}
+
 public extension ShieldContent {
     /// All localizable strings used by shield-derived surfaces.
     struct Strings: Sendable {

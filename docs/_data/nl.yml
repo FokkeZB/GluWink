@@ -21,7 +21,7 @@ hero:
   eyebrow: "Diabetes type 1, op elk scherm"
   title: "Van afleider naar bondgenoot."
   subtitle: "Maak van je iPhone en Apple Watch een hulpmiddel voor diabetes — niet een afleiding ervan."
-  body: "Glucose en koolhydraten overal — beginscherm, toegangsscherm, StandBy en elke Apple Watch-wijzerplaat. Een vriendelijk groen gezichtje als alles er goed uitziet, een rood gezichtje als iets je aandacht vraagt. Andere apps blijven op slot tot je dat diabetes-dingetje hebt gedaan."
+  body: "Glucose en koolhydraten overal — beginscherm, toegangsscherm, StandBy en elke Apple Watch-wijzerplaat. Groen als alles er goed uitziet, oranje als iets je aandacht vraagt, rood bij een kritieke hoge waarde — dan blijft het schild op slot tot je glucose daalt. Andere apps blijven geblokkeerd tot je dat diabetes-dingetje hebt gedaan."
   cta_primary_label_pre_launch: "Binnenkort in de App Store"
   cta_primary_label_post_launch: "Download in de App Store"
   cta_secondary_label: "Volg het project op GitHub"
@@ -34,9 +34,9 @@ three_things:
     - heading: "Glucose en koolhydraten overal zichtbaar."
       body: "Widgets in alle formaten voor het beginscherm, het toegangsscherm en StandBy. Complicaties op elke Apple Watch-wijzerplaat. Optioneel de glucosewaarde als badge op het app-icoon."
     - heading: "Status in één oogopslag."
-      body: "Een groen gezichtje betekent: alles ziet er goed uit. Een rood gezichtje betekent: er is iets dat aandacht vraagt — glucose te hoog of te laag, sensor verouderd, of koolhydraten van een maaltijd nog niet ingevoerd. Overal in de app, widgets en op de watch dezelfde eenvoudige taal."
+      body: "Een groen gezichtje betekent: alles ziet er goed uit. Oranje betekent: er is iets dat aandacht vraagt — glucose te hoog of te laag, sensor verouderd, of koolhydraten van een maaltijd nog niet ingevoerd. Rood is voorbehouden aan een kritieke hoge waarde: dan kan het schild niet weg tot je glucose weer daalt. Overal in de app, widgets en op de watch dezelfde eenvoudige taal."
     - heading: "Apps blokkeren is optioneel — jij bepaalt."
-      body: "Kies om andere apps op instelbare intervallen te blokkeren: altijd, of alleen als iets je aandacht vraagt. Als blokkeren aanstaat en het gezichtje rood is, houdt GluWink andere apps op slot totdat de check-in is gedaan. Bij groen is je telefoon gewoon je telefoon."
+      body: "Kies om andere apps op instelbare intervallen te blokkeren: altijd, of alleen als iets je aandacht vraagt. Bij oranje houdt GluWink andere apps op slot tot de check-in is gedaan. Bij rood is de check-in helemaal niet beschikbaar tot je glucose weer daalt. Bij groen is je telefoon gewoon je telefoon."
 
 audiences:
   title: "Voor twee doelgroepen."
@@ -73,7 +73,8 @@ screenshots:
   intro: "Direct uit de app — geen mockups."
   alt:
     green: "GluWink check-in-schild met groen gezichtje: glucose en koolhydraten in één blik."
-    red: "GluWink check-in-schild met rood gezichtje: actie nodig, volg de lijst, terug naar groen."
+    orange: "GluWink check-in-schild met oranje gezichtje: glucose hoog, volg de lijst, terug naar groen."
+    red: "GluWink check-in-schild met rood gezichtje: glucose kritiek hoog, het schild kan pas weer als de glucose daalt."
     widgets: "GluWink-widgets in drie formaten op het beginscherm van de iPhone."
     settings: "GluWink-instellingen: stel alerts in, kies een bron, regel het schild."
 
@@ -132,6 +133,8 @@ support_page:
       a: "De App Store-release is nog niet live. Tot die tijd kun je GluWink zelf bouwen vanuit de broncode — zie de README op GitHub voor de iOS-setup-walkthrough. We werken deze pagina (en de homepage) bij zodra de app in de App Store staat."
     - q: "Werkt het met mijn CGM?"
       a: "GluWink leest glucose- en koolhydratengegevens uit Apple Gezondheid. Als jouw CGM-app (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS en de meeste andere) naar Apple Gezondheid schrijft, ben je klaar. Alternatief: verbind een Nightscout-site — beide bronnen kunnen tegelijk aanstaan."
+    - q: "Wat is het verschil tussen het oranje en het rode gezichtje?"
+      a: "Oranje betekent \"er is iets dat aandacht vraagt\" — glucose te hoog of te laag, sensor verouderd, of koolhydraten nog niet ingevoerd. Je loopt het korte lijstje langs, alles gaat terug naar groen. Rood is voorbehouden aan een kritieke hoge waarde: glucose is boven een drempel uitgekomen die jij zelf instelt (de standaard zit ver in gevaarlijk gebied). Op dat moment verbergt GluWink de check-in-knop — het schild kan pas weer als de glucose onder die drempel zakt. Geen wachtwoord-override, geen disarm. Het is de enige plek in de app waar de wrijving bewust absoluut is."
     - q: "Waarom werkt het schild niet in de iOS Simulator?"
       a: "Apple's Screen Time en Family Controls API's werken alleen op een fysiek toestel. De Simulator kan de app draaien voor layout- en widget-previews, maar kan andere apps niet blokkeren."
     - q: "Hoe stel ik dit in voor mijn kind?"

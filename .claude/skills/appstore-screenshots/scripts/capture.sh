@@ -32,14 +32,18 @@ DEFAULT_DEVICE="iPhone 17 Pro Max"
 
 # Scene order matches AppStore/README.md → Screenshots. The numeric prefix
 # both orders the files for human review and matches the order the App Store
-# Connect listing shows them. Scene 05 (Apple Watch) isn't yet automated —
-# it needs the Watch simulator path.
+# Connect listing shows them. The first three scenes tell the traffic-light
+# story (green → orange → red / critical) so reviewers scrolling the deck
+# top-to-bottom get the three-way status model before anything else.
+# Scene 06 (Apple Watch) isn't yet automated — it needs the Watch simulator
+# path.
 declare -a IPHONE_SCENES=(
     "01:greenShield"
-    "02:redShield"
-    "03:widgets"
-    "04:settings"
-    "06:setupChecklist"
+    "02:orangeShield"
+    "03:redShield"
+    "04:widgets"
+    "05:settings"
+    "07:setupChecklist"
 )
 
 scene=""

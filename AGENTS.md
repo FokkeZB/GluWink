@@ -643,22 +643,36 @@ The iOS App ships **four icon variants** in `iOS/App/Assets.xcassets/`:
 | `AppIcon` | `.appiconset` | The home-screen / Settings / Spotlight icon. **Always shown.** Never swapped at runtime. |
 | `AppIcon-Blue` | `.imageset` | "No data yet" variant used by **in-app surfaces only** (e.g. `HomeView`'s status header before HealthKit has delivered). Matches the home-screen `AppIcon` artwork. Not shipped to the shield extension — see rule 2 below. |
 | `AppIcon-Green` | `.imageset` | "All clear" variant for surfaces we render ourselves. |
-| `AppIcon-Red` | `.imageset` | "Needs attention" variant for surfaces we render ourselves. |
+| `AppIcon-Orange` | `.imageset` | "Needs attention" variant for surfaces we render ourselves (high glucose below critical, low glucose, stale sensor, carb gap, no glucose data on a configured source). |
+| `AppIcon-Red` | `.imageset` | "Critical glucose" variant — reserved for `ShieldContent.isCriticalGlucose` (glucose ≥ `criticalGlucoseThreshold`, shield cannot be dismissed). |
 
 The Watch target follows the same convention in `iOS/WatchApp/Assets.xcassets/`.
 
-**Rule:** Blue is the *welcome* variant — shown only when no data source has been configured yet (see `HomeView.showsWelcome`). Once the user has opted in to a source, in-app surfaces commit to red/green: missing or stale data with a configured source is a `needsAttention` (red) state, not a neutral one. The shield UI never reaches a no-data state because shielding can only be enabled once a data source is configured (see `ShieldManager.disableIfNoDataSource()`).
+**Rule:** Blue is the *welcome* variant — shown only when no data source has been configured yet (see `HomeView.showsWelcome`). Once the user has opted in to a source, in-app surfaces commit to the three-way red/orange/green signal: critical glucose → red, any other `needsAttention` state (including missing or stale data on a configured source) → orange, otherwise → green. The shield UI never reaches a no-data state because shielding can only be enabled once a data source is configured (see `ShieldManager.disableIfNoDataSource()`).
+
+The three-way mapping is encapsulated in `SharedKit.AttentionLevel` + `ShieldContent.attentionLevel`. Surfaces that paint an icon or tint should derive from that, not re-implement the `isCriticalGlucose ? … : needsAttention ? … : …` ladder.
+
+**Brand palette** (defined in `SharedKit/AttentionLevelTint.swift` as `BrandTint`; keep hex and purpose in sync if the palette ever changes):
+
+| Hex       | `BrandTint`        | Role                         | `AttentionLevel` case |
+|-----------|--------------------|------------------------------|-----------------------|
+| `#34A853` | `.green` / `.uiGreen` | All clear                 | `.clear`              |
+| `#F5A623` | `.orange` / `.uiOrange` | Needs attention         | `.attention`          |
+| `#D93025` | `.red` / `.uiRed`  | Critical glucose (no-disarm) | `.critical`           |
+| `#4285F4` | `.blue` / `.uiBlue` | Welcome / no data source yet | n/a — HomeView welcome panel only, not part of `AttentionLevel` |
+
+**Rule:** Never inline `.red` / `.green` / `.orange` / `.blue` (or `.systemRed`, `.systemGreen`, etc.) in attention-related UI — always reach for `BrandTint.*`, or better, `AttentionLevel.tint` / `.uiTint` when you already have a level on hand. The system colors drift noticeably from the icon artwork's hex values on some renderers (the iOS simulator in particular). `CheckInView`, `SettingsView`'s validation / test-result rows, `PassphrasePromptView`'s error label, and the `ScreenshotHarness` caption banner all funnel through `BrandTint` for exactly this reason.
 
 ### Rules
 
 1. **Do NOT call `UIApplication.shared.setAlternateIconName(...)`.** We deliberately do not provide alternate `.appiconset`s and do not swap the home-screen icon — it's unreliable, racy with extensions, and confuses users. The home-screen signal is the badge (see `SharedDataManager.refreshAttentionBadge()`).
-2. **Use `AppIcon-Blue` / `AppIcon-Red` / `AppIcon-Green` for any surface where we control the rendering at attention-evaluation time.** Selection logic depends on the surface:
-   - **In-app surfaces** (e.g. `HomeView`): welcome state (no source configured) → blue; else `needsAttention` → red; else green. Note: `ShieldContent.hasNoData` exists as a descriptive flag but is NOT the trigger — a configured source with missing data is red, not blue.
-   - **Shield UI** (`ShieldConfigurationExtension`): only red / green. Shielding is gated on having a data source, so the no-data state cannot occur; if the configured source has stopped delivering, that's a `needsAttention` case (red).
+2. **Use `AppIcon-Blue` / `AppIcon-Green` / `AppIcon-Orange` / `AppIcon-Red` for any surface where we control the rendering at attention-evaluation time.** Selection logic depends on the surface:
+   - **In-app surfaces** (e.g. `HomeView`): welcome state (no source configured) → blue; else pick via `ShieldContent.attentionLevel.iconName` (critical → red, attention → orange, clear → green). `ShieldContent.hasNoData` exists as a descriptive flag but is NOT the trigger — a configured source with missing data is `attention` (orange), not blue.
+   - **Shield UI** (`ShieldConfigurationExtension`): green / orange / red — no blue. Shielding is gated on having a data source, so the no-data state cannot occur; if the configured source has stopped delivering, that's an `attention` case (orange). Only `isCriticalGlucose` reaches red.
    - Other examples that follow the in-app rule: future notification attachments / rich content, future widgets that want to show the brand mark with attention state.
-3. **In SwiftUI inside the App target:** `Image("AppIcon-Blue")` / `Image("AppIcon-Red")` / `Image("AppIcon-Green")` works because all three are `.imageset`s in the App's asset catalog.
-4. **In the ShieldConfig extension** (and any other extension that needs the variants): the App's asset catalog is **not** in the extension's bundle. Each extension that needs the artwork must ship its own copies. ShieldConfig keeps `iOS/ShieldConfig/AppIcon-Red.png` and `iOS/ShieldConfig/AppIcon-Green.png` as raw bundle resources and loads them with `UIImage(contentsOfFile: Bundle.main.path(forResource: "AppIcon-Red", ofType: "png"))`. There is intentionally no blue PNG in the extension. When adding the variants to a new extension, copy the PNGs into that target's folder; this project uses file-system synchronized groups so Xcode will pick them up automatically.
-5. **Keep the artworks in sync.** When the icon is redesigned, update: `AppIcon.appiconset`, `AppIcon-Blue.imageset`, `AppIcon-Red.imageset`, `AppIcon-Green.imageset` (in both the App and Watch catalogs where they exist), and the raw PNG copies inside any extension folder. The `icons/` folder at the repo root holds the master SVGs (`iOS.svg`, `iOS-green.svg`, `iOS-red.svg`, and their `watchOS.svg` counterparts; the blue `.imageset`s reuse `iOS.png` / `watchOS.png`).
+3. **In SwiftUI inside the App target:** `Image("AppIcon-Blue")` / `Image("AppIcon-Green")` / `Image("AppIcon-Orange")` / `Image("AppIcon-Red")` works because all four are `.imageset`s in the App's asset catalog. Prefer `Image(content.attentionLevel.iconName)` over a manual ternary so all callers agree on the mapping.
+4. **In the ShieldConfig extension** (and any other extension that needs the variants): the App's asset catalog is **not** in the extension's bundle. Each extension that needs the artwork must ship its own copies. ShieldConfig keeps `iOS/ShieldConfig/AppIcon-Green.png`, `iOS/ShieldConfig/AppIcon-Orange.png`, and `iOS/ShieldConfig/AppIcon-Red.png` as raw bundle resources and loads them with `UIImage(contentsOfFile: Bundle.main.path(forResource: "AppIcon-Orange", ofType: "png"))`. There is intentionally no blue PNG in the extension. When adding the variants to a new extension, copy the PNGs into that target's folder; this project uses file-system synchronized groups so Xcode will pick them up automatically.
+5. **Keep the artworks in sync.** When the icon is redesigned, update: `AppIcon.appiconset`, `AppIcon-Blue.imageset`, `AppIcon-Green.imageset`, `AppIcon-Orange.imageset`, `AppIcon-Red.imageset` (in both the App and Watch catalogs where they exist), and the raw PNG copies inside any extension folder. The `icons/` folder at the repo root holds the master SVGs (`iOS.svg`, `iOS-green.svg`, `iOS-orange.svg`, `iOS-red.svg`, and their `watchOS.svg` counterparts; the blue `.imageset`s reuse `iOS.png` / `watchOS.png`).
 
 ## Data Source State
 
@@ -725,7 +739,7 @@ The app's marketing message lives in **three surfaces** that must stay aligned. 
 |---------|-------|------------------|
 | In-app home (welcome panel) | `iOS/App/en.lproj/Localizable.strings`, `iOS/App/nl.lproj/Localizable.strings` (`home.welcome.tagline %@`) | One-sentence tagline shown on first launch / empty state |
 | App Store listing | `AppStore/en-US.md`, `AppStore/nl-NL.md` | Subtitle, keywords, **promotional text** (170-char), **description** (4000-char) |
-| Marketing site | *(future — likely under `Site/` or `docs/` once the GitHub Pages site exists)* | Hero copy, features section, FAQ — should mirror the App Store description |
+| Marketing site | `docs/_data/en.yml`, `docs/_data/nl.yml` (+ Jekyll templates under `docs/`) | Hero copy, features section ("three things"), FAQ — should mirror the App Store description |
 
 **Workflow when copy changes:**
 
@@ -751,7 +765,11 @@ Setup (one-time) and field mapping live in **`AppStore/README.md` → "Pushing t
 - App name: **GluWink** (never "GluCoach", "Glucoach", etc.).
 - We call ourselves a **tool / hulpmiddel** — not "ally", "buddy", "coach".
 - Attention framing: "**when something needs your attention** / **als iets je aandacht vraagt**" (deliberately not "when diabetes needs..." — the trigger is broader than just glucose).
-- The two states use the same words everywhere: green = "**all clear** / **alles ziet er goed uit**"; red = "**needs attention** / **vraagt aandacht**".
+- The status signal is **three colors**, always listed in this order (green → orange → red) so readers learn it as a progression, not a pair:
+  - green = "**all clear** / **alles ziet er goed uit**"
+  - orange = "**needs attention** / **vraagt aandacht**" (this is the *everyday* attention state — high glucose below critical, low glucose, stale sensor, carb gap, missing data)
+  - red = "**critical high** / **kritiek hoog**" — reserved for glucose at or above the user-configured critical threshold. Whenever red is mentioned in marketing copy, pair it with the **no-disarm contract**: the shield "**cannot be dismissed until glucose drops** / **blijft tot glucose daalt**" (or "**is off the table** / **is niet beschikbaar**" when talking about the check-in). Don't say "red = emergency" — we are not a medical device and the threshold is user-set, not clinically defined.
+- Never use "red" to mean generic "needs attention" in copy — that's orange's job. Red is always about the critical level and its stricter rules (no disarm, no passphrase override, check-in button hidden).
 
 ## Renaming the App
 

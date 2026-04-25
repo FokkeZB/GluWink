@@ -33,8 +33,8 @@ struct AccessoryCircularView: View {
     let entry: StatusEntry
     private var c: ShieldContent { entry.content }
 
-    private var needsAttention: Bool {
-        entry.metric == .glucose ? c.glucoseNeedsAttention : c.carbsNeedsAttention
+    private var level: AttentionLevel {
+        c.attentionLevel(forGlucose: entry.metric == .glucose)
     }
 
     var body: some View {
@@ -49,7 +49,7 @@ struct AccessoryCircularView: View {
                     .font(.system(.caption2, design: .rounded))
             }
             .multilineTextAlignment(.center)
-            .foregroundStyle(needsAttention ? .red : .green)
+            .foregroundStyle(level.tint)
         }
         .containerBackground(.clear, for: .widget)
     }
@@ -137,7 +137,7 @@ struct SmallWidgetView: View {
             carbDate: entry.carbDate
         ))
         .containerBackground(for: .widget) {
-            entry.content.needsAttention ? Color.red : Color.green
+            entry.content.attentionLevel.tint
         }
     }
 }
@@ -152,7 +152,7 @@ struct MediumWidgetView: View {
             carbDate: entry.carbDate
         ))
         .containerBackground(for: .widget) {
-            entry.content.needsAttention ? Color.red : Color.green
+            entry.content.attentionLevel.tint
         }
     }
 }
@@ -167,7 +167,7 @@ struct LargeWidgetView: View {
             carbDate: entry.carbDate
         ))
         .containerBackground(for: .widget) {
-            entry.content.needsAttention ? Color.red : Color.green
+            entry.content.attentionLevel.tint
         }
     }
 }

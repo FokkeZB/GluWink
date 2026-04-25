@@ -1,93 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <!-- Background -->
-  <rect width="1024" height="1024" rx="0" fill="#D93025"/>
-  
-  <!-- Subtle radial glow behind shield -->
+  <rect width="1024" height="1024" fill="#D93025"/>
   <radialGradient id="glow" cx="50%" cy="48%" r="40%">
     <stop offset="0%" stop-color="#EF5350" stop-opacity="0.4"/>
     <stop offset="100%" stop-color="#D93025" stop-opacity="0"/>
   </radialGradient>
   <circle cx="512" cy="480" r="420" fill="url(#glow)"/>
-  
-  <!-- Shield shape -->
-  <path d="M512 160 
-           L720 260 
-           L720 520 
-           Q720 700 512 800 
-           Q304 700 304 520 
-           L304 260 
-           Z" 
-        fill="#FCCEC8" 
-        stroke="#8B1A12" 
-        stroke-width="8"
-        stroke-linejoin="round"/>
-  
-  <!-- Inner shield highlight -->
-  <path d="M512 200 
-           L690 288 
-           L690 510 
-           Q690 672 512 762 
-           Q334 672 334 510 
-           L334 288 
-           Z" 
-        fill="none" 
-        stroke="#F5DBD8" 
-        stroke-width="3"
-        stroke-linejoin="round"
-        opacity="0.6"/>
-  
-  <!-- Glucose wave line - spiky/high -->
-  <path d="M370 460 
-           L415 380 
-           L450 470 
-           L490 340 
-           L530 460 
-           L570 360 
-           L610 440 
-           L655 350" 
-        fill="none" 
-        stroke="#8B1A12" 
-        stroke-width="18" 
-        stroke-linecap="round" 
-        stroke-linejoin="round"/>
-  
-  <!-- Shadow under wave -->
-  <path d="M370 468 
-           L415 388 
-           L450 478 
-           L490 348 
-           L530 468 
-           L570 368 
-           L610 448 
-           L655 358" 
-        fill="none" 
-        stroke="#6B110A" 
-        stroke-width="18" 
-        stroke-linecap="round" 
-        stroke-linejoin="round"
-        opacity="0.15"/>
-  
-  <!-- Left eye - worried/sad -->
-  <circle cx="440" cy="555" r="20" fill="#8B1A12"/>
-  <circle cx="446" cy="549" r="6" fill="#FCCEC8" opacity="0.5"/>
-  <!-- Left eyebrow - worried angle -->
-  <path d="M415 528 Q440 518 460 530" fill="none" stroke="#8B1A12" stroke-width="8" stroke-linecap="round"/>
-  
-  <!-- Right eye - worried/sad -->
-  <circle cx="584" cy="555" r="20" fill="#8B1A12"/>
-  <circle cx="590" cy="549" r="6" fill="#FCCEC8" opacity="0.5"/>
-  <!-- Right eyebrow - worried angle -->
-  <path d="M564 530 Q584 518 609 528" fill="none" stroke="#8B1A12" stroke-width="8" stroke-linecap="round"/>
-  
-  <!-- Frown -->
-  <path d="M450 640 
-           Q512 600 574 640" 
-        fill="none" 
-        stroke="#8B1A12" 
-        stroke-width="14" 
-        stroke-linecap="round"/>
-  
+  <path d="M512 160 L720 260 L720 520 Q720 700 512 800 Q304 700 304 520 L304 260 Z" fill="#FCCEC8" stroke="#8B1A12" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M512 200 L690 288 L690 510 Q690 672 512 762 Q334 672 334 510 L334 288 Z" fill="none" stroke="#F5DBD8" stroke-width="3" stroke-linejoin="round" opacity="0.6"/>
+  <!-- Spiky high glucose wave -->
+  <path d="M370 460 L415 370 L450 470 L490 330 L530 460 L570 350 L610 440 L655 340" fill="none" stroke="#8B1A12" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M370 468 L415 378 L450 478 L490 338 L530 468 L570 358 L610 448 L655 348" fill="none" stroke="#6B110A" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.15"/>
+  <!-- Alarmed steep eyebrows -->
+  <path d="M400 515 Q435 495 468 520" fill="none" stroke="#8B1A12" stroke-width="9" stroke-linecap="round"/>
+  <path d="M556 520 Q589 495 624 515" fill="none" stroke="#8B1A12" stroke-width="9" stroke-linecap="round"/>
+  <!-- Wide alarmed eyes -->
+  <circle cx="440" cy="558" r="24" fill="#8B1A12"/>
+  <circle cx="448" cy="550" r="7" fill="#FCCEC8" opacity="0.5"/>
+  <circle cx="584" cy="558" r="24" fill="#8B1A12"/>
+  <circle cx="592" cy="550" r="7" fill="#FCCEC8" opacity="0.5"/>
+  <!-- Open mouth - alarm O -->
+  <ellipse cx="512" cy="640" rx="30" ry="36" fill="#8B1A12"/>
+  <ellipse cx="512" cy="640" rx="18" ry="24" fill="#FCCEC8" opacity="0.35"/>
   <!-- Cheek blush -->
-  <ellipse cx="400" cy="595" rx="28" ry="18" fill="#8B1A12" opacity="0.15"/>
-  <ellipse cx="624" cy="595" rx="28" ry="18" fill="#8B1A12" opacity="0.15"/>
+  <ellipse cx="396" cy="598" rx="28" ry="18" fill="#8B1A12" opacity="0.15"/>
+  <ellipse cx="628" cy="598" rx="28" ry="18" fill="#8B1A12" opacity="0.15"/>
 </svg>

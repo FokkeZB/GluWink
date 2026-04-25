@@ -38,9 +38,9 @@ GluWink doet drie dingen, en niets meer:
 
 1. Glucose en koolhydraten overal zichtbaar. Widgets voor beginscherm, toegangsscherm en StandBy in alle formaten. Complicaties op elke Apple Watch-wijzerplaat. Optioneel de glucosewaarde als badge op het app-icoon.
 
-2. Status in één oogopslag. Een groen gezichtje betekent: alles ziet er goed uit. Een rood gezichtje betekent: er is iets dat aandacht vraagt — glucose te hoog of te laag, sensor verouderd, of koolhydraten van een maaltijd nog niet ingevoerd. Overal in de app, widgets en op de watch dezelfde eenvoudige taal.
+2. Status in één oogopslag. Groen = alles ziet er goed uit. Oranje = er is iets dat aandacht vraagt: glucose te hoog of te laag, sensor verouderd, of koolhydraten nog niet ingevoerd. Rood is voorbehouden aan een kritieke hoge waarde: glucose is boven de door jou ingestelde drempel uitgekomen en het schild kan pas weer als die waarde daalt. Overal dezelfde taal in drie kleuren.
 
-3. Apps blokkeren is optioneel — jij bepaalt. Kies om andere apps op instelbare intervallen te blokkeren: altijd, of alleen als iets je aandacht vraagt. Als blokkeren aanstaat en het gezichtje rood is, houdt GluWink andere apps op slot totdat de check-in is gedaan. Bij groen — of als je blokkeren helemaal uitzet — is je telefoon gewoon je telefoon.
+3. Apps blokkeren is optioneel — jij bepaalt. Kies om andere apps op instelbare intervallen te blokkeren: altijd, of alleen als iets je aandacht vraagt. Bij oranje houdt GluWink andere apps op slot tot de check-in is gedaan. Bij rood is de check-in niet beschikbaar tot de glucose weer zakt — geen wachtwoord-override, geen disarm. Bij groen is je telefoon gewoon je telefoon.
 
 — Voor twee doelgroepen —
 
@@ -67,7 +67,8 @@ Eerst even proberen? In de demo-modus zie je realistische glucose- en koolhydrat
 — Wat je krijgt —
 
 • Vriendelijk check-in-schild met actiepunten op basis van de huidige glucose en laatste koolhydraten.
-• Widgets voor het beginscherm, het toegangsscherm en StandBy in alle formaten, met rode / groene aandachtskleur.
+• Drie-kleuren-signaal: groen (alles oké), oranje (check-in nodig), rood (kritiek hoog — schild blijft tot glucose daalt). Drempels stel je zelf in.
+• Widgets voor beginscherm, toegangsscherm en StandBy in alle formaten, met dezelfde drie aandachtskleuren.
 • Apple Watch-app en complicaties — glucose en koolhydraten op elke wijzerplaat.
 • Optionele glucosewaarde als badge op het app-icoon.
 • Instelbare drempels, intervallen en een dagelijkse koolhydraten-coulance (zodat ontbijtgranen om 7 uur 's ochtends geen alarm worden).
@@ -85,7 +86,7 @@ GluWink is open source. Je gegevens blijven op je toestel (via HealthKit) of op 
 
 Diabetes type 1 stopt nooit. Je telefoon hoeft daar niet aan mee te doen.
 ```
-*(~3,200 / 4000)*
+*(~3,950 / 4000 — tight; trim iets voordat je nieuw feature-bullet toevoegt)*
 
 ## Keywords (100)
 
@@ -109,7 +110,7 @@ Dit is de eerste publieke release van GluWink. Probeer je het op de telefoon van
 
 Hoogtepunten in 1.0:
 • Apple Gezondheid en Nightscout als gegevensbron, met optionele demo-modus.
-• Vriendelijk check-in-schild met rode / groene status.
+• Vriendelijk check-in-schild met status in drie kleuren — groen, oranje en rood bij een kritieke hoge waarde.
 • Widgets voor beginscherm, toegangsscherm en StandBy.
 • Apple Watch-app en complicaties.
 • Wachtwoord-beveiligde instellingen voor ouders en accountability-partners.
@@ -127,10 +128,11 @@ Scènevolgorde komt overeen met de tabel in `README.md` → Screenshots.
 |---|---|
 | 1 | Goed bezig. Glucose en koolhydraten in één blik. |
 | 2 | Actie nodig? Volg de lijst, terug naar groen. |
-| 3 | Glucose en koolhydraten op elk scherm. |
-| 4 | Stel alerts in, kies een bron, regel het schild — jouw keuze. |
-| 5 | Glucose en koolhydraten op elke wijzerplaat. |
-| 6 | Apple Gezondheid, Nightscout of demo — kies één. |
+| 3 | Kritiek hoog. Het schild blijft tot glucose daalt. |
+| 4 | Glucose en koolhydraten op elk scherm. |
+| 5 | Stel alerts in, kies een bron, regel het schild — jouw keuze. |
+| 6 | Glucose en koolhydraten op elke wijzerplaat. |
+| 7 | Apple Gezondheid, Nightscout of demo — kies één. |
 
 ### Apple Watch (45mm)
 

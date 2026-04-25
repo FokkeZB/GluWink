@@ -81,11 +81,12 @@ Deliver every locale in the **same order** so screenshot #1 is always the same c
 | # | Concept |
 |---|---|
 | 1 | **Green shield** — friendly face, "Looking good!", glucose + carbs visible, single Continue button. |
-| 2 | **Red shield** — red face, "Heads up!", glucose high, action checks visible. |
-| 3 | **Home Screen widgets** — small + medium + large in a stack, mix of green and red. |
-| 4 | **Settings** — parent / main-app chrome: Attention Rules, Shielding On, data sources, glucose unit. |
-| 5 | **Apple Watch + complications** — watch face with glucose + carbs complications, plus the Watch app. |
-| 6 | **Setup checklist** — Apple Health + Nightscout + demo data choices. |
+| 2 | **Orange shield** — orange face, glucose high but non-critical, check-in list visible and dismissible. |
+| 3 | **Red shield (critical)** — red face, glucose at/above the critical threshold, check-in button hidden and the "shield cannot be dismissed until glucose drops below X" subtitle on-screen. Sells the no-disarm contract. |
+| 4 | **Home Screen widgets** — small + medium + large in a stack, mix of green and orange. |
+| 5 | **Settings** — parent / main-app chrome: Attention Rules, Shielding On, data sources, glucose unit. |
+| 6 | **Apple Watch + complications** — watch face with glucose + carbs complications, plus the Watch app. |
+| 7 | **Setup checklist** — Apple Health + Nightscout + demo data choices. |
 
 ### Apple Watch scenes (45mm)
 
@@ -96,11 +97,11 @@ Deliver every locale in the **same order** so screenshot #1 is always the same c
 
 ### Captions
 
-Captions for each scene live in the per-locale file under **Screenshot captions**. They are the single source of truth: `.claude/skills/appstore-screenshots/scripts/capture.sh` parses the "iPhone" table out of `<locale>.md` and passes the matching caption to the app via `-UITest_Caption`, where `CaptionBanner.swift` renders it as a colored banner at the bottom of the shot (green / red for shield scenes, charcoal otherwise). Apple removed the standalone "caption" field from listings years ago, so there is no separate App Store Connect field to fill in.
+Captions for each scene live in the per-locale file under **Screenshot captions**. They are the single source of truth: `.claude/skills/appstore-screenshots/scripts/capture.sh` parses the "iPhone" table out of `<locale>.md` and passes the matching caption to the app via `-UITest_Caption`, where `CaptionBanner.swift` renders it as a colored banner at the bottom of the shot (green / brand orange / red for the three shield scenes, charcoal otherwise). Apple removed the standalone "caption" field from listings years ago, so there is no separate App Store Connect field to fill in.
 
 ### Production checklist
 
-- [ ] Run `make appstore-screenshots` to render the iPhone deck (scenes 1–4, 6) from the Simulator — the in-app `ScreenshotHarness` renders marketing-equivalent shield, widget, and settings scenes without needing the live Screen Time UI, and bakes the per-locale caption straight into the PNG. Scene 5 (Apple Watch) is still manual until the Watch path is wired. See `.claude/skills/appstore-screenshots/SKILL.md` for scene-level flags and locale filters.
+- [ ] Run `make appstore-screenshots` to render the iPhone deck (scenes 1–5, 7) from the Simulator — the in-app `ScreenshotHarness` renders marketing-equivalent shield, widget, and settings scenes without needing the live Screen Time UI, and bakes the per-locale caption straight into the PNG. Scene 6 (Apple Watch) is still manual until the Watch path is wired. See `.claude/skills/appstore-screenshots/SKILL.md` for scene-level flags and locale filters.
 - [ ] Status bar is locked to 9:41, full signal, full battery by the capture script — no extra `xcrun simctl status_bar` commands needed.
 - [ ] Avoid real names, school logos, or other identifying information in widget previews.
 - [ ] Keep the green/red faces consistent with the app icon variants in `iOS/App/Assets.xcassets/`.

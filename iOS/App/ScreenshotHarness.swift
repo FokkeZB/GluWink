@@ -23,14 +23,21 @@ enum ScreenshotHarness {
     enum Scene: String {
         /// All-clear state: friendly face, "Looking good!", glucose + carbs visible.
         case greenShield
-        /// Needs-attention state: red face, check-in items visible.
+        /// Needs-attention state (orange, non-critical): glucose just above
+        /// the high threshold, check-in items visible, shield dismissible.
+        case orangeShield
+        /// Critical state (red): glucose at/above the critical threshold, the
+        /// shield explicitly *cannot* be dismissed — subtitle surfaces the
+        /// "cannot dismiss until glucose is below X" copy, button is
+        /// non-actionable. Sells the "there's a separate, stricter level"
+        /// half of the three-way traffic light.
         case redShield
         /// Home Screen widgets stack. `ContentView` swaps `HomeView` out for
         /// `WidgetShowcaseView` when this is active.
         case widgets
         /// Top-level Settings list — rendered via `ContentView` as the root
         /// `SettingsView` for the "The parent view: status, settings, peace
-        /// of mind" caption (scene 4 in `AppStore/README.md`).
+        /// of mind" caption.
         case settings
         /// Apple Watch scene (driven via App Group seed + the watch simulator).
         case watch
@@ -109,14 +116,21 @@ extension ScreenshotHarness.Scene {
     }
 
     /// Background color for the marketing caption banner overlaid on this
-    /// scene's screenshot. Shield scenes inherit the shield's own color so
+    /// scene's screenshot. Shield scenes inherit the shield's own tint so
     /// the banner reinforces the traffic-light metaphor; everything else
     /// uses a neutral dark charcoal that reads as "marketing chrome"
     /// rather than app UI.
+    ///
+    /// All three shield banners pull from `BrandTint` so the banner, the
+    /// shield background, the icon tint, and any widget chrome in the
+    /// same shot render the exact same shade (the icons are fixed hex,
+    /// so the banner has to be too — SwiftUI's `.green` / `.red` would
+    /// drift visibly on some renderers).
     var captionBannerColor: Color {
         switch self {
-        case .greenShield: return .green
-        case .redShield: return .red
+        case .greenShield: return BrandTint.green
+        case .orangeShield: return BrandTint.orange
+        case .redShield: return BrandTint.red
         case .widgets, .settings, .watch, .setupChecklist:
             return Color(red: 0.11, green: 0.12, blue: 0.14)
         }
@@ -128,7 +142,7 @@ extension ScreenshotHarness.Scene {
     /// which exists specifically to feature the card.
     var hidesSetupChecklist: Bool {
         switch self {
-        case .greenShield, .redShield, .settings, .widgets, .watch: return true
+        case .greenShield, .orangeShield, .redShield, .settings, .widgets, .watch: return true
         case .setupChecklist: return false
         }
     }
@@ -148,7 +162,11 @@ extension ScreenshotHarness.Scene {
                 forceWelcome: false,
                 checkInPreCheckedCount: 0
             )
-        case .redShield:
+        case .orangeShield:
+            // High-but-not-critical: 14.8 mmol/L sits above the default
+            // `HighGlucoseThreshold` (14.0) but well below
+            // `CriticalGlucoseThreshold` (20.0), so `ShieldContent` resolves
+            // to the orange attention level and the check-in is dismissible.
             return HomeViewPreset(
                 glucose: 14.8,
                 glucoseMinutesAgo: 2,
@@ -160,6 +178,26 @@ extension ScreenshotHarness.Scene {
                 disarmed: false,
                 forceWelcome: false,
                 checkInPreCheckedCount: 1
+            )
+        case .redShield:
+            // Critical: 21.2 mmol/L is above `CriticalGlucoseThreshold`
+            // (20.0 default), which flips `isCriticalGlucose` true. The
+            // home view hides the interactive check-in and shows the
+            // "shield cannot be dismissed until glucose is below X"
+            // subtitle — the marketing-visible proof of the no-disarm
+            // contract (see issue #84). `checkInPreCheckedCount = 0`
+            // because there's no interactive flow to pre-tick in critical.
+            return HomeViewPreset(
+                glucose: 21.2,
+                glucoseMinutesAgo: 2,
+                carbGrams: 30,
+                carbMinutesAgo: 15,
+                hasGlucoseData: true,
+                hasCarbData: true,
+                shieldingEnabled: true,
+                disarmed: false,
+                forceWelcome: false,
+                checkInPreCheckedCount: 0
             )
         case .setupChecklist:
             return HomeViewPreset(

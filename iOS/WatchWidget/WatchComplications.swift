@@ -48,13 +48,8 @@ private func metricUnit(_ entry: WatchEntry) -> String {
     }
 }
 
-private func metricNeedsAttention(_ entry: WatchEntry) -> Bool {
-    switch entry.metric {
-    case .glucose:
-        return entry.content.glucoseNeedsAttention
-    case .carbs:
-        return entry.content.carbsNeedsAttention
-    }
+private func metricAttentionLevel(_ entry: WatchEntry) -> AttentionLevel {
+    entry.content.attentionLevel(forGlucose: entry.metric == .glucose)
 }
 
 private func relativeAgoText(from date: Date?, hasData: Bool) -> Text {
@@ -132,7 +127,7 @@ struct WatchRectangularEntryView: View {
             }
         }
         .containerBackground(for: .widget) {
-            content.needsAttention ? Color.red : Color.green
+            content.attentionLevel.tint
         }
     }
 }
@@ -143,7 +138,7 @@ struct WatchAccessoryCircularView: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(metricNeedsAttention(entry) ? Color.red : Color.green)
+                .fill(metricAttentionLevel(entry).tint)
             VStack(spacing: -3) {
                 Text(metricValue(entry))
                     .font(.system(.title3, design: .rounded).bold())
@@ -163,7 +158,7 @@ struct WatchAccessoryCornerView: View {
     let entry: WatchEntry
 
     private var statusColor: Color {
-        metricNeedsAttention(entry) ? .red : .green
+        metricAttentionLevel(entry).tint
     }
 
     var body: some View {

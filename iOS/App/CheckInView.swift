@@ -1,3 +1,4 @@
+import SharedKit
 import SwiftUI
 
 /// Interactive check-in flow shown when attention is needed.
@@ -57,7 +58,7 @@ struct CheckInView: View {
                     .padding(.vertical, 12)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(.green)
+                .tint(BrandTint.green)
                 .disabled(!disarmReady)
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
@@ -106,7 +107,7 @@ struct CheckInView: View {
                     ? "checkmark.circle.fill"
                     : (isUnlocked ? "circle" : "circle.dashed"))
                     .font(.title2)
-                    .foregroundColor(isChecked ? .green : (isUnlocked ? .primary : Color(.tertiaryLabel)))
+                    .foregroundColor(isChecked ? BrandTint.green : (isUnlocked ? .primary : Color(.tertiaryLabel)))
                     .symbolEffect(.bounce, value: isUnlocked)
 
                 Text(text)
@@ -139,7 +140,7 @@ struct CheckInAcknowledgedView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(BrandTint.green)
                     Text(item)
                         .font(.body)
                         .foregroundStyle(.secondary)
@@ -169,7 +170,7 @@ struct AttentionListView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.title2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(BrandTint.orange)
                     Text(item)
                         .font(.body)
                         .foregroundStyle(.primary)

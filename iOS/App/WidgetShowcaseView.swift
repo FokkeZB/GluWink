@@ -55,21 +55,21 @@ struct WidgetShowcaseView: View {
         SmallWidgetTile(content: content)
             .padding(widgetContentMargin)
             .frame(width: smallSide, height: smallSide)
-            .background(content.shieldContent.needsAttention ? Color.red : Color.green)
+            .background(content.shieldContent.attentionLevel.tint)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
     }
 
     private func mediumTile(_ content: WidgetTileContent) -> some View {
         MediumWidgetTile(content: content)
             .padding(widgetContentMargin)
-            .background(content.shieldContent.needsAttention ? Color.red : Color.green)
+            .background(content.shieldContent.attentionLevel.tint)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
     }
 
     private func largeTile(_ content: WidgetTileContent) -> some View {
         LargeWidgetTile(content: content)
             .padding(widgetContentMargin)
-            .background(content.shieldContent.needsAttention ? Color.red : Color.green)
+            .background(content.shieldContent.attentionLevel.tint)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
     }
 
@@ -85,9 +85,10 @@ struct WidgetShowcaseView: View {
         )
     }
 
-    /// Red, needs-attention state — mirror of `ScreenshotHarness.redShield`.
-    /// Glucose 14.8 mmol/L is above the high threshold so `ShieldContent`
-    /// flips `needsAttention` true on its own.
+    /// Orange, needs-attention state — mirror of `ScreenshotHarness.orangeShield`.
+    /// Glucose 14.8 mmol/L is above the high threshold (but below critical)
+    /// so `ShieldContent` flips `needsAttention` true and picks the orange
+    /// tint on its own.
     private var attentionContent: WidgetTileContent {
         makeContent(
             glucose: 14.8,

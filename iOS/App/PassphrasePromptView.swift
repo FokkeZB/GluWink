@@ -1,3 +1,4 @@
+import SharedKit
 import SwiftUI
 
 struct PassphrasePromptView: View {
@@ -33,7 +34,7 @@ struct PassphrasePromptView: View {
 
                     if let errorMessage {
                         Text(errorMessage)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(BrandTint.red)
                             .font(.caption)
                     }
 

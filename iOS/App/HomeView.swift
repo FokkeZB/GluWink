@@ -289,9 +289,15 @@ struct HomeView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 22))
 
             if !showsWelcome && shieldingEnabled {
+                // Armed/unarmed is a *security* state, not an attention
+                // state — the shape change (lock.fill vs lock.open.fill)
+                // carries the signal; the tint stays neutral so it doesn't
+                // compete with the icon's red/orange/green attention tint
+                // sitting right above it. `.primary` adapts to light/dark
+                // mode against the `.regularMaterial` capsule.
                 Image(systemName: shieldsArmed ? "lock.fill" : "lock.open.fill")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(shieldsArmed ? Color.red : Color.green)
+                    .foregroundStyle(.primary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background(.regularMaterial, in: Capsule())
@@ -473,7 +479,7 @@ struct HomeView: View {
 
     private func iconName(for content: ShieldContent) -> String {
         if showsWelcome { return "AppIcon-Blue" }
-        return content.needsAttention ? "AppIcon-Red" : "AppIcon-Green"
+        return content.attentionLevel.iconName
     }
 
     private func pinTitleIfNeeded() {
