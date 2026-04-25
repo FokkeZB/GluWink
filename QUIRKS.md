@@ -122,6 +122,19 @@ HealthKit stores blood glucose in mg/dL internally. Convert to mmol/L (÷ 18.018
 ### Background delivery
 `HKObserverQuery` with `enableBackgroundDelivery(for:frequency:.immediate)` wakes the app when new samples arrive. More reliable than `BGAppRefreshTask`.
 
+## App Store / fastlane
+
+### Fastlane deliver ignores device-size subfolders
+`deliver`'s screenshot loader (`deliver/lib/deliver/loader.rb`) globs PNGs **flat** from each locale folder:
+
+```ruby
+Dir.glob(File.join(path, "*.#{extensions}"))
+```
+
+No recursion. If the PNGs live in `iOS/fastlane/screenshots/<locale>/iPhone-6.9/` (or any other subdir), deliver sees zero files, uploads zero, and still exits green — the push reports "Successfully uploaded all screenshots" in ~2 seconds while App Store Connect ends up with an empty deck. Diagnosed on 2026-04-25 with fastlane 2.232.2 (issue #95).
+
+The fix is the layout itself: keep PNGs directly under `<locale>/` — `capture.sh`, `sync-screenshots.sh`, and the `Deliverfile` comment all reflect this. If a future agent is tempted to re-introduce a device-size subdir ("so the Watch shots don't collide with iPhone"), don't — deliver derives the device tier from the PNG **pixel dimensions** (1320×2868 → `APP_IPHONE_67` in `deliver/lib/deliver/app_screenshot.rb`, which ASC accepts for 6.9" devices too). Mixing iPhone + Watch + iPad in the same locale folder is fine; deliver buckets them by resolution, not by filename or subdir.
+
 ## Naming
 
 ### Bundle identifiers kept as nl.fokkezb.*

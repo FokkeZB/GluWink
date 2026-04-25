@@ -4,7 +4,10 @@
 #
 # Builds once, boots the right simulator, then loops over every
 # (locale, scene) pair the user requested and writes PNGs into
-# `iOS/fastlane/screenshots/<locale>/iPhone-6.9/NN_<scene>.png`.
+# `iOS/fastlane/screenshots/<locale>/NN_<scene>.png`. No device-size
+# subfolder — fastlane deliver's loader does a flat glob per locale and
+# would silently ignore a subdir (see QUIRKS.md → "Fastlane deliver
+# ignores device-size subfolders" and issue #95).
 #
 # Designed to be invoked by an agent following the appstore-screenshots
 # skill, but safe to run by hand.
@@ -201,7 +204,7 @@ xcrun simctl status_bar booted override \
 for loc in "${locales[@]}"; do
     lang="$(language_code_for_locale "$loc")"
     posix="$(posix_locale_for_locale "$loc")"
-    out_dir="$REPO_ROOT/iOS/fastlane/screenshots/$loc/iPhone-6.9"
+    out_dir="$REPO_ROOT/iOS/fastlane/screenshots/$loc"
     mkdir -p "$out_dir"
 
     for entry in "${scenes[@]}"; do
