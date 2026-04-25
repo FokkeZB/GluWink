@@ -106,9 +106,10 @@ appstore-pull:
 	cd iOS && bundle exec fastlane pull_metadata
 
 ## Regenerate the App Store screenshot deck (every scene × every locale).
-## Writes PNGs into iOS/fastlane/screenshots/<locale>/iPhone-6.9/, then
-## copies the curated subset into docs/assets/screenshots/ so the marketing
-## site stays in lock-step. CI fails (.github/workflows/screenshots-sync-
+## Writes PNGs into iOS/fastlane/screenshots/<locale>/ (flat — no device-size
+## subfolder; deliver's loader ignores subdirs, see QUIRKS.md), then copies
+## the curated subset into docs/assets/screenshots/ so the marketing site
+## stays in lock-step. CI fails (.github/workflows/screenshots-sync-
 ## check.yml) if the two drift.
 appstore-screenshots: _capture-screenshots docs-sync-screenshots
 

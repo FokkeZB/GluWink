@@ -29,7 +29,6 @@ DST="$ROOT/docs/assets/screenshots"
 # site carousel.
 SCENES=(01_greenShield 02_orangeShield 03_redShield 04_widgets 05_settings)
 LOCALES=(en-US nl-NL)
-SIZE="iPhone-6.9"
 
 mode="copy"
 if [[ "${1:-}" == "--check" ]]; then mode="check"; fi
@@ -42,7 +41,7 @@ fi
 
 copy_one() {
   local locale="$1" scene="$2" target_root="$3"
-  local src_file="$SRC/$locale/$SIZE/$scene.png"
+  local src_file="$SRC/$locale/$scene.png"
   local dst_dir="$target_root/$locale"
   local dst_file="$dst_dir/$scene.png"
   if [[ ! -f "$src_file" ]]; then

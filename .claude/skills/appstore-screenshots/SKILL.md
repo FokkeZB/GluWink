@@ -6,7 +6,7 @@ allowed-tools: Bash(bash .claude/skills/appstore-screenshots/scripts/capture.sh:
 
 # App Store Screenshot Pipeline
 
-Drives `iOS/App/ScreenshotHarness.swift` (gated by `#if targetEnvironment(simulator)`) to capture every App Store scene for every locale into `iOS/fastlane/screenshots/<locale>/iPhone-6.9/`. Then waits for explicit user sign-off before uploading via `fastlane deliver`.
+Drives `iOS/App/ScreenshotHarness.swift` (gated by `#if targetEnvironment(simulator)`) to capture every App Store scene for every locale into `iOS/fastlane/screenshots/<locale>/` (flat — no device-size subfolder; see QUIRKS.md → "Fastlane deliver ignores device-size subfolders"). Then waits for explicit user sign-off before uploading via `fastlane deliver`.
 
 See GitHub issues [#28](https://github.com/FokkeZB/GluWink/issues/28) (tracker), [#29](https://github.com/FokkeZB/GluWink/issues/29) (harness), and [#31](https://github.com/FokkeZB/GluWink/issues/31) (captions) for design context.
 
@@ -52,7 +52,7 @@ bash .claude/skills/appstore-screenshots/scripts/capture.sh --device "iPhone 16 
 
 `make appstore-screenshots` is the short alias for the full-deck capture. Use the raw `capture.sh` path for the `--scene` / `--locale` / `--device` / `--no-build` flags.
 
-The script writes to `iOS/fastlane/screenshots/<locale>/iPhone-6.9/<NN>_<scene>.png` and locks the simulator status bar to 9:41, full battery, full bars before each shot.
+The script writes to `iOS/fastlane/screenshots/<locale>/<NN>_<scene>.png` and locks the simulator status bar to 9:41, full battery, full bars before each shot.
 
 ## Workflow
 
