@@ -21,7 +21,7 @@ hero:
   eyebrow: "Type 1 diabetes, on every screen"
   title: "From distraction to ally."
   subtitle: "Make your iPhone and Apple Watch a tool for diabetes — not a distraction from it."
-  body: "Glucose and carbs everywhere — Home Screen, Lock Screen, StandBy, every Apple Watch face. A friendly green face when things look good, a red one when something needs your attention. Other apps stay blocked until you've done the diabetes thing."
+  body: "Glucose and carbs everywhere — Home Screen, Lock Screen, StandBy, every Apple Watch face. Green when things look good, orange when something needs your attention, red when a critical high locks the shield until glucose drops. Other apps stay blocked until you've done the diabetes thing."
   cta_primary_label_pre_launch: "Coming soon to the App Store"
   cta_primary_label_post_launch: "Download on the App Store"
   cta_secondary_label: "Star the repo on GitHub"
@@ -34,9 +34,9 @@ three_things:
     - heading: "Glucose and carbs visible everywhere."
       body: "Widgets in every size for Home Screen, Lock Screen, and StandBy. Complications on every Apple Watch face. An optional glucose number on the app icon badge."
     - heading: "Clear status at a glance."
-      body: "A green face means everything looks good. A red face means something needs attention — glucose is high or low, the sensor is stale, or carbs were never entered for that meal. Same simple language across the app, widgets, and watch."
+      body: "A green face means everything looks good. Orange means something needs attention — glucose is high or low, the sensor is stale, or carbs were never entered for that meal. Red is reserved for a critical high: the shield cannot be dismissed until glucose drops back down. Same simple language across the app, widgets, and watch."
     - heading: "Optional app blocking — your call."
-      body: "Block other apps at configurable intervals — always, or only when something needs your attention. While blocking is on and the face is red, GluWink locks other apps until you check in. Otherwise, your phone is just your phone."
+      body: "Block other apps at configurable intervals — always, or only when something needs your attention. While blocking is on and the face is orange, GluWink locks other apps until you check in. If the face goes red, the check-in is off the table entirely until glucose comes back down. Otherwise, your phone is just your phone."
 
 audiences:
   title: "Built for two audiences."
@@ -73,7 +73,8 @@ screenshots:
   intro: "Captured straight from the app — no mockups."
   alt:
     green: "GluWink check-in shield with a green face: glucose and carbs at a glance."
-    red: "GluWink check-in shield with a red face: action needed, follow the list, back to green."
+    orange: "GluWink check-in shield with an orange face: glucose high, follow the list, back to green."
+    red: "GluWink check-in shield with a red face: glucose critically high, shield cannot be dismissed until glucose drops."
     widgets: "GluWink widgets in three sizes on the iPhone home screen."
     settings: "GluWink settings: tune alerts, pick a data source, shape the shield."
 
@@ -132,6 +133,8 @@ support_page:
       a: "The App Store release isn't live yet. Until it is, you can build GluWink from source — see the README on GitHub for the iOS setup walkthrough. We'll update this page (and the home page) the moment it's available on the App Store."
     - q: "Does it work with my CGM?"
       a: "GluWink reads glucose and carb data from Apple Health. If your CGM app (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS, and most others) writes to Apple Health, you're good. Alternatively, connect a Nightscout site — both sources can be on at the same time."
+    - q: "What's the difference between the orange and red face?"
+      a: "Orange means \"something needs attention\" — glucose is high or low, the sensor is stale, or carbs weren't entered. You run through the short check-in list, everything goes back to green. Red is reserved for a critical high: glucose has gone above a threshold you configure (the default is well into dangerous territory). At that point GluWink hides the check-in button — the shield cannot be dismissed until glucose drops below that threshold again. No passphrase override, no disarm. It's the one place in the app where the friction is deliberately absolute."
     - q: "Why doesn't shielding work in the iOS Simulator?"
       a: "Apple's Screen Time and Family Controls APIs only work on a physical device. The Simulator can run the app for layout and widget previews, but cannot block other apps."
     - q: "How do I set this up for my child?"

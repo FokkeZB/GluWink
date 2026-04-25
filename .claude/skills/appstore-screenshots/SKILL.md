@@ -14,7 +14,7 @@ See GitHub issues [#28](https://github.com/FokkeZB/GluWink/issues/28) (tracker),
 
 Every shot has a marketing caption baked into the bottom ~20% of the PNG by `CaptionBanner.swift`. The text is pulled from `AppStore/<locale>.md` → "Screenshot captions" → iPhone table by `capture.sh` and passed to the app via `-UITest_Caption "..."`. Row number N in the table matches the `NN_` numeric prefix on the captured file.
 
-The banner background matches the scene's brand language: green for `greenShield`, red for `redShield`, charcoal for everything else. Text renders white, 30pt heavy rounded, up to three lines (auto-scales down to 70% for tight translations).
+The banner background matches the scene's brand language: green for `greenShield`, brand orange (`#F5A623`, same shade as `AppIcon-Orange`) for `orangeShield`, red for `redShield`, charcoal for everything else. Text renders white, 30pt heavy rounded, up to three lines (auto-scales down to 70% for tight translations).
 
 Edit a caption in `AppStore/<locale>.md`, rerun `make appstore-screenshots` (or `capture.sh --scene X --locale Y --no-build` for a single shot), done. No separate caption field in App Store Connect — Apple removed per-screenshot captions from listings years ago, so the Markdown is the only place that matters.
 
@@ -25,11 +25,14 @@ To skip the banner while iterating on app UI (not for the App Store deck), pass 
 | # | Scene name (`-UITest_Scene`) | Marketing intent | Captured by this skill? |
 |---|---|---|---|
 | 01 | `greenShield` | All clear — friendly green face, glucose + carbs visible | Yes |
-| 02 | `redShield` | Needs attention — red face, first check-in row pre-ticked | Yes |
-| 03 | `widgets` | Home Screen widgets (small × 2 + medium + large, mixed states) | Yes — via `WidgetShowcaseView` which renders the real SharedKit tiles |
-| 04 | `settings` | Parent / main-app view — Settings list (Shielding On, data sources, glucose unit) | Yes |
-| 05 | `watch` | Apple Watch app + complications | **No** — needs the Watch simulator path, follow-up |
-| 06 | `setupChecklist` | Welcome panel + "Pick a data source" / "Configure features" rows | Yes |
+| 02 | `orangeShield` | Needs attention — orange face, glucose just above the high threshold, first check-in row pre-ticked, shield dismissible | Yes |
+| 03 | `redShield` | Critical — red face, glucose ≥ critical threshold, check-in button hidden, "shield cannot be dismissed until glucose drops below X" subtitle visible | Yes |
+| 04 | `widgets` | Home Screen widgets (small × 2 + medium + large, mixed states) | Yes — via `WidgetShowcaseView` which renders the real SharedKit tiles |
+| 05 | `settings` | Parent / main-app view — Settings list (Shielding On, data sources, glucose unit) | Yes |
+| 06 | `watch` | Apple Watch app + complications | **No** — needs the Watch simulator path, follow-up |
+| 07 | `setupChecklist` | Welcome panel + "Pick a data source" / "Configure features" rows | Yes |
+
+Scenes 01-03 deliberately sit adjacent so the App Store reviewer scrolling the deck sees the full traffic-light story (green → orange → red / critical) before anything else.
 
 Locales come from `AppStore/<locale>.md`. Today: `en-US`, `nl-NL`. Adding a new locale Markdown file automatically adds it to the capture matrix.
 
@@ -56,10 +59,12 @@ The script writes to `iOS/fastlane/screenshots/<locale>/iPhone-6.9/<NN>_<scene>.
 1. **Capture.** Run the script with no args. Use `--no-build` if a fresh `xcodebuild` already happened in this session.
 2. **Review every PNG.** Read each file in the agent client and check:
    - Status bar reads `9:41`, full bars, full battery (charged charging glyph).
-   - Glucose / carb numbers match the harness presets (greenShield: 6.4 mmol/L + 25 g; redShield: 14.8 mmol/L + 30 g). English locales display as mg/dL, everything else as mmol/L.
+   - Glucose / carb numbers match the harness presets (greenShield: 6.4 mmol/L + 25 g; orangeShield: 14.8 mmol/L + 30 g; redShield: 21.2 mmol/L — critical, above the 20.0 default). English locales display as mg/dL, everything else as mmol/L.
+   - `redShield` has **no** Continue / check-in button — the critical path hides it, and the subtitle reads "shield cannot be dismissed until your glucose is below …". If you see a dismiss button, the critical preset regressed.
+   - `orangeShield` **does** show the check-in list with the first row ticked, and the face is the brand orange shade (not red, not system orange).
    - Caption matches the matching row in `AppStore/<locale>.md` → "Screenshot captions" and reads cleanly without hitting the 3-line limit.
    - Title text is in the right language and reads cleanly (titles are randomized per launch — re-run a single scene if you got an awkward one, the harness re-rolls).
-   - No `SetupChecklistCard` visible on greenShield / redShield / settings / widgets (only on `setupChecklist`).
+   - No `SetupChecklistCard` visible on greenShield / orangeShield / redShield / settings / widgets (only on `setupChecklist`).
 3. **Show the user a summary** with file paths and any concerns (e.g. "the redShield title came out as 'Take a look!' — want me to re-roll?"). **Do not push** without explicit sign-off.
 4. **On approval:** `make appstore-push` (screenshots upload alongside metadata — `Deliverfile` is already configured with `skip_screenshots false`).
 
@@ -86,7 +91,8 @@ Repeat until the title reads well in marketing context.
 |---|---|---|
 | `CoreSimulatorService connection became invalid` | simctl can't talk to the host service | Run any `xcrun simctl …` once outside the agent sandbox; opening Xcode also fixes it |
 | Captures show wrong language | `-AppleLanguages` ignored by some screens | Confirm the locale file exists in the iOS bundle (`iOS/App/<lang>.lproj/`) |
-| `SetupChecklistCard` showing on greenShield / redShield | Build is stale (harness fix not yet compiled) | Drop `--no-build` and rerun |
+| `SetupChecklistCard` showing on greenShield / orangeShield / redShield | Build is stale (harness fix not yet compiled) | Drop `--no-build` and rerun |
+| `redShield` shows a "Continue" / check-in button | Glucose preset fell below the critical threshold (e.g. a preset edit, or a lowered threshold) | Confirm `ScreenshotHarness.redShield.glucose` is ≥ `CriticalGlucoseThreshold.default` and rerun |
 | Caption too long → script exits with "caption … is N chars" | Caption in `AppStore/<locale>.md` exceeds the hard limit (80 chars) | Tighten the translation or shorten the English source; the limit is set in `capture.sh` at the top |
 | Status bar shows real values | `simctl status_bar override` didn't apply | Boot the sim once (`xcrun simctl boot "iPhone 17 Pro Max"`) and rerun |
 | Build error about `ScreenshotHarness` | Old branch / harness file missing | Confirm `iOS/App/ScreenshotHarness.swift` exists; the App target uses synced groups so it should compile automatically |

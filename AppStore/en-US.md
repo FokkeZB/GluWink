@@ -36,9 +36,9 @@ GluWink does three things, and nothing more:
 
 1. Glucose and carbs visible everywhere. Home Screen, Lock Screen and StandBy widgets in every size. Complications on every Apple Watch face. An optional glucose number on the app icon badge.
 
-2. Clear status at a glance. A green face means everything looks good. A red face means something needs attention — glucose is high or low, the sensor is stale, or carbs were never entered for that meal. Every surface speaks the same simple language.
+2. Clear status at a glance. A green face means everything looks good. An orange face means something needs attention — glucose is high or low, the sensor is stale, or carbs were never entered for that meal. A red face is reserved for a critical high: glucose has climbed above the critical threshold you set, and the shield cannot be dismissed until it drops back down. Every surface — the shield, widgets, watch — speaks the same three-color language.
 
-3. Optional app blocking — your call. Choose to block other apps at configurable intervals, either always or only when something needs your attention. While blocking is active and the face is red, GluWink locks other apps until the check-in is done. When everything is green — or you've turned blocking off entirely — your phone is just your phone.
+3. Optional app blocking — your call. Choose to block other apps at configurable intervals, either always or only when something needs your attention. While blocking is active and the face is orange, GluWink locks other apps until the check-in is done. When the face is red, the check-in is off the table entirely until glucose drops back below the critical threshold — no passphrase override, no disarm. When everything is green — or you've turned blocking off entirely — your phone is just your phone.
 
 — Built for two audiences —
 
@@ -65,7 +65,8 @@ Want to try the app first? Demo mode shows realistic glucose and carb data witho
 — What you get —
 
 • Friendly check-in shield with action items based on the current glucose and last carbs.
-• Home Screen, Lock Screen, and StandBy widgets in every size, with red / green attention tint.
+• Three-way signal: green (all clear), orange (check-in needed), red (critical — shield locked until glucose drops). Thresholds are yours to set.
+• Home Screen, Lock Screen, and StandBy widgets in every size, tinted with the same three-color attention signal.
 • Apple Watch app and complications — glucose and carbs at a glance, on every watch face.
 • Optional glucose number on the app icon badge.
 • Configurable thresholds, intervals, and a daily carb grace period (so 6am cereal isn't an emergency).
@@ -83,7 +84,7 @@ GluWink is open source. Your data stays on your device (with HealthKit) or on th
 
 Type 1 diabetes is relentless. The phone doesn't have to be.
 ```
-*(~3,150 / 4000 — room left for future feature shout-outs)*
+*(~3,995 / 4000 — tight; trim an existing bullet before adding a new one)*
 
 ## Keywords (100)
 
@@ -107,7 +108,7 @@ This is the first public release of GluWink. If you're trying it on your kid's p
 
 Highlights in 1.0:
 • Apple Health and Nightscout data sources, with optional demo mode.
-• Friendly check-in shield with red / green status.
+• Friendly check-in shield with a three-color status — green, orange, red for critical highs.
 • Home Screen, Lock Screen, and StandBy widgets.
 • Apple Watch app and complications.
 • Passphrase-gated settings for parents and accountability partners.
@@ -125,10 +126,11 @@ Scene order matches the table in `README.md` → Screenshots.
 |---|---|
 | 1 | Well done. Glucose and carbs at a glance. |
 | 2 | Action needed? Follow the list, back to green. |
-| 3 | Glucose and carbs on every screen. |
-| 4 | Tune alerts, pick a data source, shape the shield — your call. |
-| 5 | Glucose and carbs on every watch face. |
-| 6 | Apple Health, Nightscout, or demo — pick one. |
+| 3 | Critically high. Shield stays until glucose drops. |
+| 4 | Glucose and carbs on every screen. |
+| 5 | Tune alerts, pick a data source, shape the shield — your call. |
+| 6 | Glucose and carbs on every watch face. |
+| 7 | Apple Health, Nightscout, or demo — pick one. |
 
 ### Apple Watch (45mm)
 

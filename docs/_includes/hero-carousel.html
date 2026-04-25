@@ -31,21 +31,25 @@
           <img src="{{ base | append: '01_greenShield.png' | relative_url }}" alt="{{ data.screenshots.alt.green }}" width="320" height="694" loading="eager" fetchpriority="high" decoding="async">
         </li>
         <li class="hero-carousel__slide" data-slide aria-hidden="true">
-          <img data-src="{{ base | append: '02_redShield.png' | relative_url }}" alt="{{ data.screenshots.alt.red }}" width="320" height="694" decoding="async">
+          <img data-src="{{ base | append: '02_orangeShield.png' | relative_url }}" alt="{{ data.screenshots.alt.orange }}" width="320" height="694" decoding="async">
         </li>
         <li class="hero-carousel__slide" data-slide aria-hidden="true">
-          <img data-src="{{ base | append: '03_widgets.png' | relative_url }}" alt="{{ data.screenshots.alt.widgets }}" width="320" height="694" decoding="async">
+          <img data-src="{{ base | append: '03_redShield.png' | relative_url }}" alt="{{ data.screenshots.alt.red }}" width="320" height="694" decoding="async">
         </li>
         <li class="hero-carousel__slide" data-slide aria-hidden="true">
-          <img data-src="{{ base | append: '04_settings.png' | relative_url }}" alt="{{ data.screenshots.alt.settings }}" width="320" height="694" decoding="async">
+          <img data-src="{{ base | append: '04_widgets.png' | relative_url }}" alt="{{ data.screenshots.alt.widgets }}" width="320" height="694" decoding="async">
+        </li>
+        <li class="hero-carousel__slide" data-slide aria-hidden="true">
+          <img data-src="{{ base | append: '05_settings.png' | relative_url }}" alt="{{ data.screenshots.alt.settings }}" width="320" height="694" decoding="async">
         </li>
       </ul>
     </div>
   </figure>
   <div class="hero-carousel__dots" aria-label="Choose screenshot">
     <button type="button" data-slide-to="0" aria-current="true"  aria-label="{{ data.screenshots.alt.green }}"></button>
-    <button type="button" data-slide-to="1" aria-current="false" aria-label="{{ data.screenshots.alt.red }}"></button>
-    <button type="button" data-slide-to="2" aria-current="false" aria-label="{{ data.screenshots.alt.widgets }}"></button>
-    <button type="button" data-slide-to="3" aria-current="false" aria-label="{{ data.screenshots.alt.settings }}"></button>
+    <button type="button" data-slide-to="1" aria-current="false" aria-label="{{ data.screenshots.alt.orange }}"></button>
+    <button type="button" data-slide-to="2" aria-current="false" aria-label="{{ data.screenshots.alt.red }}"></button>
+    <button type="button" data-slide-to="3" aria-current="false" aria-label="{{ data.screenshots.alt.widgets }}"></button>
+    <button type="button" data-slide-to="4" aria-current="false" aria-label="{{ data.screenshots.alt.settings }}"></button>
   </div>
 </div>
