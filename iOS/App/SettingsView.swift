@@ -165,7 +165,7 @@ struct SettingsView: View {
                         showResetAlert = true
                     } label: {
                         Label(String(localized: "settings.resetAll"), systemImage: "arrow.counterclockwise")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(BrandTint.red)
                     }
                 }
             }
@@ -312,7 +312,7 @@ struct AttentionRulesSettingsView: View {
 
                 if let criticalValidationError {
                     Label(criticalValidationError, systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(BrandTint.red)
                         .font(.caption)
                 }
 
@@ -464,7 +464,7 @@ struct ShieldingSettingsView: View {
 
                 if let authError {
                     Label(authError, systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(BrandTint.red)
                         .font(.caption)
                 }
 
@@ -878,7 +878,7 @@ struct NightscoutSettingsView: View {
                     case let .success(version, units):
                         VStack(alignment: .leading, spacing: 2) {
                             Label(String(localized: "settings.nightscoutTestSuccess"), systemImage: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
+                                .foregroundStyle(BrandTint.green)
                             if let version {
                                 Text(String(localized: "settings.nightscoutVersion \(version)"))
                                     .font(.caption)
@@ -892,7 +892,7 @@ struct NightscoutSettingsView: View {
                         }
                     case let .failure(message):
                         Label(message, systemImage: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(BrandTint.red)
                     }
                 }
             }
@@ -917,7 +917,7 @@ struct NightscoutSettingsView: View {
                 }
                 if let lastError {
                     Label(lastError, systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(BrandTint.orange)
                         .font(.caption)
                 }
             } header: {
@@ -1189,7 +1189,7 @@ struct ChangePassphraseView: View {
 
                 if let errorMessage {
                     Text(errorMessage)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(BrandTint.red)
                         .font(.caption)
                 }
 

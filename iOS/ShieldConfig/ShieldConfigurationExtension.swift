@@ -63,20 +63,14 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
         // Shielding can only be enabled once a data source is configured
         // (see `ShieldManager.disableIfNoDataSource()`), so the shield is
-        // always rendered against real glucose/carb input — red when
-        // attention is needed (including when a configured source has
-        // stopped delivering), green otherwise. There's no "blue / no data"
-        // variant here; that case can't reach the shield UI.
-        let iconName: String
-        let tint: UIColor
-        if content.needsAttention {
-            iconName = "AppIcon-Red"
-            tint = .systemRed
-        } else {
-            iconName = "AppIcon-Green"
-            tint = .systemGreen
-        }
-        let icon = UIImage(contentsOfFile: Bundle.main.path(forResource: iconName, ofType: "png") ?? "")
+        // always rendered against real glucose/carb input. Three levels:
+        // critical glucose → red, any other attention (high-but-not-critical,
+        // low, stale, carb gap, no-glucose-data on a configured source) →
+        // orange, otherwise → green. There's no "blue / no data" variant
+        // here; that case can't reach the shield UI.
+        let level = content.attentionLevel
+        let tint = level.uiTint
+        let icon = UIImage(contentsOfFile: Bundle.main.path(forResource: level.iconName, ofType: "png") ?? "")
 
         return ShieldConfiguration(
             backgroundBlurStyle: .systemUltraThinMaterialDark,

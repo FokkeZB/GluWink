@@ -58,7 +58,7 @@ struct WatchContentView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding()
-        .background(current.needsAttention ? Color.red : Color.green)
+        .background(current.attentionLevel.tint)
         .onReceive(timer) { tick = $0 }
     }
 }
