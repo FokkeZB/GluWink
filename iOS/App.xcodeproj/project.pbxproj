@@ -23,6 +23,8 @@
 		DBE056742F90EECF005A1419 /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = B2A67E1682675154AD1117EA /* SharedKit */; };
 		DBE056752F90EECF005A1419 /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 4BA5AFC5A839CE49647F7997 /* SharedKit */; };
 		DBE056762F90EECF005A1419 /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2EFFC9355B4ACCC74A7332B1 /* SharedKit */; };
+		DB8110812F90EECF005A1419 /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = DB8110832F90EECF005A1419 /* SharedKit */; };
+		DB8110822F90EECF005A1419 /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = DB8110842F90EECF005A1419 /* SharedKit */; };
 		DBE4DB0A2F8CD6A6003E49C0 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBE4DB092F8CD6A6003E49C0 /* WidgetKit.framework */; };
 		DBE4DB0C2F8CD6A6003E49C0 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBE4DB0B2F8CD6A6003E49C0 /* SwiftUI.framework */; };
 		DBE4DB192F8CD6A7003E49C0 /* StatusWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DBE4DB082F8CD6A6003E49C0 /* StatusWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -286,6 +288,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB8110812F90EECF005A1419 /* SharedKit in Frameworks */,
 				DB30151F2F8A57FB008F9A4E /* ManagedSettings.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -294,6 +297,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB8110822F90EECF005A1419 /* SharedKit in Frameworks */,
 				DB3015322F8A5814008F9A4E /* DeviceActivity.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -485,6 +489,9 @@
 				DB3015202F8A57FB008F9A4E /* ShieldAction */,
 			);
 			name = ShieldAction;
+			packageProductDependencies = (
+				DB8110832F90EECF005A1419 /* SharedKit */,
+			);
 			productName = ShieldAction;
 			productReference = DB30151E2F8A57FB008F9A4E /* ShieldAction.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -505,6 +512,9 @@
 				DB3015332F8A5814008F9A4E /* DeviceActivityMonitor */,
 			);
 			name = DeviceActivityMonitor;
+			packageProductDependencies = (
+				DB8110842F90EECF005A1419 /* SharedKit */,
+			);
 			productName = DeviceActivityMonitor;
 			productReference = DB3015302F8A5814008F9A4E /* DeviceActivityMonitor.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -1405,6 +1415,16 @@
 			productName = SharedKit;
 		};
 		D957BBF3E8CBC9DC370CF1EC /* SharedKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 92BBEB1D292F12C9BEF0E8C6 /* XCLocalSwiftPackageReference "SharedKit" */;
+			productName = SharedKit;
+		};
+		DB8110832F90EECF005A1419 /* SharedKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 92BBEB1D292F12C9BEF0E8C6 /* XCLocalSwiftPackageReference "SharedKit" */;
+			productName = SharedKit;
+		};
+		DB8110842F90EECF005A1419 /* SharedKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 92BBEB1D292F12C9BEF0E8C6 /* XCLocalSwiftPackageReference "SharedKit" */;
 			productName = SharedKit;

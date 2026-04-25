@@ -3,40 +3,7 @@ import FamilyControls
 import Foundation
 import ManagedSettings
 import os
-
-/// Duplicate of `SharedKit.ThresholdResolver` — this extension does not link
-/// SharedKit (kept lean per the extension memory cap), so the contract is
-/// re-stated locally. Keep in sync with SharedKit/ThresholdResolver.swift.
-private enum ThresholdResolver {
-    static func highGlucose(defaults: UserDefaults?, fallback: Double) -> Double {
-        (defaults?.object(forKey: "highGlucoseThreshold") as? Double) ?? fallback
-    }
-
-    static func lowGlucose(defaults: UserDefaults?, fallback: Double) -> Double {
-        (defaults?.object(forKey: "lowGlucoseThreshold") as? Double) ?? fallback
-    }
-
-    /// Duplicate of SharedKit.ThresholdResolver.criticalGlucose — see that
-    /// file for the read-time contract. DeviceActivityMonitor does not make
-    /// dismissal decisions (that's ShieldAction's job), but the key is
-    /// resolved here anyway so re-arm heuristics stay in sync with the
-    /// rest of the attention pipeline and #81's refactor finds no drift.
-    static func criticalGlucose(defaults: UserDefaults?, fallback: Double) -> Double {
-        (defaults?.object(forKey: "criticalGlucoseThreshold") as? Double) ?? fallback
-    }
-
-    static func staleMinutes(defaults: UserDefaults?, fallback: Int) -> Int {
-        (defaults?.object(forKey: "glucoseStaleMinutes") as? Int) ?? fallback
-    }
-
-    static func carbGraceHour(defaults: UserDefaults?, fallback: Int) -> Int {
-        (defaults?.object(forKey: "carbGraceHour") as? Int) ?? fallback
-    }
-
-    static func carbGraceMinute(defaults: UserDefaults?, fallback: Int) -> Int {
-        (defaults?.object(forKey: "carbGraceMinute") as? Int) ?? fallback
-    }
-}
+import SharedKit
 
 class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     private static let bundlePrefix = Bundle.main.object(forInfoDictionaryKey: "BundlePrefix") as! String

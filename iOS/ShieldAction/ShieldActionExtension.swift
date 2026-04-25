@@ -1,35 +1,7 @@
 import Foundation
 import ManagedSettings
 import os
-
-/// Duplicate of `SharedKit.ThresholdResolver` — this extension does not link
-/// SharedKit (kept lean per the extension memory cap), so the contract is
-/// re-stated locally. Keep in sync with SharedKit/ThresholdResolver.swift.
-private enum ThresholdResolver {
-    static func highGlucose(defaults: UserDefaults?, fallback: Double) -> Double {
-        (defaults?.object(forKey: "highGlucoseThreshold") as? Double) ?? fallback
-    }
-
-    static func lowGlucose(defaults: UserDefaults?, fallback: Double) -> Double {
-        (defaults?.object(forKey: "lowGlucoseThreshold") as? Double) ?? fallback
-    }
-
-    static func criticalGlucose(defaults: UserDefaults?, fallback: Double) -> Double {
-        (defaults?.object(forKey: "criticalGlucoseThreshold") as? Double) ?? fallback
-    }
-
-    static func staleMinutes(defaults: UserDefaults?, fallback: Int) -> Int {
-        (defaults?.object(forKey: "glucoseStaleMinutes") as? Int) ?? fallback
-    }
-
-    static func carbGraceHour(defaults: UserDefaults?, fallback: Int) -> Int {
-        (defaults?.object(forKey: "carbGraceHour") as? Int) ?? fallback
-    }
-
-    static func carbGraceMinute(defaults: UserDefaults?, fallback: Int) -> Int {
-        (defaults?.object(forKey: "carbGraceMinute") as? Int) ?? fallback
-    }
-}
+import SharedKit
 
 class ShieldActionExtension: ShieldActionDelegate {
     private static let bundlePrefix = Bundle.main.object(forInfoDictionaryKey: "BundlePrefix") as! String
