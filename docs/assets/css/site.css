@@ -105,6 +105,18 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
 .site-header__inner {
   display: flex; align-items: center; justify-content: space-between;
   gap: 16px; min-height: 60px;
+  /* Vertical padding so the brand icon has breathing room above/below.
+     min-height: 60px with box-sizing: border-box still collapses the
+     icon flush against the header edge on multi-row layouts (where the
+     wrapped nav pushes total height past min-height and the flex
+     centring no longer provides the visual gutter). */
+  padding-block: 10px;
+  /* When the nav can't fit next to the brand on narrow viewports, drop
+     the entire nav to a second row instead of letting it wrap item-by-
+     item inside its own column (which left "Nederlands" stranded on its
+     own right-aligned line). Pairs with the .nav width: 100% override
+     below so the wrapped nav spans the full header row. */
+  flex-wrap: wrap;
 }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--fg); font-weight: 600; }
 .brand:hover { text-decoration: none; }
@@ -121,6 +133,13 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
 .nav a { color: var(--fg-soft); padding: 8px 12px; border-radius: 8px; font-size: 15px; font-weight: 500; }
 .nav a:hover { color: var(--fg); background: var(--bg-soft); text-decoration: none; }
 .nav__lang { color: var(--brand-text) !important; }
+/* Mobile header: when the nav wraps below the brand (see .site-header__
+   inner flex-wrap), give it the full row and tighten item spacing so the
+   four links sit evenly on one line instead of breaking awkwardly. */
+@media (max-width: 640px) {
+  .nav { width: 100%; gap: 2px; }
+  .nav a { padding: 6px 10px; font-size: 14px; }
+}
 
 /* Hero — two-column on desktop (copy + framed phone). The soft radial
    gradients warm up an otherwise stark above-the-fold and pull the eye
@@ -256,6 +275,17 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
 @media (prefers-reduced-motion: no-preference) {
   .hero__app-icon { transition: transform 320ms ease; }
   .hero-carousel:hover .hero__app-icon { transform: rotate(-2deg) translateY(-2px); }
+}
+/* On stacked (single-column) layouts, the default top: -8% lifts the
+   icon 50+ px above the carousel — which is fine on desktop where the
+   carousel lives in its own column, but on mobile the copy stacks
+   directly above it and the icon crashes into the last CTA button
+   ("Star the repo on GitHub"). Pin top to a small negative value so
+   the icon peels just above the phone bezel (well within the hero's
+   32px inter-section gap) instead of floating up into the CTA.
+   Breakpoint mirrors .hero__inner's two-column threshold. */
+@media (max-width: 899px) {
+  .hero__app-icon { top: -16px; }
 }
 .hero__eyebrow {
   margin: 0 0 12px; font-size: 13px; font-weight: 600;
