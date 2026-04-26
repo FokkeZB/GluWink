@@ -176,11 +176,20 @@ The prompt **must** include:
 - **Build verification:** prefer the Xcode MCP `BuildProject` tool
   (requires Xcode open and a `tabIdentifier` from `XcodeListWindows`).
   Fallback if the MCP server is unavailable:
-  `xcodebuild -project iOS/App.xcodeproj -scheme App -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build`.
-  See AGENTS.md → "Xcode MCP Server" for the full tool table. **Note
-  the project is `iOS/App.xcodeproj` and the scheme is `App`** — the
-  product name is GluWink but the Xcode artifacts are deliberately
-  neutral (see AGENTS.md → "Renaming the App").
+  `xcodebuild -project iOS/App.xcodeproj -scheme App -derivedDataPath "$(mktemp -d)/dd" -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build`.
+  The `-derivedDataPath` is non-negotiable: DerivedData is keyed per
+  project-path, so every worktree shares the same `App-XXXXXX` entry
+  with the owner's main checkout. A bare `xcodebuild … build` here
+  writes an unsigned simulator-arch bundle into that shared entry,
+  and the next `make build` in the owner's checkout does an
+  incremental rebuild that inherits the stale unsigned metadata —
+  `devicectl install` then rejects it (issue #82). The MCP
+  `BuildProject` tool doesn't need this flag because it uses Xcode's
+  destination-appropriate DerivedData. See AGENTS.md → "Xcode MCP
+  Server" for the full tool table. **Note the project is
+  `iOS/App.xcodeproj` and the scheme is `App`** — the product name
+  is GluWink but the Xcode artifacts are deliberately neutral (see
+  AGENTS.md → "Renaming the App").
 - **PR readiness** (per AGENTS.md → "Draft vs ready"): if the work is
   verified (build clean, behaviour confirmed where possible), open the
   PR as **ready** —

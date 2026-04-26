@@ -72,6 +72,11 @@ When a view has many `.onChange(of:)` handlers that all call the same save funct
 
 ## Xcode / Build
 
+### Shared DerivedData can produce unsigned device builds
+DerivedData is keyed per project-path, so every worktree of `iOS/App.xcodeproj` shares the same `App-XXXXXX` entry with the main checkout. If a subagent (or anyone) runs `xcodebuild … build` against an iOS Simulator destination in a worktree, it writes an unsigned simulator-arch bundle into that shared entry. A subsequent `make build` in the owner's checkout targeting a real device then does an **incremental rebuild** — recompiles changed sources, copies the new code into the existing `App.app` bundle, but does not re-sign because nothing asked it to. `devicectl install` rejects the result with `0xe8008014 (The executable contains an invalid signature.)` even though `** BUILD SUCCEEDED **` just printed. Diagnosed on 2026-04-26 while deploying #77 (issue #82).
+
+Two guards in the repo today: `.claude/skills/plan-next/SKILL.md` dispatches subagents with `-derivedDataPath "$(mktemp -d)/dd"` so they can never touch the shared entry, and `make build` runs `clean build` by default so it's immune to any cross-contamination that does slip in. If you hit the invalid-signature error on an older worktree that ran before those landed, the one-shot fix is a manual `xcodebuild -project iOS/App.xcodeproj -scheme App -destination 'generic/platform=iOS' -configuration Debug clean build` in that worktree.
+
 ### fileSystemSynchronizedGroups
 Files must be physically inside the synced folder to auto-compile for that target. `ShieldContent.swift` lives in `App/` (auto-compiled for main app) but has manual target membership for ShieldConfig.
 
