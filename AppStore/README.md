@@ -85,15 +85,16 @@ Deliver every locale in the **same order** so screenshot #1 is always the same c
 | 3 | **Red shield (critical)** — red face, glucose at/above the critical threshold, check-in button hidden and the "shield cannot be dismissed until glucose drops below X" subtitle on-screen. Sells the no-disarm contract. |
 | 4 | **Home Screen widgets** — small + medium + large in a stack, mix of green and orange. |
 | 5 | **Settings** — parent / main-app chrome: Attention Rules, Shielding On, data sources, glucose unit. |
-| 6 | **Apple Watch + complications** — watch face with glucose + carbs complications, plus the Watch app. |
 | 7 | **Setup checklist** — Apple Health + Nightscout + demo data choices. |
 
-### Apple Watch scenes (45mm)
+### Apple Watch scenes (45mm, 396×484 px)
 
-| # | Concept |
-|---|---|
-| 1 | Watch app — green status, glucose + carbs. |
-| 2 | Smart Stack / complication selection. |
+Scene `06` is split across two captures because one half is manual: Apple provides no API to render a complete watch face with complications, so the face shot is a real hand capture (device preferred; 45mm simulator acceptable) while the app-UI shot is driven by `WatchScreenshotHarness`. Both land in the same flat locale folder as the iPhone PNGs — `fastlane deliver` buckets by pixel dimensions, not subfolders, so 396×484 PNGs route to the Apple Watch Series 7 45mm tier automatically.
+
+| # | Concept | Captured how |
+|---|---|---|
+| 06 | **Apple Watch face + complications** — glucose + carb complications visible on the wearer's preferred face. Sells "on every watch face". | **Manual.** Owner commits `06_watchFace.png` to `iOS/fastlane/screenshots/<locale>/` and `docs/assets/screenshots/<locale>/`. One per locale. |
+| 07 | **Apple Watch app** — green status, glucose + carbs, "Xm ago" relative timestamps. | Auto — `make appstore-screenshots` runs the `watchApp` scene on the 45mm watchOS simulator. |
 
 ### Captions
 
@@ -101,10 +102,11 @@ Captions for each scene live in the per-locale file under **Screenshot captions*
 
 ### Production checklist
 
-- [ ] Run `make appstore-screenshots` to render the iPhone deck (scenes 1–5, 7) from the Simulator — the in-app `ScreenshotHarness` renders marketing-equivalent shield, widget, and settings scenes without needing the live Screen Time UI, and bakes the per-locale caption straight into the PNG. Scene 6 (Apple Watch) is still manual until the Watch path is wired. See `.claude/skills/appstore-screenshots/SKILL.md` for scene-level flags and locale filters.
-- [ ] Status bar is locked to 9:41, full signal, full battery by the capture script — no extra `xcrun simctl status_bar` commands needed.
-- [ ] Avoid real names, school logos, or other identifying information in widget previews.
-- [ ] Keep the green/red faces consistent with the app icon variants in `iOS/App/Assets.xcassets/`.
+- [ ] Run `make appstore-screenshots` to render the iPhone deck (scenes 01–05, 07_setupChecklist) + the Apple Watch app UI (`07_watchApp`) from the simulators. The in-app `ScreenshotHarness` / `WatchScreenshotHarness` render marketing-equivalent shield, widget, settings, and watch-app scenes without needing the live Screen Time or HealthKit UI, and bake the per-locale caption into the iPhone PNGs (Watch shots have no caption banner — screen too small). See `.claude/skills/appstore-screenshots/SKILL.md` for scene-level flags and locale filters.
+- [ ] Capture `06_watchFace.png` manually for every locale and commit alongside the auto-captured PNGs in `iOS/fastlane/screenshots/<locale>/` (see SKILL.md → "Manual shots" for resolution + complication requirements). Without it, the Watch deck on App Store Connect ships with only one shot, which is legal but undersells the integration.
+- [ ] Status bar on iPhone shots is locked to 9:41, full signal, full battery by the capture script — no extra `xcrun simctl status_bar` commands needed. Watch shots don't have an iOS status bar to override.
+- [ ] Avoid real names, school logos, or other identifying information in widget previews or the watch face.
+- [ ] Keep the green/red faces consistent with the app icon variants in `iOS/App/Assets.xcassets/` and `iOS/WatchApp/Assets.xcassets/`.
 
 ---
 
@@ -211,7 +213,7 @@ What is **not** pushed via fastlane (still managed in App Store Connect by hand)
 - Category, age rating, App Privacy answers — set once, kept in this README.
 - The build itself — `make appstore-beta` uploads it to TestFlight (see the "Releasing a TestFlight build" section below). `make appstore-push` stays text-only via `skip_binary_upload true` in `Deliverfile`, so it's safe to re-run without touching the binary.
 
-Screenshots _are_ pushed by `make appstore-push` now (captions baked in, `skip_screenshots false` in `Deliverfile`). Regenerate with `make appstore-screenshots` first so ASC gets the latest deck.
+Screenshots _are_ pushed by `make appstore-push` now (captions baked in on iPhone, `skip_screenshots false` in `Deliverfile`). The push ships **both** iPhone 6.9" (1320×2868 px) and Apple Watch 45mm (396×484 px) decks in one sweep — fastlane routes each PNG to its display tier based on pixel dimensions, so they coexist in the flat `iOS/fastlane/screenshots/<locale>/` folder. Regenerate the auto-captured shots with `make appstore-screenshots` first so ASC gets the latest deck; the manual `06_watchFace.png` stays on disk across runs and is picked up alongside.
 
 ### Adding a new locale
 

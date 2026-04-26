@@ -1,6 +1,9 @@
 {%- comment -%}
-  Hero carousel: floating brand app icon + iPhone frame containing a
-  4-slide auto-rotating gallery, with dot pager beneath the phone.
+  Hero carousel: floating brand app icon + a 7-slide auto-rotating gallery
+  with dot pager beneath. Each slide carries its own device frame (iPhone
+  or Apple Watch) so the carousel can mix form factors — five iPhone slides
+  (shield states, widgets, settings) followed by two Apple Watch slides
+  (complications in context, WatchApp UI).
   Driven by /assets/js/hero-carousel.js (data-carousel attribute).
 {%- endcomment -%}
 {%- assign t = page.lang | default: "en" -%}
@@ -11,45 +14,81 @@
      role="group" aria-roledescription="carousel" aria-label="{{ data.screenshots.title }}">
   <img class="hero__app-icon" src="{{ '/assets/icons/iOS.png' | relative_url }}" alt=""
        width="160" height="160" loading="eager" fetchpriority="high" decoding="async">
-  <figure class="iphone iphone--xl">
-    <div class="iphone__screen">
-      <ul class="hero-carousel__slides">
-        {%- comment -%}
-          Slide 1 paints with a real `src` so the browser can fetch it
-          immediately (paired with the `<link rel=preload>` in head.html);
-          this is the LCP element.
+  <ul class="hero-carousel__slides">
+    {%- comment -%}
+      Slide 1 paints with a real `src` so the browser can fetch it
+      immediately (paired with the `<link rel=preload>` in head.html);
+      this is the LCP element.
 
-          Slides 2-4 use `data-src` and have NO `src` attribute, so the
-          browser doesn't fetch them during initial parse. The carousel JS
-          hydrates each one on demand the first time it's about to be
-          shown (and pre-warms the next one), keeping ~1 MiB of PNG out
-          of the LCP critical path. Width/height are still set so the
-          slot reserves layout space and there's no CLS when the swap
-          happens.
-        {%- endcomment -%}
-        <li class="hero-carousel__slide is-active" data-slide aria-hidden="false">
+      Slides 2-7 use `data-src` and have NO `src` attribute, so the
+      browser doesn't fetch them during initial parse. The carousel JS
+      hydrates each one on demand the first time it's about to be
+      shown (and pre-warms the next one), keeping ~1 MiB of PNG out
+      of the LCP critical path. Width/height are still set so the
+      slot reserves layout space and there's no CLS when the swap
+      happens.
+
+      Each <li> wraps its image in either an `.iphone` or `.watch` figure.
+      The carousel JS toggles slide visibility via `is-active`; it doesn't
+      care which frame shape is inside.
+    {%- endcomment -%}
+    <li class="hero-carousel__slide is-active" data-slide aria-hidden="false">
+      <figure class="iphone iphone--xl">
+        <div class="iphone__screen">
           <img src="{{ base | append: '01_greenShield.png' | relative_url }}" alt="{{ data.screenshots.alt.green }}" width="320" height="694" loading="eager" fetchpriority="high" decoding="async">
-        </li>
-        <li class="hero-carousel__slide" data-slide aria-hidden="true">
+        </div>
+      </figure>
+    </li>
+    <li class="hero-carousel__slide" data-slide aria-hidden="true">
+      <figure class="iphone iphone--xl">
+        <div class="iphone__screen">
           <img data-src="{{ base | append: '02_orangeShield.png' | relative_url }}" alt="{{ data.screenshots.alt.orange }}" width="320" height="694" decoding="async">
-        </li>
-        <li class="hero-carousel__slide" data-slide aria-hidden="true">
+        </div>
+      </figure>
+    </li>
+    <li class="hero-carousel__slide" data-slide aria-hidden="true">
+      <figure class="iphone iphone--xl">
+        <div class="iphone__screen">
           <img data-src="{{ base | append: '03_redShield.png' | relative_url }}" alt="{{ data.screenshots.alt.red }}" width="320" height="694" decoding="async">
-        </li>
-        <li class="hero-carousel__slide" data-slide aria-hidden="true">
+        </div>
+      </figure>
+    </li>
+    <li class="hero-carousel__slide" data-slide aria-hidden="true">
+      <figure class="iphone iphone--xl">
+        <div class="iphone__screen">
           <img data-src="{{ base | append: '04_widgets.png' | relative_url }}" alt="{{ data.screenshots.alt.widgets }}" width="320" height="694" decoding="async">
-        </li>
-        <li class="hero-carousel__slide" data-slide aria-hidden="true">
+        </div>
+      </figure>
+    </li>
+    <li class="hero-carousel__slide" data-slide aria-hidden="true">
+      <figure class="iphone iphone--xl">
+        <div class="iphone__screen">
           <img data-src="{{ base | append: '05_settings.png' | relative_url }}" alt="{{ data.screenshots.alt.settings }}" width="320" height="694" decoding="async">
-        </li>
-      </ul>
-    </div>
-  </figure>
+        </div>
+      </figure>
+    </li>
+    <li class="hero-carousel__slide" data-slide aria-hidden="true">
+      <figure class="watch watch--xl">
+        <div class="watch__screen">
+          <img data-src="{{ base | append: '06_watchFace.png' | relative_url }}" alt="{{ data.screenshots.alt.watchFace }}" width="198" height="242" decoding="async">
+        </div>
+      </figure>
+    </li>
+    <li class="hero-carousel__slide" data-slide aria-hidden="true">
+      <figure class="watch watch--xl">
+        <div class="watch__screen">
+          <img data-src="{{ base | append: '07_watchApp.png' | relative_url }}" alt="{{ data.screenshots.alt.watchApp }}" width="198" height="242" decoding="async">
+        </div>
+      </figure>
+    </li>
+  </ul>
   <div class="hero-carousel__dots" aria-label="Choose screenshot">
     <button type="button" data-slide-to="0" aria-current="true"  aria-label="{{ data.screenshots.alt.green }}"></button>
     <button type="button" data-slide-to="1" aria-current="false" aria-label="{{ data.screenshots.alt.orange }}"></button>
     <button type="button" data-slide-to="2" aria-current="false" aria-label="{{ data.screenshots.alt.red }}"></button>
     <button type="button" data-slide-to="3" aria-current="false" aria-label="{{ data.screenshots.alt.widgets }}"></button>
     <button type="button" data-slide-to="4" aria-current="false" aria-label="{{ data.screenshots.alt.settings }}"></button>
+    <button type="button" data-slide-to="5" aria-current="false" aria-label="{{ data.screenshots.alt.watchFace }}"></button>
+    <button type="button" data-slide-to="6" aria-current="false" aria-label="{{ data.screenshots.alt.watchApp }}"></button>
   </div>
 </div>

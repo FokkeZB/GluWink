@@ -176,33 +176,36 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
   gap: 18px;
   outline: none;
 }
-/* Show keyboard focus on the phone bezel rather than the wrap so the
-   focus ring reads as "you're driving the carousel now". */
-.hero-carousel:focus-visible .iphone {
+/* Show keyboard focus on the device bezel rather than the wrap so the
+   focus ring reads as "you're driving the carousel now". Matches whichever
+   frame (iPhone or Watch) is active in the current slide. */
+.hero-carousel:focus-visible .is-active .iphone,
+.hero-carousel:focus-visible .is-active .watch {
   outline: 3px solid var(--brand);
   outline-offset: 6px;
 }
+/* CSS Grid stacks every slide into the same cell. The grid cell auto-sizes
+   to the tallest child — the iPhone frame — so the carousel keeps a stable
+   height even when a Watch slide (smaller frame) is active, and Watch
+   slides center themselves vertically within the iPhone's footprint. */
 .hero-carousel__slides {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  display: grid;
+  grid-template-areas: "slide";
   margin: 0;
   padding: 0;
   list-style: none;
+  width: 100%;
 }
 .hero-carousel__slide {
-  position: absolute;
-  inset: 0;
+  grid-area: slide;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0;
   transition: opacity 500ms ease;
+  pointer-events: none;
 }
-.hero-carousel__slide.is-active { opacity: 1; }
-.hero-carousel__slide img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.hero-carousel__slide.is-active { opacity: 1; pointer-events: auto; }
 @media (prefers-reduced-motion: reduce) {
   .hero-carousel__slide { transition: none; }
 }
@@ -420,6 +423,64 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
 .iphone--xl { --iphone-w: 300px; --iphone-bezel: 13px; --iphone-radius: 42px; }
 @media (min-width: 760px)  { .iphone--xl { --iphone-w: 340px; --iphone-bezel: 14px; --iphone-radius: 46px; } }
 @media (min-width: 1024px) { .iphone--xl { --iphone-w: 380px; --iphone-bezel: 16px; --iphone-radius: 50px; } }
+
+/* Apple Watch frame — pure CSS, no images. Matches the .iphone approach
+   but sized to an Apple Watch 45mm (Series 10/11 45mm → 396x484 px screen,
+   aspect 0.818). The ::after pseudo-element draws the digital crown nub on
+   the right edge. Width target lands narrower than the iPhone so the Watch
+   reads as the Watch mid-carousel instead of a tiny phone. */
+.watch {
+  --watch-w: 180px;
+  --watch-bezel: 10px;
+  --watch-radius: 34px;
+  --watch-crown-w: 6px;
+  --watch-crown-h: 22px;
+  position: relative;
+  width: var(--watch-w);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: var(--watch-bezel);
+  border-radius: var(--watch-radius);
+  background: linear-gradient(170deg, #2a2b30 0%, #15161a 55%, #0c0d10 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 1px 0 0 rgba(255, 255, 255, 0.05),
+    0 30px 60px -28px rgba(15, 17, 21, 0.45),
+    0 18px 30px -18px rgba(15, 17, 21, 0.30);
+}
+.watch::after {
+  content: "";
+  position: absolute;
+  top: calc(40% - var(--watch-crown-h) / 2);
+  right: calc(var(--watch-crown-w) * -1);
+  width: var(--watch-crown-w);
+  height: var(--watch-crown-h);
+  border-radius: calc(var(--watch-crown-w) / 2);
+  background: linear-gradient(90deg, #3a3b40 0%, #222327 50%, #0f1013 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.watch__screen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 396 / 484;
+  border-radius: calc(var(--watch-radius) - var(--watch-bezel) + 2px);
+  overflow: hidden;
+  background: #000;
+}
+.watch__screen img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Hero variant, scaled up alongside .iphone--xl so the Watch reads as ~65%
+   of the iPhone width across breakpoints (Watch is a secondary surface but
+   should still feel substantial in the hero). */
+.watch--xl { --watch-w: 190px; --watch-bezel: 11px; --watch-radius: 36px; --watch-crown-w: 7px; --watch-crown-h: 24px; }
+@media (min-width: 760px)  { .watch--xl { --watch-w: 220px; --watch-bezel: 12px; --watch-radius: 40px; --watch-crown-w: 8px; --watch-crown-h: 26px; } }
+@media (min-width: 1024px) { .watch--xl { --watch-w: 250px; --watch-bezel: 14px; --watch-radius: 44px; --watch-crown-w: 9px; --watch-crown-h: 30px; } }
 
 /* Disclaimer */
 .disclaimer {
