@@ -42,11 +42,17 @@ cursor-perms-sync:
 
 .PHONY: build install deploy tunneld screenshot venv-clean
 
-## Build debug configuration (fallback — prefer Xcode MCP BuildProject)
+## Build debug configuration (fallback — prefer Xcode MCP BuildProject).
+## Runs `clean build` rather than a bare `build` so we can never inherit a
+## stale, unsigned, simulator-arch bundle from an earlier verification run
+## that wrote into the shared DerivedData entry (see QUIRKS.md → "Shared
+## DerivedData can produce unsigned device builds"). Costs ~30s vs a ~5s
+## no-op incremental — acceptable because this is the fallback path; the
+## inner loop is the Xcode MCP BuildProject tool.
 build:
 	xcodebuild -project $(XCODE_PROJECT) -scheme $(SCHEME) \
 		-destination 'generic/platform=iOS' \
-		-configuration Debug build
+		-configuration Debug clean build
 
 ## Install the last build on the connected iPhone
 install:
