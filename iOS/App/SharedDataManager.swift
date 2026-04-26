@@ -74,40 +74,29 @@ final class SharedDataManager {
     /// green/orange/red variants (`AppIcon-Green`, `AppIcon-Orange`, `AppIcon-Red`) are only used by
     /// surfaces we can pick at render time (shield UI, in-app screens, future
     /// notification attachments).
+    ///
+    /// Attention is computed by delegating to `ShieldContent` so the badge,
+    /// the shield extension, the widgets, and the home screen agree on the
+    /// ladder. Duplicate ladders previously drifted (e.g. "no carb data ever"
+    /// was attention in `ShieldContent` but not in the badge).
     @MainActor
     func refreshAttentionBadge() {
-        let glucose = defaults?.double(forKey: "currentGlucose") ?? 0
-        let glucoseDate = defaults?.string(forKey: "glucoseFetchedAt")
-            .flatMap { ISO8601DateFormatter().date(from: $0) }
-        let carbDate = defaults?.string(forKey: "lastCarbEntryAt")
-            .flatMap { ISO8601DateFormatter().date(from: $0) }
-
-        let highThreshold = effectiveHighGlucoseThreshold
-        let lowThreshold = effectiveLowGlucoseThreshold
-        let staleMinutes = effectiveGlucoseStaleMinutes
-        let carbGraceHour = effectiveCarbGraceHour
-        let carbGraceMinute = effectiveCarbGraceMinute
-
-        let now = Date()
-        let cal = Calendar.current
-        let currentHour = cal.component(.hour, from: now)
-        let currentMin = cal.component(.minute, from: now)
-        let isMorningGrace = currentHour < carbGraceHour
-            || (currentHour == carbGraceHour && currentMin < carbGraceMinute)
-
-        var needsAttention = false
-        if glucose > 0, let gDate = glucoseDate {
-            let minutesAgo = Int(now.timeIntervalSince(gDate) / 60)
-            if glucose < lowThreshold || glucose > highThreshold { needsAttention = true }
-            if minutesAgo > staleMinutes { needsAttention = true }
-        } else {
-            needsAttention = true
-        }
-        if !isMorningGrace, let cDate = carbDate, now.timeIntervalSince(cDate) / 3600 > 4 {
-            needsAttention = true
-        }
-
-        updateBadge(glucose: glucose, needsAttention: needsAttention)
+        let glucose = currentGlucose ?? 0
+        let content = ShieldContent(
+            glucose: glucose,
+            glucoseFetchedAt: glucoseFetchedAt,
+            lastCarbGrams: lastCarbGrams,
+            lastCarbEntryAt: lastCarbEntryAt,
+            highGlucoseThreshold: effectiveHighGlucoseThreshold,
+            lowGlucoseThreshold: effectiveLowGlucoseThreshold,
+            criticalGlucoseThreshold: effectiveCriticalGlucoseThreshold,
+            glucoseStaleMinutes: effectiveGlucoseStaleMinutes,
+            carbGraceHour: effectiveCarbGraceHour,
+            carbGraceMinute: effectiveCarbGraceMinute,
+            glucoseUnit: glucoseUnit,
+            strings: ShieldContent.Strings.fromPackage()
+        )
+        updateBadge(glucose: glucose, needsAttention: content.needsAttention)
     }
 
     @MainActor

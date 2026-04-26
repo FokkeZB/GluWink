@@ -124,13 +124,17 @@ final class HealthKitManager {
                 SharedDataManager.shared.saveGlucose(mmol: mmol, at: sample.startDate)
                 SharedDataManager.shared.markHealthKitDelivered()
                 logger.info("Glucose updated: \(String(format: "%.1f", mmol)) mmol/L")
-                SharedDataManager.shared.refreshAttentionBadge()
                 ShieldManager.shared.reevaluateShields()
                 WidgetCenter.shared.reloadAllTimelines()
             }
         } catch {
             logger.error("Failed to fetch glucose: \(error.localizedDescription)")
         }
+
+        // Reconcile the badge unconditionally — a sample-free observer wake
+        // (no new data, denied read access) still means time has passed, so
+        // stale/carb-gap transitions must be re-evaluated or the badge drifts.
+        await SharedDataManager.shared.refreshAttentionBadge()
 
         // Piggyback: when HealthKit wakes us up (including background delivery),
         // also poll Nightscout so the two sources stay aligned. "Save if newer"
@@ -157,13 +161,14 @@ final class HealthKitManager {
                 SharedDataManager.shared.saveCarbs(grams: grams, at: sample.startDate)
                 SharedDataManager.shared.markHealthKitDelivered()
                 logger.info("Carbs updated: \(String(format: "%.0f", grams))g")
-                SharedDataManager.shared.refreshAttentionBadge()
                 ShieldManager.shared.reevaluateShields()
                 WidgetCenter.shared.reloadAllTimelines()
             }
         } catch {
             logger.error("Failed to fetch carbs: \(error.localizedDescription)")
         }
+
+        await SharedDataManager.shared.refreshAttentionBadge()
 
         await NightscoutManager.shared.fetchAll()
     }

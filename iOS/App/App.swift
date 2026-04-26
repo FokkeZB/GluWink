@@ -117,11 +117,18 @@ struct MainApp: App {
                         }
                     }
 
+                    // Reconcile the badge once startup settles. The HK and
+                    // Nightscout fetches above each refresh it on success, but
+                    // a denied / dataless install takes neither branch and
+                    // would otherwise launch with a stale badge inherited
+                    // from the previous session.
+                    await SharedDataManager.shared.refreshAttentionBadge()
+
                     WatchSessionManager.shared.sendLatestContext()
                 }
                 .onChange(of: scenePhase) {
                     if scenePhase == .active {
-                        Task {
+                        Task { @MainActor in
                             if HKHealthStore().authorizationStatus(for: HKQuantityType(.bloodGlucose)) != .notDetermined {
                                 await HealthKitManager.shared.fetchLatestGlucose()
                                 await HealthKitManager.shared.fetchLatestCarbs()
@@ -129,6 +136,12 @@ struct MainApp: App {
                             if SharedDataManager.shared.nightscoutEnabled {
                                 await NightscoutManager.shared.fetchAll()
                             }
+                            // Always reconcile on foreground — staleness and
+                            // carb-grace transitions cross thresholds on
+                            // wall-clock time alone, with no fetch event to
+                            // ride. Without this the badge only updates on
+                            // actual data changes.
+                            SharedDataManager.shared.refreshAttentionBadge()
                         }
                     } else if scenePhase == .background {
                         if SharedDataManager.shared.nightscoutEnabled {

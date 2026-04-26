@@ -1,6 +1,7 @@
 import FamilyControls
 import SharedKit
 import SwiftUI
+import UserNotifications
 import WidgetKit
 
 // MARK: - Shared defaults
@@ -76,6 +77,12 @@ struct SettingsView: View {
                             SharedDataManager.shared.glucoseUnit = newValue
                             SharedDataManager.shared.flush()
                             WidgetCenter.shared.reloadAllTimelines()
+                            // The badge renders the glucose number in the
+                            // display unit, so a unit flip must re-run the
+                            // badge recompute — otherwise `.always` mode
+                            // keeps showing the value in the old unit until
+                            // the next fetch.
+                            SharedDataManager.shared.refreshAttentionBadge()
                         }
                     )) {
                         Text("mmol/L").tag(GlucoseUnit.mmolL)
@@ -212,9 +219,33 @@ struct SettingsView: View {
             }
             .onChange(of: badgeMode) {
                 SharedDataManager.shared.glucoseBadgeMode = badgeMode
-                SharedDataManager.shared.refreshAttentionBadge()
+                // `setBadgeCount` silently no-ops without notification auth,
+                // so a user who picks a non-`.off` mode here without having
+                // done the setup-checklist prompt would see no badge at all.
+                // Request auth inline; iOS surfaces its own system sheet
+                // and remembers prior answers, so re-prompting is cheap.
+                if badgeMode != .off {
+                    Task { @MainActor in
+                        await Self.ensureBadgeAuthorization()
+                        SharedDataManager.shared.refreshAttentionBadge()
+                    }
+                } else {
+                    SharedDataManager.shared.refreshAttentionBadge()
+                }
             }
         }
+    }
+
+    /// Request notification authorization with the badge bit if the user
+    /// hasn't been prompted yet. No-op once the user has made a choice
+    /// (granted or denied) — iOS no longer shows the sheet after the
+    /// first response, so re-asking is harmless but also pointless.
+    @MainActor
+    private static func ensureBadgeAuthorization() async {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+        guard settings.authorizationStatus == .notDetermined else { return }
+        _ = try? await center.requestAuthorization(options: [.alert, .badge, .sound])
     }
 }
 
