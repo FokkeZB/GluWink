@@ -1,62 +1,64 @@
 import HealthKit
+import SharedKit
 import SwiftUI
 import UIKit
 
 struct HealthKitSettingsView: View {
-    @State private var authorizationStatus: HKAuthorizationStatus
+    @State private var enabled: Bool
     @State private var isRequesting = false
-
-    private let store = HKHealthStore()
-    private let glucoseType = HKQuantityType(.bloodGlucose)
+    @State private var latestGlucose: GlucoseReading?
+    @State private var latestCarbs: CarbsReading?
 
     init() {
-        _authorizationStatus = State(
-            initialValue: HKHealthStore().authorizationStatus(for: HKQuantityType(.bloodGlucose))
-        )
-    }
-
-    /// `HKHealthStore.authorizationStatus(for:)` reports `.notDetermined`
-    /// reliably (we've never prompted), but for read-only requests returns
-    /// `.sharingDenied` as a privacy mask regardless of whether the user
-    /// actually granted read access. We can only tell "have we asked" vs
-    /// "haven't asked yet" — never "is it currently granted".
-    private var hasRequested: Bool {
-        authorizationStatus != .notDetermined
+        let data = SharedDataManager.shared
+        _enabled = State(initialValue: data.healthKitEnabled)
+        _latestGlucose = State(initialValue: data.glucoseReading(source: .healthKit))
+        _latestCarbs = State(initialValue: data.carbsReading(source: .healthKit))
     }
 
     var body: some View {
         List {
             Section {
                 HStack {
-                    Label(String(localized: "healthkit.settings.statusLabel"), systemImage: "heart.text.square")
-                    Spacer()
-                    Text(statusText)
-                        .foregroundStyle(.secondary)
+                    Toggle(String(localized: "healthkit.settings.enabledToggle"), isOn: Binding(
+                        get: { enabled },
+                        set: { newValue in
+                            if newValue {
+                                Task { await enable() }
+                            } else {
+                                Task { await disable() }
+                            }
+                        }
+                    ))
+                    .disabled(isRequesting)
+                    if isRequesting {
+                        ProgressView()
+                    }
                 }
-            } header: {
-                Text("healthkit.settings.statusHeader", tableName: "Localizable")
             } footer: {
-                Text(hasRequested
-                    ? String(localized: "healthkit.settings.statusFooterRequested")
-                    : String(localized: "healthkit.settings.statusFooterNotDetermined"))
+                Text("healthkit.settings.enabledFooter", tableName: "Localizable")
             }
 
             Section {
-                if !hasRequested {
-                    Button {
-                        Task { await requestAuthorization() }
-                    } label: {
-                        HStack {
-                            Label(String(localized: "healthkit.settings.requestButton"), systemImage: "heart.fill")
-                            Spacer()
-                            if isRequesting {
-                                ProgressView()
-                            }
-                        }
-                    }
-                    .disabled(isRequesting)
-                }
+                latestSampleRow(
+                    label: String(localized: "healthkit.settings.latestGlucose"),
+                    value: latestGlucose.map { SharedDataManager.shared.glucoseUnit.formattedWithUnit($0.mmol) },
+                    at: latestGlucose?.sampleAt,
+                    emptyMessage: String(localized: "healthkit.settings.noGlucoseYet")
+                )
+                latestSampleRow(
+                    label: String(localized: "healthkit.settings.latestCarbs"),
+                    value: latestCarbs.map { "\(Int($0.grams)) g" },
+                    at: latestCarbs?.sampleAt,
+                    emptyMessage: String(localized: "healthkit.settings.noCarbsYet")
+                )
+            } header: {
+                Text("healthkit.settings.latestDataHeader", tableName: "Localizable")
+            } footer: {
+                Text("healthkit.settings.statusFooterRequested", tableName: "Localizable")
+            }
 
+            Section {
                 Button {
                     openHealthApp()
                 } label: {
@@ -68,30 +70,72 @@ struct HealthKitSettingsView: View {
         }
         .navigationTitle(String(localized: "healthkit.settings.title"))
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { refreshStatus() }
+        .task {
+            // Refresh every 5 s so a HealthKit observer fire in the
+            // background shows up here without forcing the user to
+            // leave and re-enter the screen. Mirrors Nightscout's
+            // settings screen refresh loop.
+            while !Task.isCancelled {
+                refreshLatestSamples()
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+            }
+        }
     }
 
-    private var statusText: String {
-        hasRequested
-            ? String(localized: "healthkit.settings.statusRequested")
-            : String(localized: "healthkit.settings.statusNotConnected")
+    private func refreshLatestSamples() {
+        let data = SharedDataManager.shared
+        enabled = data.healthKitEnabled
+        latestGlucose = data.glucoseReading(source: .healthKit)
+        latestCarbs = data.carbsReading(source: .healthKit)
     }
 
-    private func refreshStatus() {
-        authorizationStatus = store.authorizationStatus(for: glucoseType)
+    /// Shared layout for "Latest data" rows — same shape as Nightscout's
+    /// settings screen uses so the two per-source screens feel
+    /// symmetrical.
+    @ViewBuilder
+    private func latestSampleRow(label: String, value: String?, at: Date?, emptyMessage: String) -> some View {
+        if let value, let at {
+            HStack(alignment: .firstTextBaseline) {
+                Text(label)
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(value)
+                        .monospacedDigit()
+                    Text(at, style: .relative)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } else {
+            HStack {
+                Text(label)
+                Spacer()
+                Text(emptyMessage)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 
     @MainActor
-    private func requestAuthorization() async {
+    private func enable() async {
         isRequesting = true
         defer { isRequesting = false }
+        await HealthKitManager.shared.enable()
+        enabled = SharedDataManager.shared.healthKitEnabled
+        refreshLatestSamples()
+    }
 
-        await HealthKitManager.shared.requestAuthorization()
-        await HealthKitManager.shared.enableBackgroundDelivery()
-        HealthKitManager.shared.startObserving()
-        await HealthKitManager.shared.fetchLatestGlucose()
-        await HealthKitManager.shared.fetchLatestCarbs()
-        refreshStatus()
+    @MainActor
+    private func disable() async {
+        isRequesting = true
+        defer { isRequesting = false }
+        await HealthKitManager.shared.disable()
+        enabled = SharedDataManager.shared.healthKitEnabled
+        // After disabling, shielding may need to come down if HK was
+        // the last remaining source. Mirrors Nightscout/Demo disable
+        // paths.
+        ShieldManager.shared.disableIfNoDataSource()
+        refreshLatestSamples()
     }
 
     private func openHealthApp() {

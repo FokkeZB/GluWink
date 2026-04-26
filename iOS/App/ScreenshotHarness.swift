@@ -232,22 +232,27 @@ extension ScreenshotHarness {
 
         guard let defaults = UserDefaults(suiteName: Constants.appGroupID) else { return }
 
+        // Per-source storage (issue #83): seed fixture data into the
+        // Demo bucket and flip `mockModeEnabled` on so the unified
+        // reader picks it up. This keeps every surface (home, widgets,
+        // watch, shield) reading from the same source of truth without
+        // racing against a real HK/Nightscout fetch during a capture.
         if preset.hasGlucoseData {
             let glucoseDate = Date().addingTimeInterval(-preset.glucoseMinutesAgo * 60)
-            defaults.set(preset.glucose, forKey: "currentGlucose")
-            defaults.set(glucoseDate.ISO8601Format(), forKey: "glucoseFetchedAt")
+            defaults.set(preset.glucose, forKey: UnifiedDataReader.glucoseValueKey(for: .demo))
+            defaults.set(glucoseDate.ISO8601Format(), forKey: UnifiedDataReader.glucoseDateKey(for: .demo))
         } else {
-            defaults.removeObject(forKey: "currentGlucose")
-            defaults.removeObject(forKey: "glucoseFetchedAt")
+            defaults.removeObject(forKey: UnifiedDataReader.glucoseValueKey(for: .demo))
+            defaults.removeObject(forKey: UnifiedDataReader.glucoseDateKey(for: .demo))
         }
 
         if preset.hasCarbData {
             let carbDate = Date().addingTimeInterval(-preset.carbMinutesAgo * 60)
-            defaults.set(preset.carbGrams, forKey: "lastCarbGrams")
-            defaults.set(carbDate.ISO8601Format(), forKey: "lastCarbEntryAt")
+            defaults.set(preset.carbGrams, forKey: UnifiedDataReader.carbsValueKey(for: .demo))
+            defaults.set(carbDate.ISO8601Format(), forKey: UnifiedDataReader.carbsDateKey(for: .demo))
         } else {
-            defaults.removeObject(forKey: "lastCarbGrams")
-            defaults.removeObject(forKey: "lastCarbEntryAt")
+            defaults.removeObject(forKey: UnifiedDataReader.carbsValueKey(for: .demo))
+            defaults.removeObject(forKey: UnifiedDataReader.carbsDateKey(for: .demo))
         }
 
         // Reset "data source / shielding configured" flags on every run
@@ -261,9 +266,13 @@ extension ScreenshotHarness {
         // first" subtitles don't sell the app, so for the settings scene
         // we stamp everything as "active, configured".
         let configured = (scene == .settings)
-        defaults.set(configured, forKey: "mockModeEnabled")
+        // All scenes that seed data also enable Demo mode so the unified
+        // reader surfaces the seeded values. The settings scene also wants
+        // HK + shielding switched on so the rows render as "configured".
+        let needsSeededData = preset.hasGlucoseData || preset.hasCarbData
+        defaults.set(configured || needsSeededData, forKey: DataSourceKeys.mockModeEnabled)
         defaults.set(configured, forKey: "shieldingEnabled")
-        defaults.set(configured, forKey: "healthKitEverDelivered")
+        defaults.set(configured, forKey: DataSourceKeys.healthKitEnabled)
 
         // Pin the display unit per locale so en-US reads as mg/dL.
         defaults.set(glucoseUnit.rawValue, forKey: "glucoseUnit")

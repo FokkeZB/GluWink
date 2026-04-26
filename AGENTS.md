@@ -306,10 +306,21 @@ Stored keys:
 
 | Key | Type | Written by | Read by |
 |-----|------|-----------|---------|
-| `currentGlucose` | Double (mmol/L) | Main app (HealthKit) or Watch app (HealthKit) | ShieldConfig, WatchWidget |
-| `glucoseFetchedAt` | Date (ISO 8601) | Main app (HealthKit) or Watch app (HealthKit) | ShieldConfig, WatchWidget |
-| `lastCarbEntryGrams` | Double | Main app (HealthKit) or Watch app (HealthKit) | ShieldConfig, WatchWidget |
-| `lastCarbEntryAt` | Date (ISO 8601) | Main app (HealthKit) or Watch app (HealthKit) | ShieldConfig, WatchWidget |
+| `healthKitGlucose` | Double (mmol/L) | Main app (HealthKitManager) | `SharedKit.UnifiedDataReader` |
+| `healthKitGlucoseSampleAt` | Date (ISO 8601) | Main app (HealthKitManager) | `SharedKit.UnifiedDataReader` |
+| `healthKitCarbs` | Double | Main app (HealthKitManager) | `SharedKit.UnifiedDataReader` |
+| `healthKitCarbsSampleAt` | Date (ISO 8601) | Main app (HealthKitManager) | `SharedKit.UnifiedDataReader` |
+| `nightscoutGlucose` | Double (mmol/L) | Main app (NightscoutManager), StatusWidget (WidgetNightscoutRefresh) | `SharedKit.UnifiedDataReader` |
+| `nightscoutGlucoseSampleAt` | Date (ISO 8601) | Main app (NightscoutManager), StatusWidget (WidgetNightscoutRefresh) | `SharedKit.UnifiedDataReader` |
+| `nightscoutCarbs` | Double | Main app (NightscoutManager), StatusWidget (WidgetNightscoutRefresh) | `SharedKit.UnifiedDataReader` |
+| `nightscoutCarbsSampleAt` | Date (ISO 8601) | Main app (NightscoutManager), StatusWidget (WidgetNightscoutRefresh) | `SharedKit.UnifiedDataReader` |
+| `demoGlucose` | Double (mmol/L) | Main app (MockDataSettingsView, ScreenshotHarness) | `SharedKit.UnifiedDataReader` |
+| `demoGlucoseSampleAt` | Date (ISO 8601) | Main app (MockDataSettingsView, ScreenshotHarness) | `SharedKit.UnifiedDataReader` |
+| `demoCarbs` | Double | Main app (MockDataSettingsView, ScreenshotHarness) | `SharedKit.UnifiedDataReader` |
+| `demoCarbsSampleAt` | Date (ISO 8601) | Main app (MockDataSettingsView, ScreenshotHarness) | `SharedKit.UnifiedDataReader` |
+| `healthKitEnabled` | Bool | Main app (HealthKitSettingsView toggle via `HealthKitManager.enable/disable`) | `SharedKit.UnifiedDataReader`, `SharedDataManager.hasAnyDataSource` |
+| `nightscoutEnabled` | Bool | Main app (NightscoutSettingsView toggle) | `SharedKit.UnifiedDataReader`, `SharedDataManager.hasAnyDataSource`, `WidgetNightscoutRefresh` |
+| `mockModeEnabled` | Bool | Main app (MockDataSettingsView toggle, ScreenshotHarness) | `SharedKit.UnifiedDataReader`, `SharedDataManager.hasAnyDataSource`, `WidgetNightscoutRefresh` |
 | `attentionDeferredAt` | Date (ISO 8601) or absent | ShieldAction | ShieldConfig |
 | `shieldDismissedAt` | Date (ISO 8601) | ShieldAction | DeviceActivityMonitor |
 | `allowedAppTokens` | Data (encoded `Set<ApplicationToken>`) | Main app (FamilyActivityPicker) | Main app (ManagedSettingsStore) |
@@ -323,6 +334,8 @@ Stored keys:
 | `carbGraceMinute` | Int or absent | Main app (settings / WatchConnectivity sync) | ShieldConfig, WatchApp, WatchWidget |
 | `glucoseUnit` | String ("mmolL" or "mgdL") or absent | Main app (settings / HealthKit auto-detect / WatchConnectivity sync) | ShieldConfig, StatusWidget, Main app, WatchApp, WatchWidget |
 | `glucoseBadgeMode` | String ("off", "always", "onlyWhenAttention") or absent | Main app (settings) | Main app (badge update) |
+
+> **Per-source storage + unified reads (issue #83):** each of the three data sources (HealthKit, Nightscout, Demo) writes to its own `<source>{Glucose,Carbs}{,SampleAt}` keys. Every reader — home screen, shield extensions, widgets, watch — goes through `SharedKit.UnifiedDataReader`, which implements a single resolution rule: Demo wins when `mockModeEnabled` is on; otherwise the freshest sample among currently-enabled sources wins (glucose and carbs resolved independently). Disabled sources are ignored even if they have cached values. Never read the per-source keys directly outside the reader.
 
 > **Settings override precedence:** Extensions read settings keys from App Group first; if absent (never changed), they fall back to `Info.plist` values (from xcconfig). The passphrase itself is NOT in the App Group — it's in the device Keychain.
 
@@ -519,15 +532,15 @@ func fetchLatestGlucose() async {
     if let sample = try? await descriptor.result(for: healthStore).first {
         let mgdl = sample.quantity.doubleValue(for: .gramUnit(with: .milli).unitDivided(by: .literUnit(with: .deci)))
         let mmol = mgdl / 18.018
-        
-        let defaults = UserDefaults(suiteName: "group.nl.fokkezb.GluWink")
-        defaults?.set(mmol, forKey: "currentGlucose")
-        defaults?.set(sample.startDate.ISO8601Format(), forKey: "glucoseFetchedAt")
+
+        // Write to the per-source HealthKit bucket; `SharedKit.UnifiedDataReader`
+        // picks the freshest across enabled sources at read time.
+        SharedDataManager.shared.saveHealthKitGlucose(mmol: mmol, at: sample.startDate)
     }
 }
 ```
 
-Use the same pattern for carbs with `HKQuantityType(.dietaryCarbohydrates)`, writing `lastCarbEntryGrams` and `lastCarbEntryAt` to the App Group.
+Use the same pattern for carbs with `HKQuantityType(.dietaryCarbohydrates)` via `SharedDataManager.shared.saveHealthKitCarbs(grams:at:)`. Nightscout and Demo writers use their own `saveNightscout*` / `saveDemo*` counterparts.
 
 ### Prerequisite
 
@@ -682,20 +695,21 @@ The app supports three data sources for glucose / carbs: **Apple Health**, **Nig
 
 ### Definitions
 
-- **Nightscout / Demo:** straightforward — `nightscoutEnabled` / `isMockModeEnabled` are user-controlled toggles. Reading the flag is the truth.
-- **Apple Health:** iOS privacy-masks read-auth status (`HKHealthStore.authorizationStatus(for:)` returns `.sharingDenied` for both "user denied" and "we never asked", and `!= .notDetermined` once we've prompted — even after the user later revokes access). So we infer "active" from sample freshness via `SharedDataManager.healthKitDeliveringRecently`: HK has delivered at least once *and* the latest stored glucose timestamp is fresher than `glucoseStaleMinutes`.
-  - `healthKitEverDelivered` is kept as a stored flag, but only as the historical "we got data once" signal. Never use it as the gate for UI or shielding.
+All three sources are explicit user toggles now (issue #83):
+
+- **`healthKitEnabled`** — flipped by the Apple Health settings screen via `HealthKitManager.enable()` / `disable()`. iOS privacy-masks read-auth status so we can't infer "the user granted HK" from the system; the toggle is our authoritative signal. `enable()` re-requests permission and starts observers; `disable()` stops observers, disables background delivery, and clears the HK per-source cache.
+- **`nightscoutEnabled`** — flipped by the Nightscout settings screen after verifying the URL + token.
+- **`mockModeEnabled` (Demo)** — flipped by the Demo settings screen.
+
+`SharedDataManager.hasAnyDataSource` is the OR of the three. Shielding and the welcome panel gate off it; the unified reader in `SharedKit.UnifiedDataReader` also ignores disabled sources entirely.
 
 ### Disable handlers MUST clean up
 
-When the user toggles off Nightscout or Demo from Settings, the handler MUST call `SharedDataManager.handleInAppSourceDisabled()` after flipping the flag. That helper wipes the cached glucose / carb values **only** when no in-app source remains, so:
+When the user toggles any source off, the handler MUST call `SharedDataManager.handleSourceDisabled(_:)` after flipping the flag. That clears just that source's cached values so neither the resolver nor the per-source "Latest data" row in Settings shows stale numbers from it. With per-source storage, this is always safe — clearing HK never affects Nightscout's cache and vice versa.
 
-- Disabling Demo while Nightscout is still on → values stay (Nightscout will keep them fresh on the next poll).
-- Disabling the last in-app source → values are cleared. If HK is still authorized + delivering, its next observer fire repopulates them within seconds; if not, the cleared state is honest and `HomeView` returns to the welcome panel.
+Disable paths should also kick remaining live sources (`NightscoutManager.fetchAll()`, `HealthKitManager.refreshIfAuthorized()`) so the UI reflects the new picture immediately instead of waiting for the next poll. `HealthKitManager.disable()` does both in one call.
 
-Disable paths should also kick remaining live sources (`NightscoutManager.fetchAll()`, `HealthKitManager.refreshIfAuthorized()`) so the UI reflects the new picture immediately instead of waiting for the next poll.
-
-The shield gate (`ShieldManager.disableIfNoDataSource()`) reads `hasAnyDataSource` too — when sources go quiet for longer than `glucoseStaleMinutes`, shielding auto-disables on the next launch / re-evaluation. That's deliberate: shielding without fresh data would treat every wake as `needsAttention` and never let the user back in.
+The shield gate (`ShieldManager.disableIfNoDataSource()`) reads `hasAnyDataSource` too — when the last source is toggled off, shielding auto-disables on the next launch / re-evaluation. That's deliberate: shielding without any live source would treat every wake as `needsAttention` and never let the user back in.
 
 ### Welcome state UI rules
 
@@ -703,11 +717,11 @@ When `!hasAnyDataSource` the home screen is in *welcome* mode and must follow th
 
 - **Icon:** blue (`AppIcon-Blue`). Never red/green: with no live source there's no signal to colour against.
 - **Status panel:** hidden entirely. No glucose number, no carb number, no attention checks. `HomeView.showsWelcome` returning `true` swaps the whole panel for `welcomePanel`.
-- **Cached values:** wiped by `handleInAppSourceDisabled()` whenever the last in-app source is turned off. We don't ship migrations for pre-release state — disable handlers are the only thing keeping the cache honest, so they must run on every disable path.
+- **Cached values:** wiped by `handleSourceDisabled(_:)` on every disable. Each source owns its own cache now, so disabling Demo while Nightscout keeps polling leaves Nightscout's values untouched — but the resolver also ignores disabled sources at read time, so even a stale cache can't leak into the UI. Disable handlers must still run so the per-source "Latest data" rows in Settings are honest.
 - **Setup checklist:** *only* the data-source picker (Apple Health / Nightscout / Demo). The recommended group (shielding, passphrase, notifications) is suppressed in welcome state regardless of `setupTipsHidden`. Picking a source is the one decision that unblocks everything else; burying it under other rows dilutes the CTA.
 - **`setupTipsHidden` is overridden for the data-source picker.** Even if the user previously hid the checklist, the picker reappears the moment every source goes away. They have no other path back to a working app.
 
-Toggling a source on/off must always re-fetch (or wipe). Enable paths trigger the source's own fetch (`NightscoutManager.configurationDidChange()`, `HealthKitManager.requestAuthorization() → fetchLatest…`, `MockDataSettingsView.saveMockData()` writes directly). Disable paths run `handleInAppSourceDisabled()` + kick remaining live sources via `refreshIfAuthorized()` / `fetchAll()`. Never leave a stale value visible across a toggle.
+Toggling a source on/off must always re-fetch (or wipe). Enable paths trigger the source's own fetch (`NightscoutManager.configurationDidChange()`, `HealthKitManager.enable()` which wraps request + observers + fetch, `MockDataSettingsView.saveMockData()` writes directly to demo keys). Disable paths run `handleSourceDisabled(_:)` + kick remaining live sources via `HealthKitManager.refreshIfAuthorized()` / `NightscoutManager.fetchAll()`. Never leave a stale value visible across a toggle.
 
 ## Coding Conventions
 

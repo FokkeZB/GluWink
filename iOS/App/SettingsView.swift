@@ -27,7 +27,7 @@ struct SettingsView: View {
     @State private var demoEnabled: Bool
     @State private var glucoseUnit: GlucoseUnit
     @State private var nightscoutEnabled: Bool
-    @State private var healthKitDelivering: Bool
+    @State private var healthKitEnabled: Bool
 
     init() {
         let data = SharedDataManager.shared
@@ -36,7 +36,7 @@ struct SettingsView: View {
         _demoEnabled = State(initialValue: data.isMockModeEnabled)
         _glucoseUnit = State(initialValue: data.glucoseUnit)
         _nightscoutEnabled = State(initialValue: data.nightscoutEnabled)
-        _healthKitDelivering = State(initialValue: data.healthKitDeliveringRecently)
+        _healthKitEnabled = State(initialValue: data.healthKitEnabled)
     }
 
     var body: some View {
@@ -120,16 +120,14 @@ struct SettingsView: View {
                         HStack {
                             Label(String(localized: "settings.healthKit"), systemImage: "heart.text.square")
                             Spacer()
-                            // Apple Health can't tell us whether read
-                            // access is currently granted (iOS privacy-
-                            // masks that for read-only requests), so we
-                            // show "On" only when HK has delivered a
-                            // recent sample — matching how the rest of
-                            // the app classifies it as a real source
-                            // (see `SharedDataManager.healthKitDeliveringRecently`).
-                            // A revoked-in-Health-app source naturally
-                            // flips back to "Off" once samples go stale.
-                            Text(healthKitDelivering
+                            // The HK source is gated by an explicit
+                            // user toggle now (see `healthKitEnabled`),
+                            // mirroring Nightscout and Demo. iOS still
+                            // privacy-masks the *read-authorization*
+                            // state, but the toggle is the app's
+                            // authoritative signal for "use this
+                            // source?".
+                            Text(healthKitEnabled
                                 ? String(localized: "settings.statusOn")
                                 : String(localized: "settings.statusOff"))
                                 .foregroundStyle(.secondary)
@@ -181,7 +179,7 @@ struct SettingsView: View {
                 shieldingEnabled = data.shieldingEnabled
                 demoEnabled = data.isMockModeEnabled
                 nightscoutEnabled = data.nightscoutEnabled
-                healthKitDelivering = data.healthKitDeliveringRecently
+                healthKitEnabled = data.healthKitEnabled
             }
             .navigationTitle(String(localized: "settings.title"))
             .navigationBarTitleDisplayMode(.inline)
@@ -660,12 +658,18 @@ struct MockDataSettingsView: View {
         let u = data.glucoseUnit
         unit = u
         _mockEnabled = State(initialValue: data.isMockModeEnabled)
-        _hasGlucoseData = State(initialValue: data.currentGlucose != nil)
-        _mockGlucose = State(initialValue: u.displayValue(data.currentGlucose ?? 6.4))
-        _glucoseDate = State(initialValue: data.glucoseFetchedAt ?? Date().addingTimeInterval(-5 * 60))
-        _hasCarbData = State(initialValue: data.lastCarbGrams != nil)
-        _mockCarbGrams = State(initialValue: data.lastCarbGrams ?? 20)
-        _carbDate = State(initialValue: data.lastCarbEntryAt ?? Date().addingTimeInterval(-120 * 60))
+        // The Demo panel edits Demo's per-source cache directly, so pull
+        // initial values from the Demo bucket rather than the resolver
+        // (which may be showing HK / Nightscout samples when Demo mode
+        // is currently off).
+        let demoGlucose = data.glucoseReading(source: .demo)
+        let demoCarbs = data.carbsReading(source: .demo)
+        _hasGlucoseData = State(initialValue: demoGlucose != nil)
+        _mockGlucose = State(initialValue: u.displayValue(demoGlucose?.mmol ?? 6.4))
+        _glucoseDate = State(initialValue: demoGlucose?.sampleAt ?? Date().addingTimeInterval(-5 * 60))
+        _hasCarbData = State(initialValue: demoCarbs != nil)
+        _mockCarbGrams = State(initialValue: demoCarbs?.grams ?? 20)
+        _carbDate = State(initialValue: demoCarbs?.sampleAt ?? Date().addingTimeInterval(-120 * 60))
     }
 
     var body: some View {
@@ -758,31 +762,25 @@ struct MockDataSettingsView: View {
             data.isMockModeEnabled = true
 
             if hasGlucoseData {
-                data.saveGlucose(
+                data.saveDemoGlucose(
                     mmol: unit.toMmol(mockGlucose),
-                    at: glucoseDate,
-                    force: true
+                    at: glucoseDate
                 )
             } else {
-                data.clearGlucoseData()
+                data.clearDemoGlucose()
             }
 
             if hasCarbData {
-                data.saveCarbs(
-                    grams: mockCarbGrams,
-                    at: carbDate,
-                    force: true
-                )
+                data.saveDemoCarbs(grams: mockCarbGrams, at: carbDate)
             } else {
-                data.clearCarbData()
+                data.clearDemoCarbs()
             }
         } else if data.isMockModeEnabled {
-            // `clearMockData` only wipes the cached values when no other
-            // in-app source is enabled (Nightscout/Demo share the same
-            // App Group keys as live sources). In that case, kick HK
-            // too — if it's still authorized and delivering, the UI
-            // repopulates within seconds; otherwise the cleared state
-            // is honest and HomeView returns to the welcome panel.
+            // Demo writes to its own per-source keys, so turning the
+            // toggle off is enough to remove Demo from the resolver —
+            // the other sources keep their cached values. `clearMockData`
+            // also wipes the Demo bucket so a stale mock value can't
+            // leak back in next time Demo is enabled.
             data.clearMockData()
             // Disable shielding too if Demo was the last live source —
             // there's nothing left to base attention decisions on.
@@ -807,8 +805,9 @@ struct NightscoutSettingsView: View {
     @State private var enabled: Bool
     @State private var baseURL: String
     @State private var token: String
-    @State private var lastFetchedAt: Date?
     @State private var lastError: String?
+    @State private var latestGlucose: GlucoseReading?
+    @State private var latestCarbs: CarbsReading?
     @State private var isTesting = false
     @State private var testResult: TestResult?
 
@@ -822,8 +821,9 @@ struct NightscoutSettingsView: View {
         _enabled = State(initialValue: data.nightscoutEnabled)
         _baseURL = State(initialValue: data.nightscoutBaseURL ?? "")
         _token = State(initialValue: data.nightscoutToken ?? "")
-        _lastFetchedAt = State(initialValue: data.nightscoutLastFetchedAt)
         _lastError = State(initialValue: data.nightscoutLastError)
+        _latestGlucose = State(initialValue: data.glucoseReading(source: .nightscout))
+        _latestCarbs = State(initialValue: data.carbsReading(source: .nightscout))
     }
 
     /// Toggling Nightscout on is only allowed once both URL and token have
@@ -835,27 +835,6 @@ struct NightscoutSettingsView: View {
 
     var body: some View {
         List {
-            Section {
-                TextField(
-                    String(localized: "settings.nightscoutURLPlaceholder"),
-                    text: $baseURL
-                )
-                .textContentType(.URL)
-                .keyboardType(.URL)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-
-                SecureField(
-                    String(localized: "settings.nightscoutTokenPlaceholder"),
-                    text: $token
-                )
-                .textContentType(.password)
-            } header: {
-                Text("settings.nightscoutConfigHeader", tableName: "Localizable")
-            } footer: {
-                Text("settings.nightscoutConfigFooter", tableName: "Localizable")
-            }
-
             Section {
                 HStack {
                     Toggle(String(localized: "settings.nightscoutEnabled"), isOn: Binding(
@@ -888,6 +867,27 @@ struct NightscoutSettingsView: View {
                 if !newValue, enabled {
                     disable()
                 }
+            }
+
+            Section {
+                TextField(
+                    String(localized: "settings.nightscoutURLPlaceholder"),
+                    text: $baseURL
+                )
+                .textContentType(.URL)
+                .keyboardType(.URL)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+
+                SecureField(
+                    String(localized: "settings.nightscoutTokenPlaceholder"),
+                    text: $token
+                )
+                .textContentType(.password)
+            } header: {
+                Text("settings.nightscoutConfigHeader", tableName: "Localizable")
+            } footer: {
+                Text("settings.nightscoutConfigFooter", tableName: "Localizable")
             }
 
             Section {
@@ -929,30 +929,30 @@ struct NightscoutSettingsView: View {
             }
 
             Section {
-                if let lastFetchedAt {
-                    HStack {
-                        Text("settings.nightscoutLastFetch", tableName: "Localizable")
-                        Spacer()
-                        Text(lastFetchedAt, style: .relative)
-                            .foregroundStyle(.secondary)
-                    }
-                } else if enabled {
-                    Text("settings.nightscoutAwaitingFirstUpdate", tableName: "Localizable")
-                        .foregroundStyle(.secondary)
-                } else if hasCredentials {
-                    Text("settings.nightscoutDisabled", tableName: "Localizable")
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text("settings.nightscoutNotConfigured", tableName: "Localizable")
-                        .foregroundStyle(.secondary)
-                }
-                if let lastError {
+                latestSampleRow(
+                    label: String(localized: "settings.nightscoutLatestGlucose"),
+                    value: latestGlucose.map { SharedDataManager.shared.glucoseUnit.formattedWithUnit($0.mmol) },
+                    at: latestGlucose?.sampleAt,
+                    emptyMessage: String(localized: "settings.nightscoutNoGlucoseYet")
+                )
+                latestSampleRow(
+                    label: String(localized: "settings.nightscoutLatestCarbs"),
+                    value: latestCarbs.map { "\(Int($0.grams)) g" },
+                    at: latestCarbs?.sampleAt,
+                    emptyMessage: String(localized: "settings.nightscoutNoCarbsYet")
+                )
+            } header: {
+                Text("settings.nightscoutLatestHeader", tableName: "Localizable")
+            }
+
+            if let lastError {
+                Section {
                     Label(lastError, systemImage: "exclamationmark.triangle")
                         .foregroundStyle(BrandTint.orange)
                         .font(.caption)
+                } header: {
+                    Text("settings.nightscoutStatusHeader", tableName: "Localizable")
                 }
-            } header: {
-                Text("settings.nightscoutStatusHeader", tableName: "Localizable")
             }
         }
         .navigationTitle(String(localized: "settings.nightscout"))
@@ -972,8 +972,38 @@ struct NightscoutSettingsView: View {
     }
 
     private func refreshStatusFields() {
-        lastFetchedAt = SharedDataManager.shared.nightscoutLastFetchedAt
-        lastError = SharedDataManager.shared.nightscoutLastError
+        let data = SharedDataManager.shared
+        lastError = data.nightscoutLastError
+        latestGlucose = data.glucoseReading(source: .nightscout)
+        latestCarbs = data.carbsReading(source: .nightscout)
+    }
+
+    /// Shared layout for the "Latest data" rows: either show the value +
+    /// a relative timestamp, or a muted "never seen" placeholder so the
+    /// screen doesn't collapse to blank rows when a source has nothing
+    /// cached yet.
+    @ViewBuilder
+    private func latestSampleRow(label: String, value: String?, at: Date?, emptyMessage: String) -> some View {
+        if let value, let at {
+            HStack(alignment: .firstTextBaseline) {
+                Text(label)
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(value)
+                        .monospacedDigit()
+                    Text(at, style: .relative)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } else {
+            HStack {
+                Text(label)
+                Spacer()
+                Text(emptyMessage)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 
     private func persistFields() {
@@ -1046,11 +1076,14 @@ struct NightscoutSettingsView: View {
         data.nightscoutEnabled = false
         data.flush()
         NightscoutManager.shared.configurationDidChange()
-        // Wipe Nightscout's last cached values when no other in-app
-        // source remains — otherwise the home screen keeps showing the
-        // disabled source's stale data with a green status. Live HK
-        // (if any) will repopulate via the kick below.
-        data.handleInAppSourceDisabled()
+        // Clear Nightscout's cached glucose/carb values so the
+        // per-source "latest data" rows on this screen (and anywhere
+        // else the unified reader looks) don't show stale Nightscout
+        // numbers after the user disabled it. The resolver already
+        // ignores disabled sources, but clearing keeps the UI honest.
+        data.handleSourceDisabled(.nightscout)
+        latestGlucose = nil
+        latestCarbs = nil
         // Disabling the last data source must also disable shielding —
         // there's nothing left to base attention decisions on.
         ShieldManager.shared.disableIfNoDataSource()

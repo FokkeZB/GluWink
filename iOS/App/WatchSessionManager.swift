@@ -83,17 +83,13 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
         if let token = data.nightscoutToken { context["nightscoutToken"] = token }
 
         if data.isMockModeEnabled {
-            if let glucose = data.currentGlucose {
-                context["currentGlucose"] = glucose
+            if let glucoseReading = data.currentGlucoseReading {
+                context["currentGlucose"] = glucoseReading.mmol
+                context["glucoseFetchedAt"] = glucoseReading.sampleAt.ISO8601Format()
             }
-            if let glucoseFetchedAt = data.glucoseFetchedAt {
-                context["glucoseFetchedAt"] = glucoseFetchedAt.ISO8601Format()
-            }
-            if let lastCarbGrams = data.lastCarbGrams {
-                context["lastCarbGrams"] = lastCarbGrams
-            }
-            if let lastCarbEntryAt = data.lastCarbEntryAt {
-                context["lastCarbEntryAt"] = lastCarbEntryAt.ISO8601Format()
+            if let carbsReading = data.currentCarbsReading {
+                context["lastCarbGrams"] = carbsReading.grams
+                context["lastCarbEntryAt"] = carbsReading.sampleAt.ISO8601Format()
             }
         }
 

@@ -38,12 +38,12 @@ struct SetupChecklistCard: View {
     /// Mirror of `SharedDataManager.isMockModeEnabled` for the same reason
     /// as `nightscoutEnabled`.
     @State private var isMockModeEnabled: Bool
-    /// Mirror of `SharedDataManager.healthKitDeliveringRecently` for the
-    /// same reason as `nightscoutEnabled`. Recency-based rather than the
-    /// sticky `healthKitEverDelivered` so the card re-shows the
-    /// data-source rows when HK access is revoked or the sensor goes
-    /// offline (see issue #36 — no force-quit needed).
-    @State private var healthKitDeliveringRecently: Bool
+    /// Mirror of `SharedDataManager.healthKitEnabled` for the same
+    /// reason as `nightscoutEnabled`. Driven by an explicit user toggle
+    /// now (issue #83), so the data-source group re-appears as soon as
+    /// the user turns HealthKit off again without waiting for samples
+    /// to age out.
+    @State private var healthKitEnabled: Bool
     @State private var showHideConfirmation = false
 
     init(refreshToken: Binding<Int>) {
@@ -56,7 +56,7 @@ struct SetupChecklistCard: View {
         _shieldingEnabled = State(initialValue: data.shieldingEnabled)
         _nightscoutEnabled = State(initialValue: data.nightscoutEnabled)
         _isMockModeEnabled = State(initialValue: data.isMockModeEnabled)
-        _healthKitDeliveringRecently = State(initialValue: data.healthKitDeliveringRecently)
+        _healthKitEnabled = State(initialValue: data.healthKitEnabled)
     }
 
     var body: some View {
@@ -128,11 +128,11 @@ struct SetupChecklistCard: View {
     ///
     /// Mirrors `SharedDataManager.hasAnyDataSource` but reads from local
     /// @State so SwiftUI re-renders when any of the underlying flags
-    /// (`nightscoutEnabled`, `isMockModeEnabled`, `healthKitDeliveringRecently`)
+    /// (`nightscoutEnabled`, `isMockModeEnabled`, `healthKitEnabled`)
     /// changes. Reading the manager directly here would skip re-render
     /// because the body wouldn't observe those flags.
     private var hasAnyDataSource: Bool {
-        nightscoutEnabled || isMockModeEnabled || healthKitDeliveringRecently
+        nightscoutEnabled || isMockModeEnabled || healthKitEnabled
     }
 
     /// The shielding row stays visible until shielding is actually enabled —
@@ -326,7 +326,7 @@ struct SetupChecklistCard: View {
         shieldingEnabled = data.shieldingEnabled
         nightscoutEnabled = data.nightscoutEnabled
         isMockModeEnabled = data.isMockModeEnabled
-        healthKitDeliveringRecently = data.healthKitDeliveringRecently
+        healthKitEnabled = data.healthKitEnabled
         Task {
             let settings = await UNUserNotificationCenter.current().notificationSettings()
             await MainActor.run { notificationStatus = settings.authorizationStatus }

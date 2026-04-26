@@ -31,7 +31,7 @@ struct MainApp: App {
         // whether we've moved past `.notDetermined` — that's the only state
         // the HealthKit API reports reliably for read-only permissions.
         WatchSessionManager.shared.activate()
-        if HKHealthStore().authorizationStatus(for: HKQuantityType(.bloodGlucose)) != .notDetermined {
+        if SharedDataManager.shared.healthKitEnabled {
             HealthKitManager.shared.startObserving()
         }
 
@@ -68,17 +68,15 @@ struct MainApp: App {
                     }
                     #endif
 
-                    // HealthKit: re-request + enable background delivery
-                    // if the user has been asked at least once, and try an
-                    // immediate fetch. Fetching first matters: a successful
-                    // sample flips `healthKitEverDelivered` via
-                    // `markHealthKitDelivered`, which is what the
-                    // `hasAnyDataSource` / shielding-gate logic below keys
-                    // off. A user who denied the prompt (or revoked access
-                    // in the Health app) gets no sample, the flag stays
-                    // false, and `disableIfNoDataSource` below safely
-                    // disarms residual shielding state.
-                    if HKHealthStore().authorizationStatus(for: HKQuantityType(.bloodGlucose)) != .notDetermined {
+                    // HealthKit: only re-request + fetch when the user has
+                    // explicitly opted in via the Settings toggle. iOS
+                    // privacy-masks the read-auth state for read-only
+                    // requests, so the toggle is our authoritative signal
+                    // — not the HKHealthStore status. Anyone who flipped
+                    // the toggle off doesn't pay for a fetch, and a user
+                    // who denied the prompt but left the toggle on
+                    // harmlessly no-ops on the fetch.
+                    if data.healthKitEnabled {
                         await HealthKitManager.shared.requestAuthorization()
                         await HealthKitManager.shared.enableBackgroundDelivery()
                         await HealthKitManager.shared.fetchLatestGlucose()
@@ -129,7 +127,7 @@ struct MainApp: App {
                 .onChange(of: scenePhase) {
                     if scenePhase == .active {
                         Task { @MainActor in
-                            if HKHealthStore().authorizationStatus(for: HKQuantityType(.bloodGlucose)) != .notDetermined {
+                            if SharedDataManager.shared.healthKitEnabled {
                                 await HealthKitManager.shared.fetchLatestGlucose()
                                 await HealthKitManager.shared.fetchLatestCarbs()
                             }

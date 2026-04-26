@@ -41,6 +41,13 @@
 "healthkit.settings.requestButton" = "Connect Apple Health";
 "healthkit.settings.openHealthButton" = "Open Health app";
 "healthkit.settings.sectionFooter" = "Permissions are managed in the Health app under Sharing › Apps.";
+"healthkit.settings.enabledToggle" = "Enable Apple Health";
+"healthkit.settings.enabledFooter" = "Read glucose and carb samples from Apple Health. Turning this on will request permission if you haven't granted it yet. Turning it off stops using Health data even if permission is still granted.";
+"healthkit.settings.latestDataHeader" = "Latest data";
+"healthkit.settings.latestGlucose" = "Glucose";
+"healthkit.settings.latestCarbs" = "Carbs";
+"healthkit.settings.noGlucoseYet" = "No data yet";
+"healthkit.settings.noCarbsYet" = "No data yet";
 
 /* Settings - Data Sources */
 "settings.dataSources" = "Data Sources";
@@ -161,10 +168,11 @@
 "settings.nightscoutVersion %@" = "Version: %@";
 "settings.nightscoutUnits %@" = "Server units: %@";
 "settings.nightscoutStatusHeader" = "Status";
-"settings.nightscoutLastFetch" = "Last update";
-"settings.nightscoutNotConfigured" = "Not configured yet.";
-"settings.nightscoutDisabled" = "Disabled.";
-"settings.nightscoutAwaitingFirstUpdate" = "Awaiting first update…";
+"settings.nightscoutLatestHeader" = "Latest data";
+"settings.nightscoutLatestGlucose" = "Glucose";
+"settings.nightscoutLatestCarbs" = "Carbs";
+"settings.nightscoutNoGlucoseYet" = "No data yet";
+"settings.nightscoutNoCarbsYet" = "No data yet";
 
 /* Check-In Flow */
 "checkin.disarmButton" = "All Done";

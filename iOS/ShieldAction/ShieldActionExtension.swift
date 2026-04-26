@@ -29,11 +29,14 @@ class ShieldActionExtension: ShieldActionDelegate {
 
         let defaults = UserDefaults(suiteName: Self.appGroupID)
 
-        let glucose = defaults?.double(forKey: "currentGlucose") ?? 0
-        let glucoseDate = defaults?.string(forKey: "glucoseFetchedAt")
-            .flatMap { ISO8601DateFormatter().date(from: $0) }
-        let carbDate = defaults?.string(forKey: "lastCarbEntryAt")
-            .flatMap { ISO8601DateFormatter().date(from: $0) }
+        // Per-source storage: go through `UnifiedDataReader` so the
+        // shield honours Demo override + freshest-enabled-source wins,
+        // same as every other reader.
+        let glucoseReading = UnifiedDataReader.currentGlucoseReading(from: defaults)
+        let carbsReading = UnifiedDataReader.currentCarbsReading(from: defaults)
+        let glucose = glucoseReading?.mmol ?? 0
+        let glucoseDate = glucoseReading?.sampleAt
+        let carbDate = carbsReading?.sampleAt
 
         let fallbackHigh = Double(Bundle.main.object(forInfoDictionaryKey: "HighGlucoseThreshold") as! String)!
         let fallbackLow = Double(Bundle.main.object(forInfoDictionaryKey: "LowGlucoseThreshold") as! String)!

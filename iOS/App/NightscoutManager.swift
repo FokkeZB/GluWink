@@ -8,9 +8,10 @@ import WidgetKit
 /// a singleton that keeps the same App Group keys up to date via
 /// `SharedDataManager`, reloads widgets, and refreshes shields/app icon.
 ///
-/// Designed to coexist with HealthKit. When both sources are enabled,
-/// `SharedDataManager.saveGlucose` / `saveCarbs` use "save if newer" so
-/// whichever source provides the most recent sample wins.
+/// Designed to coexist with HealthKit. Each source writes to its own
+/// per-source keys (see `SharedKit.DataSourceKeys`); the unified reader
+/// picks the freshest sample across enabled sources independently for
+/// glucose and carbs.
 @MainActor
 final class NightscoutManager {
     static let shared = NightscoutManager()
@@ -112,7 +113,7 @@ final class NightscoutManager {
     private func fetchGlucose(using client: NightscoutClient) async {
         do {
             if let sample = try await client.fetchLatestGlucose() {
-                SharedDataManager.shared.saveGlucose(mmol: sample.mmol, at: sample.date)
+                SharedDataManager.shared.saveNightscoutGlucose(mmol: sample.mmol, at: sample.date)
                 logger.info("Nightscout glucose: \(String(format: "%.1f", sample.mmol)) mmol/L at \(sample.date)")
             }
             SharedDataManager.shared.nightscoutLastError = nil
@@ -125,7 +126,7 @@ final class NightscoutManager {
     private func fetchCarbs(using client: NightscoutClient) async {
         do {
             if let entry = try await client.fetchLatestCarbs() {
-                SharedDataManager.shared.saveCarbs(grams: entry.grams, at: entry.date)
+                SharedDataManager.shared.saveNightscoutCarbs(grams: entry.grams, at: entry.date)
                 logger.info("Nightscout carbs: \(String(format: "%.0f", entry.grams))g at \(entry.date)")
             }
         } catch {

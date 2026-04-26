@@ -13,7 +13,55 @@ final class HealthKitManager {
     private let glucoseType = HKQuantityType(.bloodGlucose)
     private let carbType = HKQuantityType(.dietaryCarbohydrates)
 
+    /// Whether the observer queries are currently active. We can't cancel
+    /// started observer queries with the modern HealthKit API without
+    /// holding the `HKObserverQuery` instances, so we keep a reference
+    /// here and `stop` them when the user disables HealthKit from
+    /// Settings. A re-enable simply re-executes fresh queries.
+    private var glucoseObserver: HKObserverQuery?
+    private var carbObserver: HKObserverQuery?
+
     private init() {}
+
+    // MARK: - Toggle lifecycle
+
+    /// Turn on the HealthKit data source: prompt for read permission
+    /// (iOS shows the sheet on the *first* call per type; subsequent
+    /// calls are a no-op even if the user previously denied), flip the
+    /// `healthKitEnabled` toggle on, enable background delivery, start
+    /// observers, and kick an immediate fetch. Idempotent — safe to call
+    /// from a Settings toggle binding.
+    func enable() async {
+        SharedDataManager.shared.healthKitEnabled = true
+        await requestAuthorization()
+        await enableBackgroundDelivery()
+        startObserving()
+        await fetchLatestGlucose()
+        await fetchLatestCarbs()
+        logger.info("HealthKit data source enabled")
+    }
+
+    /// Turn off the HealthKit data source. Stops observers, disables
+    /// background delivery, clears cached HealthKit values, and flips
+    /// the toggle off. iOS doesn't let us programmatically revoke
+    /// read permission — the toggle itself is the authoritative
+    /// "use this data?" gate from this point forward.
+    func disable() async {
+        SharedDataManager.shared.healthKitEnabled = false
+        stopObserving()
+        do {
+            try await healthStore.disableBackgroundDelivery(for: glucoseType)
+            try await healthStore.disableBackgroundDelivery(for: carbType)
+        } catch {
+            logger.error("Failed to disable background delivery: \(error.localizedDescription)")
+        }
+        SharedDataManager.shared.handleSourceDisabled(.healthKit)
+        await SharedDataManager.shared.refreshAttentionBadge()
+        ShieldManager.shared.reevaluateShields()
+        WidgetCenter.shared.reloadAllTimelines()
+        WatchSessionManager.shared.sendLatestContext()
+        logger.info("HealthKit data source disabled")
+    }
 
     // MARK: - Authorization
 
@@ -63,7 +111,9 @@ final class HealthKitManager {
     // MARK: - Observer Queries
 
     func startObserving() {
-        let glucoseObserver = HKObserverQuery(sampleType: glucoseType, predicate: nil) { [weak self] _, completionHandler, error in
+        stopObserving()
+
+        let glucose = HKObserverQuery(sampleType: glucoseType, predicate: nil) { [weak self] _, completionHandler, error in
             if let error {
                 self?.logger.error("Glucose observer error: \(error.localizedDescription)")
                 completionHandler()
@@ -74,9 +124,10 @@ final class HealthKitManager {
                 completionHandler()
             }
         }
-        healthStore.execute(glucoseObserver)
+        healthStore.execute(glucose)
+        glucoseObserver = glucose
 
-        let carbObserver = HKObserverQuery(sampleType: carbType, predicate: nil) { [weak self] _, completionHandler, error in
+        let carbs = HKObserverQuery(sampleType: carbType, predicate: nil) { [weak self] _, completionHandler, error in
             if let error {
                 self?.logger.error("Carb observer error: \(error.localizedDescription)")
                 completionHandler()
@@ -87,24 +138,39 @@ final class HealthKitManager {
                 completionHandler()
             }
         }
-        healthStore.execute(carbObserver)
+        healthStore.execute(carbs)
+        carbObserver = carbs
 
         logger.info("Started observing glucose and carb samples")
+    }
+
+    private func stopObserving() {
+        if let glucoseObserver {
+            healthStore.stop(glucoseObserver)
+            self.glucoseObserver = nil
+        }
+        if let carbObserver {
+            healthStore.stop(carbObserver)
+            self.carbObserver = nil
+        }
     }
 
     // MARK: - Fetch Latest Values
 
     /// Convenience: refresh both glucose and carbs *only* if the user has
-    /// ever been prompted for HealthKit. Safe to call from anywhere — does
-    /// nothing when authorization was never requested, so it won't trigger
-    /// a permission prompt as a side-effect.
+    /// HealthKit enabled. Safe to call from anywhere — does nothing when
+    /// the toggle is off, so it won't reach HealthKit at all in that case.
     func refreshIfAuthorized() async {
-        guard healthStore.authorizationStatus(for: glucoseType) != .notDetermined else { return }
+        guard SharedDataManager.shared.healthKitEnabled else { return }
         await fetchLatestGlucose()
         await fetchLatestCarbs()
     }
 
     func fetchLatestGlucose() async {
+        guard SharedDataManager.shared.healthKitEnabled else {
+            logger.info("HealthKit disabled — skipping glucose fetch")
+            return
+        }
         guard !SharedDataManager.shared.isMockModeEnabled else {
             logger.info("Mock mode active — skipping HealthKit glucose fetch")
             return
@@ -121,8 +187,7 @@ final class HealthKitManager {
             if let sample = try await descriptor.result(for: healthStore).first {
                 let mgdl = sample.quantity.doubleValue(for: .gramUnit(with: .milli).unitDivided(by: .literUnit(with: .deci)))
                 let mmol = mgdl / 18.018
-                SharedDataManager.shared.saveGlucose(mmol: mmol, at: sample.startDate)
-                SharedDataManager.shared.markHealthKitDelivered()
+                SharedDataManager.shared.saveHealthKitGlucose(mmol: mmol, at: sample.startDate)
                 logger.info("Glucose updated: \(String(format: "%.1f", mmol)) mmol/L")
                 ShieldManager.shared.reevaluateShields()
                 WidgetCenter.shared.reloadAllTimelines()
@@ -137,12 +202,16 @@ final class HealthKitManager {
         await SharedDataManager.shared.refreshAttentionBadge()
 
         // Piggyback: when HealthKit wakes us up (including background delivery),
-        // also poll Nightscout so the two sources stay aligned. "Save if newer"
-        // guarantees whichever timestamp is freshest wins.
+        // also poll Nightscout so the two sources stay aligned. Each source
+        // writes to its own keys; the resolver picks the freshest at read time.
         await NightscoutManager.shared.fetchAll()
     }
 
     func fetchLatestCarbs() async {
+        guard SharedDataManager.shared.healthKitEnabled else {
+            logger.info("HealthKit disabled — skipping carb fetch")
+            return
+        }
         guard !SharedDataManager.shared.isMockModeEnabled else {
             logger.info("Mock mode active — skipping HealthKit carb fetch")
             return
@@ -158,8 +227,7 @@ final class HealthKitManager {
         do {
             if let sample = try await descriptor.result(for: healthStore).first {
                 let grams = sample.quantity.doubleValue(for: .gram())
-                SharedDataManager.shared.saveCarbs(grams: grams, at: sample.startDate)
-                SharedDataManager.shared.markHealthKitDelivered()
+                SharedDataManager.shared.saveHealthKitCarbs(grams: grams, at: sample.startDate)
                 logger.info("Carbs updated: \(String(format: "%.0f", grams))g")
                 ShieldManager.shared.reevaluateShields()
                 WidgetCenter.shared.reloadAllTimelines()
