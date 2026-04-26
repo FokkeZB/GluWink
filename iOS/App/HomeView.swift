@@ -341,14 +341,17 @@ struct HomeView: View {
                 if content.isCriticalGlucose {
                     // Critical glucose: the shield cannot be dismissed, so
                     // don't offer the interactive check-in that pretends it
-                    // can. Show the read-only list plus the explanatory
-                    // text, matching the shield extension's non-dismissible
-                    // state. The hard gate also lives in
-                    // `ShieldManager.disarmShields()` — this branch is UX
-                    // polish, not the security boundary.
+                    // can. Show the read-only list, and — only when
+                    // shielding is actually enabled — also the explanatory
+                    // "cannot be dismissed until…" copy, matching the
+                    // shield extension's non-dismissible state. The hard
+                    // gate also lives in `ShieldManager.disarmShields()` —
+                    // this branch is UX polish, not the security boundary.
+                    // When shielding is off, the copy would be nonsensical
+                    // (there's no shield to talk about), so suppress it.
                     VStack(spacing: 12) {
                         AttentionListView(items: content.attentionItems)
-                        if let criticalText = content.criticalCannotDismissText {
+                        if shieldingEnabled, let criticalText = content.criticalCannotDismissText {
                             Text(criticalText)
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
