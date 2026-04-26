@@ -324,6 +324,15 @@ struct AttentionRulesSettingsView: View {
         List {
             Section {
                 HStack {
+                    Text("settings.lowThreshold", tableName: "Localizable")
+                    Spacer()
+                    Text(String(format: thresholdFormat, lowThreshold))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+                Slider(value: $lowThreshold, in: lowRange, step: lowStep)
+
+                HStack {
                     Text("settings.highThreshold", tableName: "Localizable")
                     Spacer()
                     Text(String(format: thresholdFormat, highThreshold))
@@ -346,15 +355,6 @@ struct AttentionRulesSettingsView: View {
                         .foregroundStyle(BrandTint.red)
                         .font(.caption)
                 }
-
-                HStack {
-                    Text("settings.lowThreshold", tableName: "Localizable")
-                    Spacer()
-                    Text(String(format: thresholdFormat, lowThreshold))
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
-                }
-                Slider(value: $lowThreshold, in: lowRange, step: lowStep)
             } header: {
                 Text(String(localized: "settings.glucoseHeader \(unit.label)"))
             } footer: {
