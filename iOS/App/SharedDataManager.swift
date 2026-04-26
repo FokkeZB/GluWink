@@ -196,12 +196,12 @@ final class SharedDataManager {
     /// stale-but-non-nil timestamp left over from a since-disabled source
     /// can't masquerade as HK delivery.
     ///
-    /// Falls back to a 30-minute window when no user override is set so
-    /// we don't have to read `Info.plist` from extension bundles where
-    /// the key may not be present.
+    /// Honours the same override-with-xcconfig-fallback contract as every
+    /// other staleness check in the app (see `ThresholdResolver`): user
+    /// override wins, otherwise the build-time `GlucoseStaleMinutes` default.
     var healthKitDeliveringRecently: Bool {
         guard healthKitEverDelivered, let last = glucoseFetchedAt else { return false }
-        let minutes = glucoseStaleMinutes ?? 30
+        let minutes = effectiveGlucoseStaleMinutes
         return Date().timeIntervalSince(last) < TimeInterval(minutes * 60)
     }
 
