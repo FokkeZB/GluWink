@@ -34,22 +34,23 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     private func makeConfiguration() -> ShieldConfiguration {
         let defaults = UserDefaults(suiteName: Self.appGroupID)
 
-        let glucoseDate = defaults?.string(forKey: "glucoseFetchedAt")
-            .flatMap { ISO8601DateFormatter().date(from: $0) }
-        let carbDate = defaults?.string(forKey: "lastCarbEntryAt")
-            .flatMap { ISO8601DateFormatter().date(from: $0) }
+        // Per-source storage: resolve the winning glucose/carb reading
+        // via `UnifiedDataReader` instead of reading raw keys. Demo
+        // wins when mock mode is on; otherwise the freshest enabled
+        // source wins for each metric independently.
+        let glucoseReading = UnifiedDataReader.currentGlucoseReading(from: defaults)
+        let carbsReading = UnifiedDataReader.currentCarbsReading(from: defaults)
 
-        let carbGrams = defaults?.double(forKey: "lastCarbGrams") ?? 0
         let customChecks = AttentionScenario.loadCustomChecks(from: defaults)
 
         let unit: GlucoseUnit = defaults?.string(forKey: "glucoseUnit")
             .flatMap { GlucoseUnit(rawValue: $0) } ?? .mmolL
 
         let content = ShieldContent(
-            glucose: defaults?.double(forKey: "currentGlucose") ?? 0,
-            glucoseFetchedAt: glucoseDate,
-            lastCarbGrams: carbGrams > 0 ? carbGrams : nil,
-            lastCarbEntryAt: carbDate,
+            glucose: glucoseReading?.mmol ?? 0,
+            glucoseFetchedAt: glucoseReading?.sampleAt,
+            lastCarbGrams: carbsReading?.grams,
+            lastCarbEntryAt: carbsReading?.sampleAt,
             highGlucoseThreshold: ThresholdResolver.highGlucose(defaults: defaults, fallback: Self.fallbackHighGlucose),
             lowGlucoseThreshold: ThresholdResolver.lowGlucose(defaults: defaults, fallback: Self.fallbackLowGlucose),
             criticalGlucoseThreshold: ThresholdResolver.criticalGlucose(defaults: defaults, fallback: Self.fallbackCriticalGlucose),

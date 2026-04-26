@@ -48,8 +48,8 @@ public enum WidgetNightscoutRefresh {
     ///   from. Pass the same suite the widget's `EntryBuilder` uses.
     public static func refreshIfDue(defaults: UserDefaults?) async {
         guard let defaults else { return }
-        guard defaults.bool(forKey: "nightscoutEnabled") else { return }
-        guard !defaults.bool(forKey: "mockModeEnabled") else { return }
+        guard defaults.bool(forKey: DataSourceKeys.nightscoutEnabled) else { return }
+        guard !defaults.bool(forKey: DataSourceKeys.mockModeEnabled) else { return }
         guard let urlString = defaults.string(forKey: "nightscoutBaseURL"),
               !urlString.isEmpty else { return }
 
@@ -99,8 +99,8 @@ public enum WidgetNightscoutRefresh {
         if let glucose {
             saveIfNewer(
                 defaults: defaults,
-                valueKey: "currentGlucose",
-                dateKey: "glucoseFetchedAt",
+                valueKey: UnifiedDataReader.glucoseValueKey(for: .nightscout),
+                dateKey: UnifiedDataReader.glucoseDateKey(for: .nightscout),
                 value: glucose.mmol,
                 date: glucose.date
             )
@@ -108,8 +108,8 @@ public enum WidgetNightscoutRefresh {
         if let carbs {
             saveIfNewer(
                 defaults: defaults,
-                valueKey: "lastCarbGrams",
-                dateKey: "lastCarbEntryAt",
+                valueKey: UnifiedDataReader.carbsValueKey(for: .nightscout),
+                dateKey: UnifiedDataReader.carbsDateKey(for: .nightscout),
                 value: carbs.grams,
                 date: carbs.date
             )
@@ -122,9 +122,11 @@ public enum WidgetNightscoutRefresh {
         defaults.set(Date().ISO8601Format(), forKey: "nightscoutLastFetchedAt")
     }
 
-    /// Mirror the "save if newer" semantics in `SharedDataManager.saveGlucose`
-    /// / `saveCarbs` so a HealthKit sample written by the main app since the
-    /// last poll isn't clobbered by an older Nightscout reading.
+    /// Mirror the "save if newer" semantics in `SharedDataManager.saveNightscoutGlucose`
+    /// / `saveNightscoutCarbs` so an out-of-order widget-initiated fetch doesn't
+    /// overwrite a Nightscout sample the main app has already cached as newer.
+    /// (Writes are scoped to Nightscout's own per-source keys now, so they
+    /// can't collide with HealthKit samples anyway.)
     private static func saveIfNewer(
         defaults: UserDefaults,
         valueKey: String,

@@ -100,7 +100,7 @@ Repeat until the title reads well in marketing context.
 
 ## Side effects on the simulator
 
-The settings scene writes `mockModeEnabled`, `shieldingEnabled`, and `healthKitEverDelivered` to the shared App Group so the rows render as "configured". The harness resets those flags to `false` on every non-settings launch, so running the full deck leaves the sim in a clean state. But if you capture only `--scene settings` and then launch the app normally (no `-UITest_Scene`), you'll see shielding + demo mode turned on until you uninstall/reinstall.
+The settings scene writes `mockModeEnabled`, `shieldingEnabled`, and `healthKitEnabled` to the shared App Group so the rows render as "configured". The harness resets those flags to `false` on every non-settings launch (keeping `mockModeEnabled` on only when the scene has seeded Demo values via `UnifiedDataReader`), so running the full deck leaves the sim in a clean state. But if you capture only `--scene settings` and then launch the app normally (no `-UITest_Scene`), you'll see shielding + demo mode turned on until you uninstall/reinstall.
 
 ## What this skill does NOT do (yet)
 

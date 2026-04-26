@@ -23,47 +23,113 @@ final class SharedDataManager {
         }
     }
 
-    // MARK: - Glucose Data
+    // MARK: - Unified readings (single source of truth for display)
 
-    var currentGlucose: Double? {
-        let value = defaults?.double(forKey: "currentGlucose") ?? 0
-        return value > 0 ? value : nil
+    /// Glucose reading the app should display right now: Demo wins when
+    /// mock mode is on, otherwise the freshest reading among enabled
+    /// sources. Returns nil when no enabled source has a sample. See
+    /// `SharedKit.UnifiedDataReader` for the full contract.
+    var currentGlucoseReading: GlucoseReading? {
+        UnifiedDataReader.currentGlucoseReading(from: defaults)
     }
 
-    var glucoseFetchedAt: Date? {
-        guard let iso = defaults?.string(forKey: "glucoseFetchedAt") else { return nil }
-        return ISO8601DateFormatter().date(from: iso)
+    var currentCarbsReading: CarbsReading? {
+        UnifiedDataReader.currentCarbsReading(from: defaults)
     }
 
-    /// Persist a glucose sample. By default uses a "save if newer" strategy so
-    /// HealthKit and Nightscout (which both write to the same App Group keys)
-    /// never clobber a fresher reading from the other source. Pass `force: true`
-    /// when the caller has an explicit reason to overwrite — e.g. mock data
-    /// configuration where the user picks an older timestamp on purpose.
-    func saveGlucose(mmol: Double, at date: Date, force: Bool = false) {
-        if !force, let existing = glucoseFetchedAt, date <= existing { return }
-        defaults?.set(mmol, forKey: "currentGlucose")
-        defaults?.set(date.ISO8601Format(), forKey: "glucoseFetchedAt")
+    // MARK: - Per-source values (raw storage)
+
+    /// Returns the value and timestamp this source has cached, regardless
+    /// of whether it's currently the winning source in the resolver. Used
+    /// by the per-source settings screens ("last seen from this source"
+    /// rows) and by writers that need to compare against their own last
+    /// write.
+    func glucoseReading(source: DataSource) -> GlucoseReading? {
+        UnifiedDataReader.glucoseReading(source: source, from: defaults)
     }
 
-    // MARK: - Carb Data
-
-    var lastCarbGrams: Double? {
-        let value = defaults?.double(forKey: "lastCarbGrams") ?? 0
-        return value > 0 ? value : nil
+    func carbsReading(source: DataSource) -> CarbsReading? {
+        UnifiedDataReader.carbsReading(source: source, from: defaults)
     }
 
-    var lastCarbEntryAt: Date? {
-        guard let iso = defaults?.string(forKey: "lastCarbEntryAt") else { return nil }
-        return ISO8601DateFormatter().date(from: iso)
+    /// Write a glucose sample for a specific source. Default behaviour is
+    /// "save if newer" against that source's own timestamp so out-of-order
+    /// writes from HealthKit background deliveries can't overwrite a
+    /// fresher sample. Pass `force: true` when the caller is explicitly
+    /// stamping older data (Demo mode configuration).
+    func saveHealthKitGlucose(mmol: Double, at date: Date, force: Bool = false) {
+        saveGlucose(source: .healthKit, mmol: mmol, at: date, force: force)
     }
 
-    /// Persist a carb entry with the same "save if newer" semantics as
-    /// `saveGlucose`.
-    func saveCarbs(grams: Double, at date: Date, force: Bool = false) {
-        if !force, let existing = lastCarbEntryAt, date <= existing { return }
-        defaults?.set(grams, forKey: "lastCarbGrams")
-        defaults?.set(date.ISO8601Format(), forKey: "lastCarbEntryAt")
+    func saveNightscoutGlucose(mmol: Double, at date: Date, force: Bool = false) {
+        saveGlucose(source: .nightscout, mmol: mmol, at: date, force: force)
+    }
+
+    func saveDemoGlucose(mmol: Double, at date: Date, force: Bool = true) {
+        saveGlucose(source: .demo, mmol: mmol, at: date, force: force)
+    }
+
+    func saveHealthKitCarbs(grams: Double, at date: Date, force: Bool = false) {
+        saveCarbs(source: .healthKit, grams: grams, at: date, force: force)
+    }
+
+    func saveNightscoutCarbs(grams: Double, at date: Date, force: Bool = false) {
+        saveCarbs(source: .nightscout, grams: grams, at: date, force: force)
+    }
+
+    func saveDemoCarbs(grams: Double, at date: Date, force: Bool = true) {
+        saveCarbs(source: .demo, grams: grams, at: date, force: force)
+    }
+
+    /// Clear every cached value for a single source. Used when:
+    ///
+    /// - The user toggles HealthKit off (see `handleSourceDisabled(.healthKit)`).
+    /// - The user toggles Nightscout off and wants its last reading out of
+    ///   the way.
+    /// - Demo mode is disabled and its synthesised values should stop
+    ///   masquerading as real data.
+    func clearHealthKitData() { clearSource(.healthKit) }
+    func clearNightscoutData() { clearSource(.nightscout) }
+    func clearDemoData() { clearSource(.demo) }
+
+    /// Targeted per-metric clears — used by the Demo Settings panel
+    /// where each metric has its own "has data?" toggle, so clearing
+    /// glucose must not wipe the carbs the user is still editing.
+    func clearDemoGlucose() {
+        defaults?.removeObject(forKey: UnifiedDataReader.glucoseValueKey(for: .demo))
+        defaults?.removeObject(forKey: UnifiedDataReader.glucoseDateKey(for: .demo))
+    }
+
+    func clearDemoCarbs() {
+        defaults?.removeObject(forKey: UnifiedDataReader.carbsValueKey(for: .demo))
+        defaults?.removeObject(forKey: UnifiedDataReader.carbsDateKey(for: .demo))
+    }
+
+    private func saveGlucose(source: DataSource, mmol: Double, at date: Date, force: Bool) {
+        let valueKey = UnifiedDataReader.glucoseValueKey(for: source)
+        let dateKey = UnifiedDataReader.glucoseDateKey(for: source)
+        if !force, let existingIso = defaults?.string(forKey: dateKey),
+           let existing = ISO8601DateFormatter().date(from: existingIso),
+           date <= existing { return }
+        defaults?.set(mmol, forKey: valueKey)
+        defaults?.set(date.ISO8601Format(), forKey: dateKey)
+    }
+
+    private func saveCarbs(source: DataSource, grams: Double, at date: Date, force: Bool) {
+        let valueKey = UnifiedDataReader.carbsValueKey(for: source)
+        let dateKey = UnifiedDataReader.carbsDateKey(for: source)
+        if !force, let existingIso = defaults?.string(forKey: dateKey),
+           let existing = ISO8601DateFormatter().date(from: existingIso),
+           date <= existing { return }
+        defaults?.set(grams, forKey: valueKey)
+        defaults?.set(date.ISO8601Format(), forKey: dateKey)
+    }
+
+    private func clearSource(_ source: DataSource) {
+        defaults?.removeObject(forKey: UnifiedDataReader.glucoseValueKey(for: source))
+        defaults?.removeObject(forKey: UnifiedDataReader.glucoseDateKey(for: source))
+        defaults?.removeObject(forKey: UnifiedDataReader.carbsValueKey(for: source))
+        defaults?.removeObject(forKey: UnifiedDataReader.carbsDateKey(for: source))
     }
 
     // MARK: - Attention Badge
@@ -81,12 +147,14 @@ final class SharedDataManager {
     /// was attention in `ShieldContent` but not in the badge).
     @MainActor
     func refreshAttentionBadge() {
-        let glucose = currentGlucose ?? 0
+        let glucoseReading = currentGlucoseReading
+        let carbsReading = currentCarbsReading
+        let glucose = glucoseReading?.mmol ?? 0
         let content = ShieldContent(
             glucose: glucose,
-            glucoseFetchedAt: glucoseFetchedAt,
-            lastCarbGrams: lastCarbGrams,
-            lastCarbEntryAt: lastCarbEntryAt,
+            glucoseFetchedAt: glucoseReading?.sampleAt,
+            lastCarbGrams: carbsReading?.grams,
+            lastCarbEntryAt: carbsReading?.sampleAt,
             highGlucoseThreshold: effectiveHighGlucoseThreshold,
             lowGlucoseThreshold: effectiveLowGlucoseThreshold,
             criticalGlucoseThreshold: effectiveCriticalGlucoseThreshold,
@@ -124,123 +192,56 @@ final class SharedDataManager {
         return rearmAt.timeIntervalSinceNow > 0
     }
 
-    // MARK: - Mock Mode (DEBUG only, writes to same keys as HealthKit)
+    // MARK: - Data-source toggles
+
+    /// Whether the user has toggled Apple Health on in Settings. This is
+    /// the only authoritative "use HealthKit data?" signal — iOS privacy-
+    /// masks the read auth status, so we can't tell from the system
+    /// whether the user actually granted access. The toggle is the gate.
+    var healthKitEnabled: Bool {
+        get { defaults?.bool(forKey: DataSourceKeys.healthKitEnabled) ?? false }
+        set { defaults?.set(newValue, forKey: DataSourceKeys.healthKitEnabled) }
+    }
 
     var isMockModeEnabled: Bool {
-        get { defaults?.bool(forKey: "mockModeEnabled") ?? false }
-        set { defaults?.set(newValue, forKey: "mockModeEnabled") }
+        get { defaults?.bool(forKey: DataSourceKeys.mockModeEnabled) ?? false }
+        set { defaults?.set(newValue, forKey: DataSourceKeys.mockModeEnabled) }
     }
 
-    func clearGlucoseData() {
-        defaults?.removeObject(forKey: "currentGlucose")
-        defaults?.removeObject(forKey: "glucoseFetchedAt")
-    }
-
-    func clearCarbData() {
-        defaults?.removeObject(forKey: "lastCarbGrams")
-        defaults?.removeObject(forKey: "lastCarbEntryAt")
-    }
-
-    /// Disable mock mode. The cached glucose / carb values share storage
-    /// with HealthKit and Nightscout (see `saveGlucose` doc), so we can't
-    /// safely wipe them unconditionally — Nightscout-or-HK-sourced
-    /// values would disappear too. `handleInAppSourceDisabled` only
-    /// clears when no in-app source remains, leaving live sources to
-    /// re-publish on their own poll/observer cycle.
+    /// Disable mock mode. Clears Demo's cached values so the synthesised
+    /// numbers can't leak into the resolver on the next launch (the
+    /// resolver already ignores Demo when `mockModeEnabled == false`, but
+    /// clearing prevents the next "enable" from showing stale demo data
+    /// before the user reconfigures).
     func clearMockData() {
         isMockModeEnabled = false
-        handleInAppSourceDisabled()
+        clearDemoData()
         logger.info("Mock mode disabled")
     }
 
-    // MARK: - Data Sources
-
-    /// Set to true the first time Apple Health actually delivers a sample
-    /// (glucose or carb). Stays true afterwards — we have no reliable way
-    /// to detect that the user later revoked read access in the Health
-    /// app, so "has ever delivered" is the most honest "we successfully
-    /// got data from HK at some point" signal.
-    ///
-    /// Why not just use `HKHealthStore.authorizationStatus`? For read-only
-    /// requests iOS privacy-masks that status: it returns `.sharingDenied`
-    /// both when the user denied *and* when we haven't asked. A user who
-    /// denied HealthKit looks identical to a user who accepted it until a
-    /// sample arrives, so we wait for the sample.
-    ///
-    /// Treat this as historical only — for the "is HK currently a source
-    /// I should trust?" question, use `healthKitDeliveringRecently`. The
-    /// `hasAnyDataSource` gate combines that with the user-controlled
-    /// Nightscout / Demo toggles.
-    var healthKitEverDelivered: Bool {
-        get { defaults?.bool(forKey: "healthKitEverDelivered") ?? false }
-        set { defaults?.set(newValue, forKey: "healthKitEverDelivered") }
-    }
-
-    /// Call this from `HealthKitManager` as soon as a real sample is saved.
-    func markHealthKitDelivered() {
-        if healthKitEverDelivered { return }
-        healthKitEverDelivered = true
-        flush()
-        logger.info("HealthKit marked as delivering")
-    }
-
-    /// True when Apple Health both has delivered at least one sample AND
-    /// the latest stored glucose timestamp is fresher than `glucoseStaleMinutes`.
-    /// Used as the "HK is currently active" proxy because iOS doesn't let
-    /// us read the actual read-auth status (see `healthKitEverDelivered`).
-    ///
-    /// `glucoseFetchedAt` is shared across HK and Nightscout — that's
-    /// fine: if anyone wrote a fresh sample recently, *something* is
-    /// alive. When the user disables Nightscout/Demo the disable handler
-    /// clears the cached values (see `handleInAppSourceDisabled`), so a
-    /// stale-but-non-nil timestamp left over from a since-disabled source
-    /// can't masquerade as HK delivery.
-    ///
-    /// Honours the same override-with-xcconfig-fallback contract as every
-    /// other staleness check in the app (see `ThresholdResolver`): user
-    /// override wins, otherwise the build-time `GlucoseStaleMinutes` default.
-    var healthKitDeliveringRecently: Bool {
-        guard healthKitEverDelivered, let last = glucoseFetchedAt else { return false }
-        let minutes = effectiveGlucoseStaleMinutes
-        return Date().timeIntervalSince(last) < TimeInterval(minutes * 60)
-    }
-
-    /// True when at least one data source can credibly be supplying data
-    /// **right now**:
-    ///
-    /// - Nightscout / Demo: user has toggled them on.
-    /// - Apple Health: has delivered a sample within `glucoseStaleMinutes`
-    ///   (see `healthKitDeliveringRecently`).
-    ///
-    /// Drives both UI surfaces (welcome panel, setup checklist) and the
-    /// shielding gate. Shielding can't make red/green decisions without
-    /// fresh input, so disabling the last live source also disables
-    /// shielding (see `ShieldManager.disableIfNoDataSource()`).
+    /// True when at least one data source is toggled on. Drives the
+    /// welcome panel, the setup checklist, and the shielding gate. With
+    /// per-source toggles in place this is now a simple `OR` of the
+    /// three enabled flags — no recency heuristic needed.
     var hasAnyDataSource: Bool {
-        if nightscoutEnabled || isMockModeEnabled { return true }
-        return healthKitDeliveringRecently
+        healthKitEnabled || nightscoutEnabled || isMockModeEnabled
     }
 
-    /// Call after the user disables an in-app data-source toggle
-    /// (Nightscout, Demo). When no in-app source remains enabled, wipes
-    /// the cached glucose + carb values so the home screen returns to the
-    /// welcome state and the setup checklist re-shows the data-source
-    /// rows immediately, rather than the user staring at a stale "green
-    /// with data" panel and an empty checklist.
+    /// Call after a data-source toggle flips off. Clears the disabled
+    /// source's cached values so neither the resolver nor the
+    /// per-source settings screen shows stale numbers from it, and
+    /// returns so callers can decide whether to kick remaining live
+    /// sources.
     ///
-    /// HK is intentionally not in the "anything left" check here — we
-    /// can't programmatically tell whether HK read auth is still granted.
-    /// Two outcomes both end up correct:
-    /// - HK is still authorized and delivering → its next observer fire
-    ///   re-populates the cleared values within seconds.
-    /// - HK was revoked / never set up → the values stay cleared and the
-    ///   welcome / setup state is honest.
-    func handleInAppSourceDisabled() {
-        guard !nightscoutEnabled, !isMockModeEnabled else { return }
-        clearGlucoseData()
-        clearCarbData()
+    /// Unlike the previous "clear everything if nothing left" heuristic,
+    /// this is always safe: each source owns its own keys now, so
+    /// clearing HK never affects Nightscout's cache and vice versa. The
+    /// resolver ignores disabled sources anyway, so clearing is only
+    /// about keeping the per-source screens honest.
+    func handleSourceDisabled(_ source: DataSource) {
+        clearSource(source)
         flush()
-        logger.info("All in-app data sources disabled — cleared cached glucose/carb values")
+        logger.info("Cleared cached values for disabled source: \(source.rawValue)")
     }
 
     // MARK: - Glucose Unit
@@ -443,11 +444,13 @@ final class SharedDataManager {
             "glucoseStaleMinutes", "carbGraceHour", "carbGraceMinute",
             "attentionIntervalMinutes", "noAttentionIntervalMinutes",
             "cooldownSeconds", "shieldingEnabled", "onlyShieldWhenAttention",
-            "glucoseBadgeMode", "glucoseUnit", "rearmShieldsAt", "mockModeEnabled",
-            "nightscoutEnabled", "nightscoutBaseURL", "nightscoutToken",
+            "glucoseBadgeMode", "glucoseUnit", "rearmShieldsAt",
+            DataSourceKeys.mockModeEnabled,
+            DataSourceKeys.nightscoutEnabled,
+            DataSourceKeys.healthKitEnabled,
+            "nightscoutBaseURL", "nightscoutToken",
             "nightscoutLastFetchedAt", "nightscoutLastError",
             "setupTipsHidden",
-            "healthKitEverDelivered",
         ]
         for key in settingsKeys {
             defaults?.removeObject(forKey: key)
@@ -460,8 +463,8 @@ final class SharedDataManager {
     // MARK: - Nightscout
 
     var nightscoutEnabled: Bool {
-        get { defaults?.bool(forKey: "nightscoutEnabled") ?? false }
-        set { defaults?.set(newValue, forKey: "nightscoutEnabled") }
+        get { defaults?.bool(forKey: DataSourceKeys.nightscoutEnabled) ?? false }
+        set { defaults?.set(newValue, forKey: DataSourceKeys.nightscoutEnabled) }
     }
 
     var nightscoutBaseURL: String? {
@@ -572,4 +575,5 @@ final class SharedDataManager {
             return nil
         }
     }
+
 }

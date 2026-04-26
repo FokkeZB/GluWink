@@ -79,13 +79,16 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         let graceHour = ThresholdResolver.carbGraceHour(defaults: defaults, fallback: Self.fallbackCarbGraceHour)
         let graceMinute = ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: Self.fallbackCarbGraceMinute)
 
-        let glucose = defaults?.double(forKey: "currentGlucose") ?? 0
-        if let isoStr = defaults?.string(forKey: "glucoseFetchedAt"),
-           let fetchedAt = ISO8601DateFormatter().date(from: isoStr) {
-            if glucose < lowThreshold || glucose > highThreshold {
+        // Per-source storage: use `UnifiedDataReader` so the Demo
+        // override and freshest-enabled-source rule apply here too.
+        let glucoseReading = UnifiedDataReader.currentGlucoseReading(from: defaults)
+        let carbsReading = UnifiedDataReader.currentCarbsReading(from: defaults)
+
+        if let glucoseReading {
+            if glucoseReading.mmol < lowThreshold || glucoseReading.mmol > highThreshold {
                 return true
             }
-            if now.timeIntervalSince(fetchedAt) / 60 > Double(staleMinutes) {
+            if now.timeIntervalSince(glucoseReading.sampleAt) / 60 > Double(staleMinutes) {
                 return true
             }
         } else {
@@ -99,9 +102,8 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
             || (hour == graceHour && minute < graceMinute)
 
         if !isMorningGrace {
-            if let isoStr = defaults?.string(forKey: "lastCarbEntryAt"),
-               let carbDate = ISO8601DateFormatter().date(from: isoStr) {
-                if now.timeIntervalSince(carbDate) / 3600 > 4 {
+            if let carbsReading {
+                if now.timeIntervalSince(carbsReading.sampleAt) / 3600 > 4 {
                     return true
                 }
             } else {

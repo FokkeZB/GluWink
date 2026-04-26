@@ -70,10 +70,10 @@ final class ShieldManager {
         let graceHour = data.effectiveCarbGraceHour
         let graceMinute = data.effectiveCarbGraceMinute
 
-        let glucose = data.currentGlucose ?? 0
-        if glucose > 0, let fetchedAt = data.glucoseFetchedAt {
+        if let glucoseReading = data.currentGlucoseReading {
+            let glucose = glucoseReading.mmol
             if glucose < lowThreshold || glucose > highThreshold { return true }
-            if now.timeIntervalSince(fetchedAt) / 60 > Double(staleMinutes) { return true }
+            if now.timeIntervalSince(glucoseReading.sampleAt) / 60 > Double(staleMinutes) { return true }
         } else {
             return true
         }
@@ -84,8 +84,8 @@ final class ShieldManager {
         let isMorningGrace = hour < graceHour || (hour == graceHour && minute < graceMinute)
 
         if !isMorningGrace {
-            if let carbDate = data.lastCarbEntryAt {
-                if now.timeIntervalSince(carbDate) / 3600 > 4 { return true }
+            if let carbsReading = data.currentCarbsReading {
+                if now.timeIntervalSince(carbsReading.sampleAt) / 3600 > 4 { return true }
             } else {
                 return true
             }
@@ -147,7 +147,7 @@ final class ShieldManager {
     @discardableResult
     func disarmShields() -> Bool {
         let data = SharedDataManager.shared
-        let glucose = data.currentGlucose ?? 0
+        let glucose = data.currentGlucoseReading?.mmol ?? 0
         let criticalThreshold = data.effectiveCriticalGlucoseThreshold
         if glucose > 0, glucose >= criticalThreshold {
             logger.notice("Critical glucose \(glucose) >= \(criticalThreshold) — refusing to disarm")

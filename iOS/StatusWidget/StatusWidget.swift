@@ -43,12 +43,14 @@ private enum EntryBuilder {
     static func makeEntry(now: Date, metric: MetricType) -> StatusEntry {
         let defaults = appGroupDefaults
 
-        let glucose = defaults?.double(forKey: "currentGlucose") ?? 0
-        let glucoseDate = defaults?.string(forKey: "glucoseFetchedAt")
-            .flatMap { ISO8601DateFormatter().date(from: $0) }
-        let carbGrams = defaults?.double(forKey: "lastCarbGrams") ?? 0
-        let carbDate = defaults?.string(forKey: "lastCarbEntryAt")
-            .flatMap { ISO8601DateFormatter().date(from: $0) }
+        // Per-source storage: resolve the winning glucose/carb readings
+        // via `UnifiedDataReader` so widgets honour the Demo override
+        // and freshest-enabled-source rule alongside the home screen
+        // and shield UI.
+        let glucoseReading = UnifiedDataReader.currentGlucoseReading(from: defaults)
+        let carbsReading = UnifiedDataReader.currentCarbsReading(from: defaults)
+        let glucoseDate = glucoseReading?.sampleAt
+        let carbDate = carbsReading?.sampleAt
 
         let unit: GlucoseUnit = defaults?.string(forKey: "glucoseUnit")
             .flatMap { GlucoseUnit(rawValue: $0) } ?? .mmolL
@@ -56,9 +58,9 @@ private enum EntryBuilder {
         let strings = ShieldContent.Strings.fromPackage()
 
         let content = ShieldContent(
-            glucose: glucose,
+            glucose: glucoseReading?.mmol ?? 0,
             glucoseFetchedAt: glucoseDate,
-            lastCarbGrams: carbGrams > 0 ? carbGrams : nil,
+            lastCarbGrams: carbsReading?.grams,
             lastCarbEntryAt: carbDate,
             highGlucoseThreshold: ThresholdResolver.highGlucose(defaults: defaults, fallback: fallbackHighGlucose),
             lowGlucoseThreshold: ThresholdResolver.lowGlucose(defaults: defaults, fallback: fallbackLowGlucose),

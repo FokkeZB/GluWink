@@ -41,6 +41,13 @@
 "healthkit.settings.requestButton" = "Apple Gezondheid koppelen";
 "healthkit.settings.openHealthButton" = "Open Gezondheid-app";
 "healthkit.settings.sectionFooter" = "Rechten beheer je in de Gezondheid-app bij Delen › Apps.";
+"healthkit.settings.enabledToggle" = "Apple Gezondheid inschakelen";
+"healthkit.settings.enabledFooter" = "Lees glucose- en koolhydraatgegevens uit Apple Gezondheid. Als je dit inschakelt, wordt waar nodig om toestemming gevraagd. Uitschakelen zorgt dat de app geen Gezondheid-gegevens meer gebruikt, ook als de toestemming nog actief is.";
+"healthkit.settings.latestDataHeader" = "Laatste gegevens";
+"healthkit.settings.latestGlucose" = "Glucose";
+"healthkit.settings.latestCarbs" = "Koolhydraten";
+"healthkit.settings.noGlucoseYet" = "Nog geen gegevens";
+"healthkit.settings.noCarbsYet" = "Nog geen gegevens";
 
 /* Instellingen - Gegevensbronnen */
 "settings.dataSources" = "Gegevensbronnen";
@@ -161,10 +168,11 @@
 "settings.nightscoutVersion %@" = "Versie: %@";
 "settings.nightscoutUnits %@" = "Server-eenheid: %@";
 "settings.nightscoutStatusHeader" = "Status";
-"settings.nightscoutLastFetch" = "Laatste update";
-"settings.nightscoutNotConfigured" = "Nog niet ingesteld.";
-"settings.nightscoutDisabled" = "Uitgeschakeld.";
-"settings.nightscoutAwaitingFirstUpdate" = "Wachten op eerste update…";
+"settings.nightscoutLatestHeader" = "Laatste gegevens";
+"settings.nightscoutLatestGlucose" = "Glucose";
+"settings.nightscoutLatestCarbs" = "Koolhydraten";
+"settings.nightscoutNoGlucoseYet" = "Nog geen gegevens";
+"settings.nightscoutNoCarbsYet" = "Nog geen gegevens";
 
 /* Inchecken */
 "checkin.disarmButton" = "Klaar";

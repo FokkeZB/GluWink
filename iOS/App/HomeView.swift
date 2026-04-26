@@ -112,11 +112,13 @@ struct HomeView: View {
             now: now
         )
         #else
+        let glucoseReading = data.currentGlucoseReading
+        let carbsReading = data.currentCarbsReading
         return ShieldContent(
-            glucose: data.currentGlucose ?? 0,
-            glucoseFetchedAt: data.glucoseFetchedAt,
-            lastCarbGrams: data.lastCarbGrams,
-            lastCarbEntryAt: data.lastCarbEntryAt,
+            glucose: glucoseReading?.mmol ?? 0,
+            glucoseFetchedAt: glucoseReading?.sampleAt,
+            lastCarbGrams: carbsReading?.grams,
+            lastCarbEntryAt: carbsReading?.sampleAt,
             highGlucoseThreshold: highThreshold,
             lowGlucoseThreshold: lowThreshold,
             criticalGlucoseThreshold: criticalThreshold,
@@ -137,11 +139,9 @@ struct HomeView: View {
     ///
     /// Intentionally does NOT also check for cached glucose values:
     /// without an active source those values are stale by definition
-    /// (see `SharedDataManager.hasAnyDataSource`'s recency window) and
-    /// surfacing them next to "no source configured" is confusing. The
-    /// launch-time migration in `MainApp` clears the cache in that
-    /// case, but if a user is mid-toggle and we momentarily race, the
-    /// welcome panel is still the correct UI to show.
+    /// and surfacing them next to "no source configured" is confusing.
+    /// `handleSourceDisabled(_:)` clears each source's cache when its
+    /// toggle flips off, so there's nothing to leak here.
     private var showsWelcome: Bool {
         #if targetEnvironment(simulator)
         if let preset = ScreenshotHarness.current?.homeViewPreset {
@@ -424,7 +424,7 @@ struct HomeView: View {
             : Date()
         return hasGlucoseData ? now.addingTimeInterval(-glucoseMinutesAgo * 60) : nil
         #else
-        return SharedDataManager.shared.glucoseFetchedAt
+        return SharedDataManager.shared.currentGlucoseReading?.sampleAt
         #endif
     }
 
@@ -435,7 +435,7 @@ struct HomeView: View {
             : Date()
         return hasCarbData ? now.addingTimeInterval(-carbMinutesAgo * 60) : nil
         #else
-        return SharedDataManager.shared.lastCarbEntryAt
+        return SharedDataManager.shared.currentCarbsReading?.sampleAt
         #endif
     }
 
