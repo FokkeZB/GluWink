@@ -134,7 +134,7 @@ Scènevolgorde komt overeen met de tabel in `README.md` → Screenshots.
 | 6 | Glucose en koolhydraten op elke wijzerplaat. |
 | 7 | Apple Gezondheid, Nightscout of demo — kies één. |
 
-### Apple Watch (45mm)
+### Apple Watch (46mm)
 
 | # | Caption |
 |---|---|

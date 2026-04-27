@@ -8,8 +8,8 @@
 # `iOS/fastlane/screenshots/<locale>/NN_<scene>.png`. Both iPhone and
 # Apple Watch screenshots land flat in the same locale folder — fastlane
 # `deliver` detects the device tier from PNG pixel dimensions, not the
-# folder path (1320×2868 → APP_IPHONE_67, 396×484 → APP_WATCH_SERIES_7
-# which is App Store Connect's 45mm bucket for Series 7/8/9/10/11 45mm).
+# folder path (1320×2868 → APP_IPHONE_67, 416×496 → APP_WATCH_SERIES_10
+# which is App Store Connect's 46mm bucket for Series 10/11 46mm).
 # Any subdir under the locale folder would fail loader validation, see
 # `deliver/lib/deliver/loader.rb` + QUIRKS.md → "Fastlane deliver ignores
 # device-size subfolders" + issue #95.
@@ -32,7 +32,7 @@
 #   capture.sh --no-build            # skip rebuild (faster iteration)
 #   capture.sh --no-captions         # skip the marketing caption banner (iPhone only)
 #   capture.sh --device 'iPhone 17 Pro Max'
-#   capture.sh --watch-device 'Apple Watch Series 10 (45mm)'
+#   capture.sh --watch-device 'Apple Watch Series 10 (46mm)'
 #   capture.sh --skip-watch          # iPhone only (e.g. Watch sim unavailable)
 #
 # Captions are pulled from AppStore/<locale>.md → "Screenshot captions" →
@@ -47,12 +47,12 @@ DERIVED_DATA="/tmp/glucoach-screenshots-dd"
 BUNDLE_ID="nl.fokkezb.GluWink"
 WATCH_BUNDLE_ID="nl.fokkezb.GluWink.watchkitapp"
 DEFAULT_DEVICE="iPhone 17 Pro Max"
-# Default Watch sim target. Must be a 45mm Series 10/11 (396×484 screen),
-# which fastlane maps to the App Store Connect "Apple Watch Series 7" /
-# 45mm bucket. The name below is the canonical `xcrun simctl list
-# devicetypes` identifier at the time of writing; override with
-# --watch-device if the simctl catalogue has rotated.
-DEFAULT_WATCH_DEVICE="Apple Watch Series 10 (45mm)"
+# Default Watch sim target. Must be a 46mm Series 10/11 (416×496 screen),
+# which fastlane maps to the App Store Connect "Apple Watch Series 10" /
+# 46mm bucket (APP_WATCH_SERIES_10). The name below is the canonical
+# `xcrun simctl list devicetypes` identifier at the time of writing;
+# override with --watch-device if the simctl catalogue has rotated.
+DEFAULT_WATCH_DEVICE="Apple Watch Series 11 (46mm)"
 
 # Scene order matches AppStore/README.md → Screenshots. The numeric prefix
 # orders files for human review AND is the App Store Connect deck order
