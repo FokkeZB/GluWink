@@ -77,6 +77,8 @@ screenshots:
     red: "GluWink check-in-schild met rood gezichtje: glucose kritiek hoog, het schild kan pas weer als de glucose daalt."
     widgets: "GluWink-widgets in drie formaten op het beginscherm van de iPhone."
     settings: "GluWink-instellingen: stel alerts in, kies een bron, regel het schild."
+    watchFace: "GluWink-glucose en -koolhydraten als complicaties op een Apple Watch-wijzerplaat."
+    watchApp: "GluWink-app op de Apple Watch: glucose, koolhydraten en hoelang geleden ze gemeten zijn."
 
 disclaimer:
   title: "Geen medisch hulpmiddel."

@@ -56,7 +56,7 @@ final class HealthKitManager {
             logger.error("Failed to disable background delivery: \(error.localizedDescription)")
         }
         SharedDataManager.shared.handleSourceDisabled(.healthKit)
-        await SharedDataManager.shared.refreshAttentionBadge()
+        SharedDataManager.shared.refreshAttentionBadge()
         ShieldManager.shared.reevaluateShields()
         WidgetCenter.shared.reloadAllTimelines()
         WatchSessionManager.shared.sendLatestContext()
@@ -199,7 +199,7 @@ final class HealthKitManager {
         // Reconcile the badge unconditionally — a sample-free observer wake
         // (no new data, denied read access) still means time has passed, so
         // stale/carb-gap transitions must be re-evaluated or the badge drifts.
-        await SharedDataManager.shared.refreshAttentionBadge()
+        SharedDataManager.shared.refreshAttentionBadge()
 
         // Piggyback: when HealthKit wakes us up (including background delivery),
         // also poll Nightscout so the two sources stay aligned. Each source
@@ -236,7 +236,7 @@ final class HealthKitManager {
             logger.error("Failed to fetch carbs: \(error.localizedDescription)")
         }
 
-        await SharedDataManager.shared.refreshAttentionBadge()
+        SharedDataManager.shared.refreshAttentionBadge()
 
         await NightscoutManager.shared.fetchAll()
     }

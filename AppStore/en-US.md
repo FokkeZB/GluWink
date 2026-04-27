@@ -132,7 +132,7 @@ Scene order matches the table in `README.md` → Screenshots.
 | 6 | Glucose and carbs on every watch face. |
 | 7 | Apple Health, Nightscout, or demo — pick one. |
 
-### Apple Watch (45mm)
+### Apple Watch (46mm)
 
 | # | Caption |
 |---|---|

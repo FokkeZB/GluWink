@@ -20,15 +20,30 @@ SRC="$ROOT/iOS/fastlane/screenshots"
 DST="$ROOT/docs/assets/screenshots"
 
 # Scenes the marketing site uses, in the order it shows them. Keep in sync
-# with docs/_includes/hero-carousel.html. Watch (scene 6) is omitted on
-# purpose — the capture pipeline doesn't yet automate Apple Watch shots.
-# The first three tell the green / orange / red traffic-light story — the
-# whole point of the app. Widgets + settings back it up with "same status
-# everywhere" and "tune it to your setup". setupChecklist is App-Store-only
-# (it's more of a funnel shot than a marketing hero), so it isn't in the
-# site carousel.
-SCENES=(01_greenShield 02_orangeShield 03_redShield 04_widgets 05_settings)
+# with docs/_includes/hero-carousel.html. The first three tell the green /
+# orange / red traffic-light story — the whole point of the app. Widgets +
+# settings back it up with "same status everywhere" and "tune it to your
+# setup". 07_watchApp is the auto-captured watchOS scene; it lives next
+# to the iPhone PNGs in the fastlane locale folder because `fastlane
+# deliver` buckets screenshots by pixel dimensions, not path (see
+# iOS/fastlane/Deliverfile + QUIRKS.md → "Fastlane deliver ignores
+# device-size subfolders"). setupChecklist is App-Store-only (it's more
+# of a funnel shot than a marketing hero), so it isn't in the site.
+#
+# 06_watchFace.png — watch face with complications in context — is NOT
+# synced. Apple exposes no API to render a full watch face programmatically
+# (ClockKit's preview surfaces only the complication tile), so the owner
+# captures that one on device and commits it directly to
+# docs/assets/screenshots/<locale>/06_watchFace.png and
+# iOS/fastlane/screenshots/<locale>/06_watchFace.png. This script leaves
+# both copies alone, and `--check` excludes the filename from its diff so
+# a manually-curated face shot doesn't fail CI.
+SCENES=(01_greenShield 02_orangeShield 03_redShield 04_widgets 05_settings 07_watchApp)
 LOCALES=(en-US nl-NL)
+# Files that live in docs/assets/screenshots/<locale>/ but are NOT synced
+# from fastlane (owner-managed). Kept in a single list so --check can
+# exclude them from `diff -r` with one flag each.
+MANUAL_FILES=(06_watchFace.png)
 
 mode="copy"
 if [[ "${1:-}" == "--check" ]]; then mode="check"; fi
@@ -71,7 +86,14 @@ for locale in "${LOCALES[@]}"; do
   done
 done
 
-DIFF_OUT="$(diff -r "$DST" "$TMP" 2>&1 || true)"
+# Build the `-x <pattern>` exclude list for `diff -r` from MANUAL_FILES so
+# owner-managed files (e.g. 06_watchFace.png) don't trip the check.
+diff_excludes=()
+for f in "${MANUAL_FILES[@]}"; do
+  diff_excludes+=(-x "$f")
+done
+
+DIFF_OUT="$(diff -r "${diff_excludes[@]}" "$DST" "$TMP" 2>&1 || true)"
 if [[ -n "$DIFF_OUT" ]]; then
   echo "ERROR: docs/assets/screenshots/ is out of date relative to" >&2
   echo "       iOS/fastlane/screenshots/. Re-run 'make appstore-screenshots'" >&2

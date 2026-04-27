@@ -77,6 +77,8 @@ screenshots:
     red: "GluWink check-in shield with a red face: glucose critically high, shield cannot be dismissed until glucose drops."
     widgets: "GluWink widgets in three sizes on the iPhone home screen."
     settings: "GluWink settings: tune alerts, pick a data source, shape the shield."
+    watchFace: "GluWink glucose and carbs as complications on an Apple Watch face."
+    watchApp: "GluWink Watch app showing glucose, carbs, and how long ago they were read."
 
 disclaimer:
   title: "Not a medical device."

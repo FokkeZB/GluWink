@@ -1,55 +1,141 @@
 {%- comment -%}
-  Hero carousel: floating brand app icon + iPhone frame containing a
-  4-slide auto-rotating gallery, with dot pager beneath the phone.
-  Driven by /assets/js/hero-carousel.js (data-carousel attribute).
+  Hero carousel: two independent auto-rotating carousels rendered together
+  so both the iPhone and the Apple Watch read as "shipping devices" in a
+  family pose. The iPhone carousel is primary (5 slides, dot pager, tabbable
+  with keyboard arrows, carries the LCP); the Watch carousel is secondary
+  (2 slides, no dots — per-owner decision, see #85) tucked into the lower-
+  right of the phone with a small overhang so it reads as its own device
+  rather than phone chrome.
+
+  Both carousels share the same markup pattern (.hero-carousel__slides +
+  .hero-carousel__slide) and are driven by the same JS
+  (/assets/js/hero-carousel.js) — the JS binds every [data-carousel]
+  independently, so two instances on the page Just Work with independent
+  timers, hover-pause, and visibility handling.
+
+  The app icon that used to float over the phone now lives in the top
+  navigation (see _includes/header.html + `.brand img` in site.css),
+  tilted and overlapping the header's bottom border — one home for the
+  brand mark, and the hero is free to compose phone + watch only.
+
+  Slide 1 of the phone carousel paints with a real `src` (LCP, preloaded
+  via head.html); slides 2–5 ship with `data-src` and are hydrated on
+  demand by the carousel JS. The watch's first slide also uses real `src`
+  (it's visible from page load, just not preloaded); watch slide 2 uses
+  `data-src` and is warmed during idle.
+
+  Each slide wraps its image in either a `.device-stage--iphone` (verbatim
+  devices.css iPhone 14 Pro, phone slides) or a `.device-stage--watch`
+  (verbatim devices.css Apple Watch Series 8, watch slides). Phone slides
+  omit `.device-header` / `.device-sensors` so the library's CSS Dynamic
+  Island doesn't double up with the one already rendered in the screenshot
+  pixels. Watch slides keep every template div per the library demo.
 {%- endcomment -%}
 {%- assign t = page.lang | default: "en" -%}
 {%- if t == "nl" -%}{%- assign data = site.data.nl -%}{%- assign locale = "nl-NL" -%}
 {%- else -%}{%- assign data = site.data.en -%}{%- assign locale = "en-US" -%}{%- endif -%}
 {%- capture base -%}/assets/screenshots/{{ locale }}/{%- endcapture -%}
-<div class="hero-carousel" data-carousel data-interval="5000" tabindex="0"
-     role="group" aria-roledescription="carousel" aria-label="{{ data.screenshots.title }}">
-  <img class="hero__app-icon" src="{{ '/assets/icons/iOS.png' | relative_url }}" alt=""
-       width="160" height="160" loading="eager" fetchpriority="high" decoding="async">
-  <figure class="iphone iphone--xl">
-    <div class="iphone__screen">
-      <ul class="hero-carousel__slides">
-        {%- comment -%}
-          Slide 1 paints with a real `src` so the browser can fetch it
-          immediately (paired with the `<link rel=preload>` in head.html);
-          this is the LCP element.
-
-          Slides 2-4 use `data-src` and have NO `src` attribute, so the
-          browser doesn't fetch them during initial parse. The carousel JS
-          hydrates each one on demand the first time it's about to be
-          shown (and pre-warms the next one), keeping ~1 MiB of PNG out
-          of the LCP critical path. Width/height are still set so the
-          slot reserves layout space and there's no CLS when the swap
-          happens.
-        {%- endcomment -%}
-        <li class="hero-carousel__slide is-active" data-slide aria-hidden="false">
-          <img src="{{ base | append: '01_greenShield.png' | relative_url }}" alt="{{ data.screenshots.alt.green }}" width="320" height="694" loading="eager" fetchpriority="high" decoding="async">
-        </li>
-        <li class="hero-carousel__slide" data-slide aria-hidden="true">
-          <img data-src="{{ base | append: '02_orangeShield.png' | relative_url }}" alt="{{ data.screenshots.alt.orange }}" width="320" height="694" decoding="async">
-        </li>
-        <li class="hero-carousel__slide" data-slide aria-hidden="true">
-          <img data-src="{{ base | append: '03_redShield.png' | relative_url }}" alt="{{ data.screenshots.alt.red }}" width="320" height="694" decoding="async">
-        </li>
-        <li class="hero-carousel__slide" data-slide aria-hidden="true">
-          <img data-src="{{ base | append: '04_widgets.png' | relative_url }}" alt="{{ data.screenshots.alt.widgets }}" width="320" height="694" decoding="async">
-        </li>
-        <li class="hero-carousel__slide" data-slide aria-hidden="true">
-          <img data-src="{{ base | append: '05_settings.png' | relative_url }}" alt="{{ data.screenshots.alt.settings }}" width="320" height="694" decoding="async">
-        </li>
-      </ul>
+<div class="hero-carousel">
+  <div class="hero-carousel__phone" data-carousel data-interval="5000" tabindex="0"
+       role="group" aria-roledescription="carousel" aria-label="{{ data.screenshots.title }}">
+    <ul class="hero-carousel__slides">
+      <li class="hero-carousel__slide is-active" data-slide aria-hidden="false">
+        <div class="device-stage--iphone">
+          <div class="device device-iphone-14-pro">
+            <div class="device-frame"><img class="device-screen" src="{{ base | append: '01_greenShield.png' | relative_url }}" alt="{{ data.screenshots.alt.green }}" width="390" height="847" loading="eager" fetchpriority="high" decoding="async"></div>
+            <div class="device-stripe"></div>
+            <div class="device-btns"></div>
+            <div class="device-power"></div>
+            <div class="device-home"></div>
+          </div>
+        </div>
+      </li>
+      <li class="hero-carousel__slide" data-slide aria-hidden="true">
+        <div class="device-stage--iphone">
+          <div class="device device-iphone-14-pro">
+            <div class="device-frame"><img class="device-screen" data-src="{{ base | append: '02_orangeShield.png' | relative_url }}" alt="{{ data.screenshots.alt.orange }}" width="390" height="847" decoding="async"></div>
+            <div class="device-stripe"></div>
+            <div class="device-btns"></div>
+            <div class="device-power"></div>
+            <div class="device-home"></div>
+          </div>
+        </div>
+      </li>
+      <li class="hero-carousel__slide" data-slide aria-hidden="true">
+        <div class="device-stage--iphone">
+          <div class="device device-iphone-14-pro">
+            <div class="device-frame"><img class="device-screen" data-src="{{ base | append: '03_redShield.png' | relative_url }}" alt="{{ data.screenshots.alt.red }}" width="390" height="847" decoding="async"></div>
+            <div class="device-stripe"></div>
+            <div class="device-btns"></div>
+            <div class="device-power"></div>
+            <div class="device-home"></div>
+          </div>
+        </div>
+      </li>
+      <li class="hero-carousel__slide" data-slide aria-hidden="true">
+        <div class="device-stage--iphone">
+          <div class="device device-iphone-14-pro">
+            <div class="device-frame"><img class="device-screen" data-src="{{ base | append: '04_widgets.png' | relative_url }}" alt="{{ data.screenshots.alt.widgets }}" width="390" height="847" decoding="async"></div>
+            <div class="device-stripe"></div>
+            <div class="device-btns"></div>
+            <div class="device-power"></div>
+            <div class="device-home"></div>
+          </div>
+        </div>
+      </li>
+      <li class="hero-carousel__slide" data-slide aria-hidden="true">
+        <div class="device-stage--iphone">
+          <div class="device device-iphone-14-pro">
+            <div class="device-frame"><img class="device-screen" data-src="{{ base | append: '05_settings.png' | relative_url }}" alt="{{ data.screenshots.alt.settings }}" width="390" height="847" decoding="async"></div>
+            <div class="device-stripe"></div>
+            <div class="device-btns"></div>
+            <div class="device-power"></div>
+            <div class="device-home"></div>
+          </div>
+        </div>
+      </li>
+    </ul>
+    <div class="hero-carousel__dots" aria-label="Choose screenshot">
+      <button type="button" data-slide-to="0" aria-current="true"  aria-label="{{ data.screenshots.alt.green }}"></button>
+      <button type="button" data-slide-to="1" aria-current="false" aria-label="{{ data.screenshots.alt.orange }}"></button>
+      <button type="button" data-slide-to="2" aria-current="false" aria-label="{{ data.screenshots.alt.red }}"></button>
+      <button type="button" data-slide-to="3" aria-current="false" aria-label="{{ data.screenshots.alt.widgets }}"></button>
+      <button type="button" data-slide-to="4" aria-current="false" aria-label="{{ data.screenshots.alt.settings }}"></button>
     </div>
-  </figure>
-  <div class="hero-carousel__dots" aria-label="Choose screenshot">
-    <button type="button" data-slide-to="0" aria-current="true"  aria-label="{{ data.screenshots.alt.green }}"></button>
-    <button type="button" data-slide-to="1" aria-current="false" aria-label="{{ data.screenshots.alt.orange }}"></button>
-    <button type="button" data-slide-to="2" aria-current="false" aria-label="{{ data.screenshots.alt.red }}"></button>
-    <button type="button" data-slide-to="3" aria-current="false" aria-label="{{ data.screenshots.alt.widgets }}"></button>
-    <button type="button" data-slide-to="4" aria-current="false" aria-label="{{ data.screenshots.alt.settings }}"></button>
+  </div>
+  <div class="hero-carousel__watch" data-carousel data-interval="5000"
+       role="group" aria-roledescription="carousel" aria-label="{{ data.screenshots.alt.watchFace }}">
+    <ul class="hero-carousel__slides">
+      <li class="hero-carousel__slide is-active" data-slide aria-hidden="false">
+        <div class="device-stage--watch">
+          <div class="device device-apple-watch-s8">
+            <div class="device-frame">
+              <img class="device-screen" src="{{ base | append: '06_watchFace.png' | relative_url }}" alt="{{ data.screenshots.alt.watchFace }}" width="268" height="324" decoding="async">
+            </div>
+            <div class="device-stripe"></div>
+            <div class="device-header"></div>
+            <div class="device-sensors"></div>
+            <div class="device-btns"></div>
+            <div class="device-power"></div>
+            <div class="device-home"></div>
+          </div>
+        </div>
+      </li>
+      <li class="hero-carousel__slide" data-slide aria-hidden="true">
+        <div class="device-stage--watch">
+          <div class="device device-apple-watch-s8">
+            <div class="device-frame">
+              <img class="device-screen" data-src="{{ base | append: '07_watchApp.png' | relative_url }}" alt="{{ data.screenshots.alt.watchApp }}" width="268" height="324" decoding="async">
+            </div>
+            <div class="device-stripe"></div>
+            <div class="device-header"></div>
+            <div class="device-sensors"></div>
+            <div class="device-btns"></div>
+            <div class="device-power"></div>
+            <div class="device-home"></div>
+          </div>
+        </div>
+      </li>
+    </ul>
   </div>
 </div>

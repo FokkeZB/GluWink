@@ -66,6 +66,8 @@
       "Bash(make install:*)",
       "Bash(make deploy:*)",
       "Bash(make tunneld:*)",
+      "Bash(make watchface-prepare:*)",
+      "Bash(make watchface-capture:*)",
       "Bash(xcodebuild:*)",
       "Bash(xcrun simctl list:*)",
       "Bash(swift test:*)",

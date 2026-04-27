@@ -66,6 +66,8 @@
     "make install",
     "make deploy",
     "make tunneld",
+    "make watchface-prepare",
+    "make watchface-capture",
     "xcodebuild",
     "xcrun simctl list",
     "swift test",

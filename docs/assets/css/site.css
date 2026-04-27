@@ -118,15 +118,77 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
      below so the wrapped nav spans the full header row. */
   flex-wrap: wrap;
 }
-.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--fg); font-weight: 600; }
+.brand { display: inline-flex; align-items: center; gap: 12px; color: var(--fg); font-weight: 600; }
 .brand:hover { text-decoration: none; }
+/* Brand mark — doubles as the "this-is-an-iOS-app" signal. Sized up from
+   the nav's 40px baseline to 60px, tilted, and gently wobbling so it reads
+   as a sticker pressed onto the nav rather than a logo glyph. Negative
+   vertical margins keep the header row at its existing ~60px min-height
+   while the visual element takes up more room and pokes ~8px below the
+   header's grey bottom border. This is the only home for the iOS icon on
+   the page — the hero used to carry a second floating copy; that one has
+   been retired so phone + watch can compose cleanly. */
 .brand img {
-  width: 40px; height: 40px;
-  /* iOS app-icon squircle (Apple uses ~22.37%). The PNG is square so we
-     need to round it ourselves; the same value below makes the floating
-     hero tile read as a real home-screen icon. */
+  width: 60px;
+  height: 60px;
+  /* Layout box 40px tall (60 − 20) = matches the previous 40×40 icon's
+     contribution to the header's content band, so the header doesn't grow
+     vertically despite the bigger visual. Extra bleed is absorbed by the
+     transform below, which poses the icon outside the layout box. */
+  margin-block: -10px;
+  /* Slight rightward nudge so the rotation pivot (50% 80%) doesn't push
+     the icon visually into the brand name. Pairs with the +2px gap bump
+     on .brand to keep "GluWink" optically balanced against the tilted
+     icon. */
+  margin-right: 2px;
+  /* iOS app-icon squircle (Apple uses ~22.37%). PNG is square so we round
+     it ourselves — same radius Apple uses for home-screen icons. */
   border-radius: 22.37%;
-  box-shadow: 0 1px 1px rgba(15, 17, 21, 0.12), 0 0 0 1px rgba(15, 17, 21, 0.04);
+  /* Softer/bigger drop shadow than before so the tilt reads as "lifted
+     off the nav surface". Hairline tint + ambient shadow + contact
+     shadow, matching the shadow stack the hero icon used. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    0 1px 0 rgba(255, 255, 255, 0.08),
+    0 14px 22px -10px rgba(15, 17, 21, 0.28),
+    0 6px 10px -6px rgba(15, 17, 21, 0.20);
+  /* translateY shifts the icon ~6px past its layout center so the bottom
+     pokes below the header's border line (at 60px icon + -10/-10 margin,
+     the icon's bottom border-edge otherwise lands flush with the header's
+     bottom; +6 gives the overlap the prompt asked for). Rotate gives it
+     the "stuck on crooked" feel. transform-origin low on the icon keeps
+     the bottom corner roughly anchored during the wobble so the overlap
+     stays stable — only the top rocks left/right. */
+  transform: translateY(6px) rotate(-10deg);
+  transform-origin: 50% 80%;
+  transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* z-index so the icon can visually cover the header's border-bottom
+     where they overlap — without it the hairline divider would still
+     draw across the icon's lower edge. */
+  position: relative;
+  z-index: 1;
+  animation: brand-icon-wobble 3.2s ease-in-out infinite;
+}
+/* Straighten on hover (pauses the wobble so the tilt lands decisively
+   rather than drifting mid-animation). */
+.brand:hover img {
+  animation-play-state: paused;
+  transform: translateY(4px) rotate(-2deg);
+}
+/* Idle rock — widened to a ~10° swing (-12° ↔ -2°) and shortened to 3.2s
+   so the motion is visible at a glance without screaming for attention.
+   The asymmetric 4-stop shape (long dwell at the extremes, quicker travel
+   through the middle via ease-in-out) reads as a physical pendulum
+   rather than a sine wave. translateY is held at 6px across every stop
+   so the overlap below the nav's border hairline never pulses — only
+   rotation animates. */
+@keyframes brand-icon-wobble {
+  0%, 100% { transform: translateY(6px) rotate(-12deg); }
+  50%      { transform: translateY(6px) rotate(-2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand img { animation: none; }
+  .brand:hover img { transition: none; }
 }
 .brand__name { font-size: 17px; letter-spacing: -0.01em; }
 .nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -143,66 +205,232 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
 
 /* Hero — two-column on desktop (copy + framed phone). The soft radial
    gradients warm up an otherwise stark above-the-fold and pull the eye
-   toward the phone on the right. */
+   toward the phone on the right. Top padding is tighter than the
+   symmetrical visual default because the brand icon now lives in the
+   top nav (tilted, overlapping the nav's bottom border) instead of
+   floating above the phone — there's no longer any overshoot to budget
+   for, so the phone+watch composition can start closer to the nav. */
 .hero {
-  padding: clamp(48px, 9vw, 96px) 0 clamp(48px, 7vw, 80px);
+  padding: clamp(28px, 5vw, 64px) 0 clamp(48px, 7vw, 80px);
   background:
     radial-gradient(80% 60% at 100% 0%, rgba(10, 132, 255, 0.10), transparent 65%),
     radial-gradient(70% 60% at 0% 100%, rgba(255, 198, 150, 0.45), transparent 65%);
+  /* The watch carousel sits to the LEFT of the phone with a leftward
+     overhang past the media column into the gap / lower copy area. That
+     overhang extends past the wrap on narrow viewports too; clip it at
+     the section level so it never causes a horizontal scrollbar
+     (overflow-x: clip is preferred over hidden — it doesn't create a
+     scroll context, and it's supported by every browser we target). */
+  overflow-x: clip;
 }
 .hero__inner {
   display: grid;
   gap: clamp(32px, 6vw, 56px);
   grid-template-columns: 1fr;
-  align-items: center;
+  /* Copy sits at the top of the row rather than vertically centered against
+     the much taller phone+watch stack. In two-column mode this pulls the
+     eyebrow / headline / paragraph / CTA cluster up to the top-left of the
+     hero so it's the first thing read; the phone is free to extend further
+     down. In single-column mode align-items is a no-op (one column, one
+     row), but we set it here so the behaviour is declared in one place. */
+  align-items: start;
 }
+/* Two-column threshold: 900px. Below that we stack (copy above phone+watch)
+   because the tablet tier's 340px phone won't fit next to a useful copy
+   column inside the wrap, and the watch's -50% leftward poke would start
+   eating into the copy's reading width. At 900+ the geometry works out:
+   · 900px wrap = 852 content → copy 418, gap 54, media 380. Phone (340px
+     at this tier) fits with ~40px right-margin; watch (202px) pokes -170px
+     left of phone-left, landing ~76px inside the copy column at its widest.
+     That's horizontal overlap only — the watch is bottom-anchored in the
+     hero-carousel (~745px tall at this tier), top edge at ~530px, while
+     the copy cluster (eyebrow + h1 + subtitle + body + CTAs) tops out
+     around 400px. Vertical clearance ~130px, no text collision.
+   · 1024+ tier bumps phone to 380 and watch to 230; wrap grows too, so
+     the same composition holds with more breathing room on both axes.
+   Dropping below 900 would either clip the phone in the media column or
+   push the watch's right edge far enough into the copy to graze CTAs on
+   common 4-line body copy, so we stop there. */
 @media (min-width: 900px) {
   .hero__inner { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
 }
 .hero__copy { max-width: 60ch; }
-/* position: relative so the floating app-icon tile can anchor to the
-   media column rather than the whole hero. */
-.hero__media { display: flex; justify-content: center; align-items: center; }
+/* Single-column mode (<900px, i.e. anything stacked below the copy):
+   center the phone+watch composition inside the wrap. At these widths
+   there's no copy beside the media, so right-aligning the phone would
+   just pin the pair to one edge with empty space opposite — centered
+   reads as a deliberate product shot.
 
-/* Hero carousel — wraps the phone, dot pager, and the floating app icon.
-   Vertical flex column so the dots sit directly under the bezel. The
-   carousel itself is the positioning context for .hero__app-icon (instead
-   of .hero__media) so the icon stays glued to the phone, not the column. */
+   Tablet tier (760–899): `.hero-carousel__watch` is still absolute-
+   positioned with `left: -50%`, but relative to the centered phone's
+   width, not the viewport — so the whole pair shifts toward the
+   middle together and the ~10% phone/watch overlap holds. Wrap has
+   enough slack here (~712–852px content) for the watch's leftward
+   overhang to stay on-canvas.
+
+   Mobile tier (<760): the watch drops out of the overlay pose
+   entirely and stacks in-flow below the phone carousel's dots (see
+   `.hero-carousel__watch`). At this tier the wrap is barely wider
+   than the phone, so an overhang would either cover the phone's own
+   marketing-overlay caption or vanish off-canvas behind
+   `.hero { overflow-x: clip }`. Stacking reads cleanly.
+
+   Two-column mode (≥900px): flex-end — the phone is right-aligned
+   inside its media column, which creates the empty space to the LEFT
+   of the phone that the watch's leftward poke extends into (through
+   the grid gap and into the lower portion of the copy column). Safe
+   because copy content ends vertically well above the watch's bottom-
+   anchored position. */
+.hero__media { display: flex; justify-content: center; align-items: center; }
+@media (min-width: 900px) {
+  .hero__media { justify-content: flex-end; }
+}
+
+/* Hero carousel — composition wrapper. Holds TWO independent [data-
+   carousel] instances: a primary iPhone carousel (.hero-carousel__phone,
+   dot pager + keyboard control + LCP slide) and a secondary Apple Watch
+   carousel (.hero-carousel__watch, no dots, auto-rotate only) placed to
+   the left of the phone's lower half as a "family pose".
+
+   Layout: the phone carousel is the only in-flow child, so .hero-carousel
+   sizes to the phone's width + dots. The watch is absolutely positioned
+   relative to .hero-carousel with `bottom: 0; left: negative` — flush
+   with the dots row at the bottom, and poking leftward into the empty
+   space beside / below the copy. See the .hero-carousel__watch block
+   below for the per-breakpoint left percentages.
+
+   The brand mark no longer lives here — it's in the top nav only (see
+   `.brand img` up top), which is why there's no longer any "floating
+   app icon" positioning math in this wrapper. */
 .hero-carousel {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  outline: none;
+  /* No padding-bottom — the watch now lives to the LEFT of the phone
+     rather than hanging below it, so there's nothing to reserve vertical
+     space for. The hero-carousel's intrinsic height = phone + dots gap +
+     dots; the watch is bottom-anchored inside that and sized so its
+     bottom aligns with the phone's bottom (see .hero-carousel__watch).
+     No margin-right for the same reason — the old value existed to give
+     back the watch's rightward overhang, which no longer exists. */
+}
+/* Primary (iPhone) carousel — flex column stacks slides above the dots.
+   tabindex lives on this element so keyboard focus / ArrowLeft / ArrowRight
+   drive the phone carousel only (the watch is auto-only by design). */
+.hero-carousel__phone {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 18px;
   outline: none;
 }
-/* Show keyboard focus on the phone bezel rather than the wrap so the
-   focus ring reads as "you're driving the carousel now". */
-.hero-carousel:focus-visible .iphone {
+/* Show keyboard focus on the iPhone device bezel rather than the wrap so
+   the focus ring reads as "you're driving the carousel now". */
+.hero-carousel__phone:focus-visible .is-active .device-stage--iphone {
   outline: 3px solid var(--brand);
   outline-offset: 6px;
 }
+/* CSS Grid stacks every slide into the same cell. Shared by both
+   carousels — the grid cell auto-sizes to its tallest slide (for the
+   phone carousel: the iPhone frame; for the watch carousel: the Watch
+   frame), so each carousel keeps a stable height of its own. */
 .hero-carousel__slides {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  display: grid;
+  grid-template-areas: "slide";
   margin: 0;
   padding: 0;
   list-style: none;
+  width: 100%;
+}
+
+/* Secondary (Apple Watch) carousel — behavior forks at the 760px tier:
+
+   Mobile (<760px): in-flow below the phone carousel. The wrap at this
+   tier is barely wider than the phone itself (e.g. at 360px viewport
+   the phone already eats ~300 of the 312 content width), so any
+   "floating overhang" pose would force us to choose between (a) parking
+   the watch directly over the phone's lower half — which collides with
+   the phone screenshot's own marketing caption overlay and the
+   carousel dots row — or (b) pushing most of the watch off-canvas
+   behind `.hero { overflow-x: clip }`, leaving only a sliver visible.
+   Neither reads as a real second device. Stacking below the dots, in
+   flow, sidesteps both: the flex-column parent (`.hero-carousel`,
+   `align-items: center`) centers the watch under the phone, and a
+   small top margin gives breathing room between the dots and the
+   watch's crown. The softer single-layer drop shadow is also better
+   calibrated for "sits on the same surface" than the desktop stack's
+   "hovers above the phone" shadow.
+
+   ≥760px: absolute-positioned overlay to the LEFT of the phone's
+   lower half — the "family pose" the owner picked in #85. Enough
+   horizontal room exists at this tier for the watch to overhang left
+   of the phone with only a ~10% right-edge poke into the phone's
+   lower-left, and for the layout to accommodate the overhang without
+   clipping. Positioning rationale:
+
+   · `bottom: 0` aligns the watch's bottom edge with the bottom of
+     `.hero-carousel` — which is the carousel dots' bottom (dots are
+     the last in-flow child of `.hero-carousel__phone`, whose own
+     bottom is the row bottom). The watch extends ~42px below the
+     phone's bottom bezel (the 18px phone-to-dots gap + 24px dot
+     height). Keeps the composition anchored to the dots baseline.
+   · `left: -50%` sits the watch's left edge OUTSIDE the phone on the
+     left, with the watch's right edge poking ~10% × phone-width INTO
+     the phone's lower-left (watch:phone width ratio per tier is
+     0.58 / 0.59 / 0.60, so 10% overlap = 10% − ratio ≈ -48/-49/-50%;
+     rounded to -50% flat — the 1–2% drift is invisible).
+   · In two-column mode (≥900px) the -50% offset pushes the watch left
+     of the media column into the gap and the lower portion of the
+     copy column. That's safe because copy content (eyebrow + headline
+     + body + CTAs) ends vertically well above the watch's bottom-
+     anchored position. The tightest case is the 900px threshold
+     itself — see the `.hero__inner` two-column block for the exact
+     geometry.
+   · In single-column-but-≥760 (760–899) the phone is still centered
+     (see `.hero__media` flex rule), so the watch's -50% offset
+     travels toward the middle with the phone. Wrap has enough slack
+     here for both devices to stay in-canvas.
+   · z-index: 2 puts the watch above the phone (phone's `.device`
+     is z-index: 1) so the left-edge overlap renders cleanly.
+
+   No dot pager and no tabindex per the owner's decision for #85: the
+   watch is illustrative secondary content; the phone carousel is the
+   interactive surface. */
+.hero-carousel__watch {
+  margin-top: 16px;
+  /* Single-layer contact shadow for the in-flow mobile pose — the
+     watch is sitting on the page surface, not floating over the
+     phone, so the wide ambient layer would look exaggerated here. */
+  filter: drop-shadow(0 8px 14px rgba(15, 17, 21, 0.22));
+}
+@media (min-width: 760px) {
+  .hero-carousel__watch {
+    position: absolute;
+    bottom: 0;
+    left: -50%;
+    right: auto;
+    z-index: 2;
+    margin-top: 0;
+    /* Layered shadow for the floating overlay: wide ambient so the
+       watch reads as lifted off the phone surface, plus a tight
+       contact shadow under the bottom bezel. */
+    filter:
+      drop-shadow(0 20px 30px rgba(15, 17, 21, 0.30))
+      drop-shadow(0 6px 10px rgba(15, 17, 21, 0.20));
+  }
 }
 .hero-carousel__slide {
-  position: absolute;
-  inset: 0;
+  grid-area: slide;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0;
   transition: opacity 500ms ease;
+  pointer-events: none;
 }
-.hero-carousel__slide.is-active { opacity: 1; }
-.hero-carousel__slide img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.hero-carousel__slide.is-active { opacity: 1; pointer-events: auto; }
 @media (prefers-reduced-motion: reduce) {
   .hero-carousel__slide { transition: none; }
 }
@@ -247,46 +475,6 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
   transform: scale(1.25);
 }
 
-/* Floating app-icon tile — the friendly face is the brand, so we lift
-   the iOS app icon off the top-left of the hero phone like a sticker
-   that's been peeled forward. iOS squircle radius (22.37%), soft drop
-   shadow and a hairline highlight for that "real home-screen icon"
-   feel. Sized in clamp() so it scales with viewport. */
-.hero__app-icon {
-  position: absolute;
-  z-index: 2;
-  width: clamp(80px, 12vw, 132px);
-  height: auto;
-  aspect-ratio: 1 / 1;
-  top: -8%;
-  /* Tuck it just outside the phone bezel on the left. The iPhone
-     frame in .iphone--xl maxes at 380px and the carousel column is
-     phone-width, so 50% = phone center. We pull left by half-icon
-     plus a phone-width-relative offset. */
-  left: calc(50% - (clamp(80px, 12vw, 132px) / 2) - clamp(110px, 16vw, 180px));
-  border-radius: 22.37%;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.30),
-    0 1px 0 rgba(255, 255, 255, 0.10),
-    0 26px 40px -16px rgba(15, 17, 21, 0.35),
-    0 8px 16px -8px rgba(15, 17, 21, 0.20);
-  transform: rotate(-4deg);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .hero__app-icon { transition: transform 320ms ease; }
-  .hero-carousel:hover .hero__app-icon { transform: rotate(-2deg) translateY(-2px); }
-}
-/* On stacked (single-column) layouts, the default top: -8% lifts the
-   icon 50+ px above the carousel — which is fine on desktop where the
-   carousel lives in its own column, but on mobile the copy stacks
-   directly above it and the icon crashes into the last CTA button
-   ("Star the repo on GitHub"). Pin top to a small negative value so
-   the icon peels just above the phone bezel (well within the hero's
-   32px inter-section gap) instead of floating up into the CTA.
-   Breakpoint mirrors .hero__inner's two-column threshold. */
-@media (max-width: 899px) {
-  .hero__app-icon { top: -16px; }
-}
 .hero__eyebrow {
   margin: 0 0 12px; font-size: 13px; font-weight: 600;
   letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand);
@@ -381,45 +569,385 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
   color: var(--fg-soft); font-size: 15px;
 }
 
-/* iPhone frame — pure CSS, no images. Wraps a portrait screenshot in a
-   bezel that approximates a modern iPhone Pro (1320x2868 screen ratio).
-   Sizes are driven by --iphone-w / --iphone-bezel / --iphone-radius so
-   callers can override per context (hero, grid, etc.). */
-.iphone {
-  --iphone-w: 280px;
-  --iphone-bezel: 12px;
-  --iphone-radius: 38px;
-  width: var(--iphone-w);
-  max-width: 100%;
-  margin: 0 auto;
-  padding: var(--iphone-bezel);
-  border-radius: var(--iphone-radius);
-  background: linear-gradient(170deg, #2a2b30 0%, #15161a 55%, #0c0d10 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 1px 0 0 rgba(255, 255, 255, 0.05),
-    0 30px 60px -28px rgba(15, 17, 21, 0.45),
-    0 18px 30px -18px rgba(15, 17, 21, 0.30);
+/* iPhone 14 Pro frame — verbatim from picturepan2 / devices.css v0.2.0,
+   re-heighted to fit our 6.9" App Store screenshots.
+
+   Source CSS:   https://github.com/picturepan2/devices.css/blob/master/dist/devices.css
+   Source SCSS:  https://github.com/picturepan2/devices.css/blob/master/src/_iphone-14-pro.scss
+   HTML template: https://github.com/picturepan2/devices.css/blob/master/docs/phones.html#L103-L111
+   License: MIT © Yan Zhu (https://github.com/picturepan2)
+
+   Why adapt the 6.1" body for 6.9" screenshots? The library's stock frame
+   is sized for iPhone 14 Pro (native 2556x1179, aspect 0.4613). Our App
+   Store deck is captured on an iPhone 17 Pro Max (native 2868x1320, aspect
+   0.4603) because Apple requires 6.9" assets as the canonical iPhone
+   size. Those aspects are within 0.2% of each other, so keeping the
+   library's body width and only extending the screen height preserves the
+   silhouette while letting the real screenshot fit edge-to-edge with no
+   letterboxing:
+
+     .device-iphone-14-pro               height 868 -> 885
+     .device-iphone-14-pro .device-frame  height 868 -> 885
+     .device-iphone-14-pro .device-screen height 830 -> 847  (width stays 390)
+
+   Button / power / home positions are measured from the top of the body
+   and already land in the correct proportional spots on an 885-tall body
+   (the extra 17px is added at the bottom), so they don't need retuning.
+
+   In the accompanying HTML (hero-carousel.html) we deliberately omit the
+   empty `.device-header` and `.device-sensors` divs. Our screenshots are
+   real iPhone captures so the Dynamic Island is already in the PNG pixels
+   — overlaying the library's CSS Dynamic Island would paint a second pill
+   on top. The CSS rules targeting those classes are kept below as no-ops
+   so this block stays a clean copy-with-dimension-tweak of the library
+   (easy future upgrades) while rendering nothing without the matching
+   divs.
+
+   The ONLY additions past the "End devices.css verbatim" marker are
+   `.device-iphone-14-pro img.device-screen` (makes an `<img>` fill the
+   screen rect — devices.css demos use background-image, we use <img> for
+   alt text + the carousel's lazy-load data-src swap, same pattern as the
+   Watch frame below) and `.device-stage--iphone` which wraps the fixed
+   428x885 shell and scales it via `transform: scale()` across our
+   breakpoints. Scale factors target rendered widths of 300 / 340 / 380px
+   — exactly what the previous `.iphone--xl` frame occupied, so the hero
+   grid sizes unchanged. */
+.device-iphone-14-pro {
+  height: 885px;
+  width: 428px;
 }
-.iphone__screen {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1320 / 2868;
-  border-radius: calc(var(--iphone-radius) - var(--iphone-bezel) + 2px);
-  overflow: hidden;
-  background: #000;
+.device-iphone-14-pro .device-frame {
+  background: #010101;
+  border: 1px solid #1b1721;
+  border-radius: 68px;
+  box-shadow: inset 0 0 4px 2px #c0b7cd, inset 0 0 0 6px #342c3f;
+  height: 885px;
+  padding: 19px;
+  width: 428px;
 }
-.iphone__screen img {
-  display: block;
+.device-iphone-14-pro .device-screen {
+  border-radius: 49px;
+  height: 847px;
+  width: 390px;
+}
+.device-iphone-14-pro .device-stripe::after,
+.device-iphone-14-pro .device-stripe::before {
+  border: solid rgba(1, 1, 1, .25);
+  border-width: 0 7px;
+  content: "";
+  height: 7px;
+  left: 0;
+  position: absolute;
   width: 100%;
-  height: 100%;
+  z-index: 9;
+}
+.device-iphone-14-pro .device-stripe::after {
+  top: 85px;
+}
+.device-iphone-14-pro .device-stripe::before {
+  bottom: 85px;
+}
+.device-iphone-14-pro .device-header {
+  background: #010101;
+  border-radius: 20px;
+  height: 35px;
+  left: 50%;
+  margin-left: -60px;
+  position: absolute;
+  top: 29px;
+  width: 120px;
+}
+.device-iphone-14-pro .device-sensors::after,
+.device-iphone-14-pro .device-sensors::before {
+  content: "";
+  position: absolute;
+}
+.device-iphone-14-pro .device-sensors::after {
+  background: #010101;
+  border-radius: 17px;
+  height: 33px;
+  left: 50%;
+  margin-left: -60px;
+  top: 30px;
+  width: 74px;
+}
+.device-iphone-14-pro .device-sensors::before {
+  background: radial-gradient(farthest-corner at 20% 20%, #6074bf 0, transparent 40%), radial-gradient(farthest-corner at 80% 80%, #513785 0, #24555e 20%, transparent 50%);
+  border-radius: 50%;
+  box-shadow: 0 0 1px 1px rgba(255, 255, 255, .05);
+  height: 9px;
+  left: 50%;
+  margin-left: 36px;
+  top: 42px;
+  width: 9px;
+}
+.device-iphone-14-pro .device-btns {
+  background: #1b1721;
+  border-radius: 2px;
+  height: 32px;
+  left: -2px;
+  position: absolute;
+  top: 115px;
+  width: 3px;
+}
+.device-iphone-14-pro .device-btns::after,
+.device-iphone-14-pro .device-btns::before {
+  background: #1b1721;
+  border-radius: 2px;
+  content: "";
+  height: 62px;
+  left: 0;
+  position: absolute;
+  width: 3px;
+}
+.device-iphone-14-pro .device-btns::after {
+  top: 60px;
+}
+.device-iphone-14-pro .device-btns::before {
+  top: 140px;
+}
+.device-iphone-14-pro .device-power {
+  background: #1b1721;
+  border-radius: 2px;
+  height: 100px;
+  position: absolute;
+  right: -2px;
+  top: 200px;
+  width: 3px;
+}
+.device-iphone-14-pro .device-home::after,
+.device-iphone-14-pro .device-home::before {
+  border: solid rgba(1, 1, 1, .25);
+  border-width: 6px 0;
+  content: "";
+  height: 6px;
+  position: absolute;
+  width: 6px;
+  z-index: 9;
+}
+.device-iphone-14-pro .device-home::after {
+  right: 86px;
+  top: 0;
+}
+.device-iphone-14-pro .device-home::before {
+  bottom: 0;
+  left: 86px;
+}
+/* === End devices.css verbatim === */
+
+/* Make the screen <img> fill the fixed 390x847 screen rect. Devices.css
+   demos put the screenshot on `.device-screen` as a background-image; we
+   need a real <img> for alt text and the lazy-load data-src swap the
+   carousel JS does. object-fit + matching border-radius keep the corner
+   rounding consistent with the library. */
+.device-iphone-14-pro img.device-screen {
+  border-radius: 49px;
   object-fit: cover;
 }
-/* Hero phone is the LCP — bigger, more padded, and stepped up at wider
-   viewports so it actually carries the above-the-fold. */
-.iphone--xl { --iphone-w: 300px; --iphone-bezel: 13px; --iphone-radius: 42px; }
-@media (min-width: 760px)  { .iphone--xl { --iphone-w: 340px; --iphone-bezel: 14px; --iphone-radius: 46px; } }
-@media (min-width: 1024px) { .iphone--xl { --iphone-w: 380px; --iphone-bezel: 16px; --iphone-radius: 50px; } }
+
+/* Responsive stage for the fixed-pixel 428x885 iPhone shell. Transform
+   scales the frame around its centre; the stage explicitly claims the
+   post-scale footprint so the hero grid reserves the right amount of
+   layout space (transforms don't affect layout size on their own). Scale
+   factors target 300 / 340 / 380px rendered widths — the same visual
+   footprint the previous `.iphone--xl` frame occupied. */
+.device-stage--iphone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(428px * 0.7009);
+  height: calc(885px * 0.7009);
+}
+.device-stage--iphone .device {
+  transform: scale(0.7009);
+  transform-origin: center center;
+}
+@media (min-width: 760px) {
+  .device-stage--iphone {
+    width: calc(428px * 0.7944);
+    height: calc(885px * 0.7944);
+  }
+  .device-stage--iphone .device { transform: scale(0.7944); }
+}
+@media (min-width: 1024px) {
+  .device-stage--iphone {
+    width: calc(428px * 0.8879);
+    height: calc(885px * 0.8879);
+  }
+  .device-stage--iphone .device { transform: scale(0.8879); }
+}
+
+/* Apple Watch frame — verbatim from picturepan2 / devices.css v0.2.0.
+   Source: https://github.com/picturepan2/devices.css/blob/master/dist/devices.css
+   HTML template: https://github.com/picturepan2/devices.css/blob/master/docs/watches.html#L131
+   License: MIT © Yan Zhu (https://github.com/picturepan2)
+
+   The .device / .device-apple-watch-s8 rules below are copied unmodified
+   from the compiled distribution — colours, radii, shadows, dimensions.
+   The markup in `hero-carousel.html` matches the template verbatim too
+   (empty `.device-stripe` / `.device-header` / `.device-sensors` /
+   `.device-home` divs included — they're no-ops for watch-s8 but are
+   part of the canonical template and harmless at 0px).
+
+   The ONLY additions past this library are below the "End devices.css
+   verbatim" marker: `.device-stage--watch` wraps the fixed-pixel 360×380
+   shell and scales it via `transform: scale()` across our breakpoints,
+   and a tiny `.device-apple-watch-s8 img.device-screen` rule makes the
+   screen `<img>` fill the screen rectangle (devices.css demos use
+   `background-image` instead of an `<img>`; we use `<img>` for
+   accessibility so alt text works and the src can be lazy-swapped by
+   the carousel JS). */
+.device,
+.device::before,
+.device::after,
+.device *,
+.device *::before,
+.device *::after {
+  box-sizing: border-box;
+  display: block;
+}
+.device {
+  position: relative;
+  transform: scale(1);
+  z-index: 1;
+}
+.device .device-frame {
+  z-index: 1;
+}
+.device .device-screen {
+  background-color: #000;
+  background-position: center center;
+  background-size: cover;
+  object-fit: cover;
+  position: relative;
+}
+.device-apple-watch-s8 {
+  height: 380px;
+  width: 360px;
+}
+.device-apple-watch-s8 .device-frame {
+  background: #0d0d0d;
+  border-radius: 92px;
+  box-shadow: inset 0 0 24px 1px #0d0d0d, inset 0 0 0 12px #606c78;
+  height: 380px;
+  margin: 0 20px;
+  padding: 28px 26px;
+  position: relative;
+  width: 320px;
+}
+.device-apple-watch-s8 .device-frame::before {
+  border: 1px solid #0d0d0d;
+  border-radius: 80px;
+  box-shadow: 0 0 12px rgba(255, 255, 255, .5), inset 0 0 12px 2px rgba(255, 255, 255, .75);
+  content: "";
+  height: 356px;
+  left: 12px;
+  position: absolute;
+  top: 12px;
+  width: 298px;
+}
+.device-apple-watch-s8 .device-screen {
+  border: 2px solid #121212;
+  border-radius: 62px;
+  height: 324px;
+  width: 268px;
+}
+.device-apple-watch-s8 .device-btns {
+  background: #606c78;
+  border-left: 1px solid black;
+  border-radius: 8px 6px 6px 8px / 20px 6px 6px 20px;
+  box-shadow: inset 8px 0 8px 0 #1c1f23, inset -2px 0 6px #272c31, -4px 0 8px rgba(13, 13, 13, .25);
+  height: 72px;
+  position: absolute;
+  right: 10px;
+  top: 108px;
+  width: 18px;
+  z-index: 9;
+}
+.device-apple-watch-s8 .device-btns::after {
+  background: #272c31;
+  border-radius: 2px 4px 4px 2px / 20px 8px 8px 20px;
+  box-shadow: inset -2px 0 2px 0 black, inset -6px 0 18px #272c31;
+  content: "";
+  height: 72px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 6px;
+}
+.device-apple-watch-s8 .device-btns::before {
+  background: #272c31;
+  border-radius: 20%;
+  box-shadow: 0 -30px rgba(62, 70, 77, .75), 0 -27px #272c31, 0 -25px black, 0 -21px rgba(62, 70, 77, .75), 0 -18px #272c31, 0 -16px black, 0 -12px rgba(62, 70, 77, .75), 0 -9px #272c31, 0 -7px black, 0 -3px rgba(62, 70, 77, .75), 0 0 #272c31, 0 2px black, 0 6px rgba(62, 70, 77, .75), 0 9px #272c31, 0 11px black, 0 15px rgba(62, 70, 77, .75), 0 18px #272c31, 0 20px black, 0 24px rgba(62, 70, 77, .75), 0 27px #272c31, 0 29px black;
+  content: "";
+  height: 3px;
+  margin-top: -2px;
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  width: 10px;
+  z-index: 9;
+}
+.device-apple-watch-s8 .device-power {
+  background: #272c31;
+  border-radius: 2px 4px 4px 2px / 2px 8px 8px 2px;
+  box-shadow: inset 0 0 2px 1px #101315;
+  height: 72px;
+  position: absolute;
+  right: 18px;
+  top: 212px;
+  width: 4px;
+}
+/* === End devices.css verbatim === */
+
+/* Make the screen <img> fill the fixed-size screen rectangle. Devices.css
+   examples put the screenshot on `.device-screen` as a background-image,
+   but we need a real <img> for alt text and the lazy-load data-src swap
+   the carousel JS does. object-fit + border-radius inherited keeps the
+   corner rounding consistent with the library. */
+.device-apple-watch-s8 img.device-screen {
+  border-radius: 62px;
+}
+
+/* Responsive stage for the fixed-pixel 360×380 shell. Transform scales
+   the frame around its center; the stage explicitly claims the post-
+   scale footprint so the carousel grid cell reserves the right amount
+   of space (transforms don't affect layout size on their own). Scale
+   factors target ~200/230/265px rendered widths to stay consistent with
+   what the previous Watch frame occupied in the hero. */
+/* Scale ladder: 0.48 / 0.56 / 0.64. The watch is now the SECONDARY device
+   in the hero (the iPhone carousel is the primary, driven composition),
+   so it's deliberately smaller than a standalone watch slide would be.
+   Keeping it this size also keeps the vertical overlap with the phone
+   shallow enough to land fully in the home-indicator / bezel strip (see
+   .hero-carousel__watch and .hero-carousel padding-bottom). Bump the
+   scale only if you also bump .hero-carousel's padding-bottom, or the
+   watch will start covering screenshot content again. */
+.device-stage--watch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(360px * 0.48);
+  height: calc(380px * 0.48);
+}
+.device-stage--watch .device {
+  transform: scale(0.48);
+  transform-origin: center center;
+}
+@media (min-width: 760px) {
+  .device-stage--watch {
+    width: calc(360px * 0.56);
+    height: calc(380px * 0.56);
+  }
+  .device-stage--watch .device { transform: scale(0.56); }
+}
+@media (min-width: 1024px) {
+  .device-stage--watch {
+    width: calc(360px * 0.64);
+    height: calc(380px * 0.64);
+  }
+  .device-stage--watch .device { transform: scale(0.64); }
+}
 
 /* Disclaimer */
 .disclaimer {
