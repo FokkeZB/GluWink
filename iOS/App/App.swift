@@ -120,7 +120,7 @@ struct MainApp: App {
                     // a denied / dataless install takes neither branch and
                     // would otherwise launch with a stale badge inherited
                     // from the previous session.
-                    await SharedDataManager.shared.refreshAttentionBadge()
+                    SharedDataManager.shared.refreshAttentionBadge()
 
                     WatchSessionManager.shared.sendLatestContext()
                 }
