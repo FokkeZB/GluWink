@@ -6,7 +6,7 @@ allowed-tools: Bash(bash .claude/skills/appstore-screenshots/scripts/capture.sh:
 
 # App Store Screenshot Pipeline
 
-Drives `iOS/App/ScreenshotHarness.swift` (iPhone, gated by `#if targetEnvironment(simulator)`) and `iOS/WatchApp/WatchScreenshotHarness.swift` (Apple Watch, same gate) to capture every App Store scene for every locale into `iOS/fastlane/screenshots/<locale>/` (flat — no device-size subfolder; fastlane `deliver` buckets by pixel dimensions, not path, so a Watch PNG at 396×484 lands in the 45mm bucket alongside the iPhone PNGs at 1320×2868 in the same locale folder. See QUIRKS.md → "Fastlane deliver ignores device-size subfolders" and `deliver/lib/deliver/loader.rb`). Then waits for explicit user sign-off before uploading via `fastlane deliver`.
+Drives `iOS/App/ScreenshotHarness.swift` (iPhone, gated by `#if targetEnvironment(simulator)`) and `iOS/WatchApp/WatchScreenshotHarness.swift` (Apple Watch, same gate) to capture every App Store scene for every locale into `iOS/fastlane/screenshots/<locale>/` (flat — no device-size subfolder; fastlane `deliver` buckets by pixel dimensions, not path, so a Watch PNG at 416×496 lands in the 46mm bucket alongside the iPhone PNGs at 1320×2868 in the same locale folder. See QUIRKS.md → "Fastlane deliver ignores device-size subfolders" and `deliver/lib/deliver/loader.rb`). Then waits for explicit user sign-off before uploading via `fastlane deliver`.
 
 See GitHub issues [#28](https://github.com/FokkeZB/GluWink/issues/28) (tracker), [#29](https://github.com/FokkeZB/GluWink/issues/29) (harness), and [#31](https://github.com/FokkeZB/GluWink/issues/31) (captions) for design context.
 
@@ -39,18 +39,17 @@ Locales come from `AppStore/<locale>.md`. Today: `en-US`, `nl-NL`. Adding a new 
 
 ## Manual shots
 
-**`06_watchFace.png` — Apple Watch face with GluWink complications in context.** Apple exposes no API to render a full watch face programmatically — ClockKit's complication preview renders the tile, not the surrounding face, and `xcrun simctl io screenshot` on the watch sim captures whatever the WatchApp draws (so the same hard wall). The owner therefore captures this one by hand — on device, not the simulator if possible, for the real bezel / sensor look.
+**`06_watchFace.png` — Apple Watch face with GluWink complications in context.** Apple exposes no API to render a full watch face programmatically — ClockKit's complication preview renders the tile, not the surrounding face, and `xcrun simctl io screenshot` on the watch sim captures whatever's currently on the face (which requires a human to long-press → Edit → pick complications). This skill therefore leaves `06_watchFace.png` alone; capturing it has its own dedicated skill.
 
-Requirements:
-- **45mm Apple Watch Series 7 / 8 / 9 / 10 / 11.** That's the 396×484 px bucket (`APP_WATCH_SERIES_7` in fastlane `deliver`), which App Store Connect treats as "Apple Watch Series 7 (45mm)". Other case sizes won't match the bucket and `deliver` will reject them.
-- **Complications visible.** Whichever face the owner uses, at least one GluWink complication (glucose or carb tile) should be obvious — the whole marketing point.
-- **One shot per locale.** The watchOS system strings shown on the face (weekday, calendar "nothing scheduled", etc.) come from the watch's own language setting, so the EN and NL versions are separate captures.
+See [`../watchface-screenshots/SKILL.md`](../watchface-screenshots/SKILL.md) for the guided flow. TL;DR:
 
-Commit to both sides of the pipeline:
-- `docs/assets/screenshots/<locale>/06_watchFace.png` — site carousel's Watch slide.
-- `iOS/fastlane/screenshots/<locale>/06_watchFace.png` — App Store Connect Watch deck (alongside the auto-captured `07_watchApp.png`).
+```bash
+make watchface-prepare LOCALE=en-US   # boots 46mm sim, localises, installs WatchApp
+#  ... owner configures complications in the sim UI ...
+make watchface-capture LOCALE=en-US   # screenshots + validates 416×496 + writes to both trees
+```
 
-`docs/scripts/sync-screenshots.sh` skips this file in both copy and `--check` modes so it doesn't fight the manual capture.
+The skill writes to both `iOS/fastlane/screenshots/<locale>/06_watchFace.png` (App Store deck) and `docs/assets/screenshots/<locale>/06_watchFace.png` (marketing site) in one go. `docs/scripts/sync-screenshots.sh` skips `06_watchFace` in both copy and `--check` modes so it doesn't fight the manual capture.
 
 ## Quick Start
 
@@ -66,14 +65,14 @@ bash .claude/skills/appstore-screenshots/scripts/capture.sh \
 bash .claude/skills/appstore-screenshots/scripts/capture.sh \
     --scene watchApp --locale en-US --no-build
 
-# iPhone only (e.g. no 45mm Watch sim installed on this machine)
+# iPhone only (e.g. no 46mm Watch sim installed on this machine)
 bash .claude/skills/appstore-screenshots/scripts/capture.sh --skip-watch
 
 # Different iPhone simulator (default is "iPhone 17 Pro Max", the 6.9" device)
 bash .claude/skills/appstore-screenshots/scripts/capture.sh --device "iPhone 16 Pro Max"
 
-# Different Watch simulator (default is "Apple Watch Series 10 (45mm)")
-bash .claude/skills/appstore-screenshots/scripts/capture.sh --watch-device "Apple Watch Series 11 (45mm)"
+# Different Watch simulator (default is "Apple Watch Series 11 (46mm)")
+bash .claude/skills/appstore-screenshots/scripts/capture.sh --watch-device "Apple Watch Series 10 (46mm)"
 ```
 
 `make appstore-screenshots` is the short alias for the full-deck capture. Use the raw `capture.sh` path for `--scene` / `--locale` / `--device` / `--watch-device` / `--no-build` / `--skip-watch`.

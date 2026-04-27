@@ -92,7 +92,7 @@ venv-clean:
 
 # --- App Store listing (fastlane deliver) ---
 
-.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta docs-sync-screenshots docs-bootstrap docs-serve docs-clean docs-build docs-publish-check docs-audit
+.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta watchface-prepare watchface-capture docs-sync-screenshots docs-bootstrap docs-serve docs-clean docs-build docs-publish-check docs-audit
 
 ## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile)
 appstore-bootstrap:
@@ -125,6 +125,38 @@ _capture-screenshots:
 ## Copy curated screenshots into docs/assets/screenshots/ (see docs/scripts).
 docs-sync-screenshots:
 	bash docs/scripts/sync-screenshots.sh
+
+## Prepare the watchOS Simulator for a manual 06_watchFace.png capture.
+## Boots the 46mm Watch sim, sets its system language to LOCALE (so the
+## watch face's weekday/date localise), builds and installs WatchApp so
+## the complication picker lists GluWink, and brings Simulator.app to
+## the front. The owner then manually adds GluWink complications to the
+## face and runs `make watchface-capture LOCALE=...`.
+## See .claude/skills/watchface-screenshots/SKILL.md for the full flow.
+## Usage: make watchface-prepare LOCALE=en-US [WATCH_DEVICE='Apple Watch Series 10 (46mm)'] [NO_BUILD=1]
+LOCALE ?=
+WATCH_DEVICE ?= Apple Watch Series 11 (46mm)
+NO_BUILD ?=
+
+watchface-prepare:
+	@if [ -z "$(LOCALE)" ]; then echo "ERROR: LOCALE is required (e.g. make watchface-prepare LOCALE=en-US)" >&2; exit 64; fi
+	bash .claude/skills/watchface-screenshots/scripts/prepare.sh \
+		--locale "$(LOCALE)" \
+		--watch-device "$(WATCH_DEVICE)" \
+		$(if $(NO_BUILD),--no-build,)
+
+## Capture 06_watchFace.png from the booted watchOS Simulator and write
+## it to both iOS/fastlane/screenshots/<locale>/ (App Store deck) and
+## docs/assets/screenshots/<locale>/ (marketing site). Validates the
+## PNG is 416x496 (APP_WATCH_SERIES_10 / 46mm bucket) — anything else is
+## rejected so fastlane deliver won't fail at upload time.
+## Run `make watchface-prepare LOCALE=...` first.
+## Usage: make watchface-capture LOCALE=en-US [WATCH_DEVICE=...]
+watchface-capture:
+	@if [ -z "$(LOCALE)" ]; then echo "ERROR: LOCALE is required (e.g. make watchface-capture LOCALE=en-US)" >&2; exit 64; fi
+	bash .claude/skills/watchface-screenshots/scripts/capture.sh \
+		--locale "$(LOCALE)" \
+		--watch-device "$(WATCH_DEVICE)"
 
 # `mise exec ruby --` resolves `bundle` / `ruby` to the Ruby pinned in
 # mise.toml + docs/.ruby-version. Scoped to `ruby` so we don't trigger
