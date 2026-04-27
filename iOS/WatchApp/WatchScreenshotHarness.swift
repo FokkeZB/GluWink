@@ -1,6 +1,7 @@
 #if targetEnvironment(simulator)
 import Foundation
 import SharedKit
+import WidgetKit
 
 /// Deterministic state overrides for Apple Watch screenshot captures.
 ///
@@ -105,6 +106,15 @@ enum WatchScreenshotHarness {
         // and pin the display unit to match the active locale.
         defaults.set(true, forKey: "mockModeEnabled")
         defaults.set(glucoseUnit.rawValue, forKey: "glucoseUnit")
+
+        // Nudge WidgetKit to re-query timelines so complications pick up
+        // the just-seeded values. Without this, the watch face serves a
+        // cached tile from the previous prime (e.g. en-US mg/dL after
+        // flipping to nl-NL mmol/L, or a stale "7.5 / orange" value from
+        // a past session). Writing to UserDefaults does not auto-trigger
+        // a timeline reload — we have to ask. See the watchface-screenshots
+        // skill's troubleshooting table for the symptom this fixes.
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }
 #endif
