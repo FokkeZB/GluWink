@@ -177,30 +177,30 @@ public struct LargeWidgetTile: View {
     public var body: some View {
         let c = content.shieldContent
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 widgetValueWithUnit(
                     value: widgetGlucoseValue(c),
                     unit: c.glucoseUnitLabel,
-                    valueFont: .system(size: 64, weight: .bold, design: .rounded),
-                    unitFont: .system(size: 26, weight: .semibold, design: .rounded)
+                    valueFont: .system(size: 80, weight: .bold, design: .rounded),
+                    unitFont: .system(size: 32, weight: .semibold, design: .rounded)
                 )
                 widgetStackedTime(from: content.glucoseDate, hasData: c.glucoseValue > 0)
-                    .font(.subheadline)
+                    .font(.body)
                     .opacity(0.7)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Spacer(minLength: 8)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 widgetValueWithUnit(
                     value: widgetCarbsValue(c),
                     unit: "g",
-                    valueFont: .system(size: 52, weight: .bold, design: .rounded),
-                    unitFont: .system(size: 21, weight: .semibold, design: .rounded)
+                    valueFont: .system(size: 64, weight: .bold, design: .rounded),
+                    unitFont: .system(size: 26, weight: .semibold, design: .rounded)
                 )
                 widgetStackedTime(from: content.carbDate, hasData: c.carbGrams != nil)
-                    .font(.subheadline)
+                    .font(.body)
                     .opacity(0.7)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
