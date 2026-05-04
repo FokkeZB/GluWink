@@ -53,20 +53,30 @@ struct WidgetShowcaseView: View {
 
     /// Heavily-blurred copy of the stock iOS dark wallpaper so the App Store
     /// shot reads as "widgets on your phone" rather than "widgets on a
-    /// marketing card". The asset is blurred hard (`radius: 50`) and the
-    /// backdrop is never itself shown on a shipped iOS surface — only in
-    /// the simulator-only `-UITest_Scene widgets` screenshot — so no
-    /// recognizable wallpaper detail ends up in the App Store listing.
-    /// `.scaledToFill()` + `.clipped()` crops to whatever the showcase frame
-    /// ends up being; the source artwork is portrait-shaped so the crop
-    /// stays natural on 6.9" captures.
+    /// marketing card". The asset is blurred hard (`radius: 50, opaque: true`)
+    /// and the backdrop is never itself shown on a shipped iOS surface —
+    /// only in the simulator-only `-UITest_Scene widgets` screenshot — so
+    /// no recognizable wallpaper detail ends up in the App Store listing.
+    ///
+    /// `opaque: true` tells SwiftUI the output is opaque, which prevents the
+    /// blur kernel from bleeding transparent pixels into the image edges —
+    /// without it, the left/right edges bloom into a bright cyan halo that
+    /// doesn't match the wallpaper on a real device. The frame is scaled
+    /// slightly beyond the viewport and `.clipped()` trims the result, so
+    /// any residual edge artefacts from the kernel boundary stay outside
+    /// the visible area too.
     private var homeScreenBackdrop: some View {
-        Image("HomeScreenBackdrop")
-            .resizable()
-            .scaledToFill()
-            .blur(radius: 50)
-            .clipped()
-            .ignoresSafeArea()
+        GeometryReader { geo in
+            Image("HomeScreenBackdrop")
+                .resizable()
+                .scaledToFill()
+                .frame(width: geo.size.width + 120, height: geo.size.height + 120)
+                .offset(x: -60, y: -60)
+                .blur(radius: 50, opaque: true)
+                .frame(width: geo.size.width, height: geo.size.height)
+                .clipped()
+        }
+        .ignoresSafeArea()
     }
 
     // MARK: - Tiles
