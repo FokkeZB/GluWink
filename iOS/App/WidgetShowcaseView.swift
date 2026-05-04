@@ -7,10 +7,10 @@ import SwiftUI
 /// `MediumWidgetTile`, and `LargeWidgetTile` from SharedKit, so the shot
 /// can never drift from the live widget visuals.
 ///
-/// Not a drop-in Home Screen simulator (no wallpaper, dock, or page dots) —
-/// just three tiles stacked on a soft background with a small header, which
-/// is what the App Store screenshot guide asks for: "small + medium + large
-/// in a stack, mix of green and red".
+/// Not a drop-in Home Screen simulator (no dock or page dots) — just three
+/// tiles stacked over a heavily-blurred copy of the stock iOS dark wallpaper,
+/// which is what the App Store screenshot guide asks for:
+/// "small + medium + large in a stack, mix of green and red".
 struct WidgetShowcaseView: View {
     // Widget geometry for a 6.9" iPhone. Hard-coded because we only capture
     // on one device class right now; revisit when we add iPad or 6.7".
@@ -46,7 +46,37 @@ struct WidgetShowcaseView: View {
             Spacer(minLength: 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemGray6))
+        .background(homeScreenBackdrop)
+    }
+
+    // MARK: - Backdrop
+
+    /// Heavily-blurred copy of the stock iOS dark wallpaper so the App Store
+    /// shot reads as "widgets on your phone" rather than "widgets on a
+    /// marketing card". The asset is blurred hard (`radius: 50, opaque: true`)
+    /// and the backdrop is never itself shown on a shipped iOS surface —
+    /// only in the simulator-only `-UITest_Scene widgets` screenshot — so
+    /// no recognizable wallpaper detail ends up in the App Store listing.
+    ///
+    /// `opaque: true` tells SwiftUI the output is opaque, which prevents the
+    /// blur kernel from bleeding transparent pixels into the image edges —
+    /// without it, the left/right edges bloom into a bright cyan halo that
+    /// doesn't match the wallpaper on a real device. The frame is scaled
+    /// slightly beyond the viewport and `.clipped()` trims the result, so
+    /// any residual edge artefacts from the kernel boundary stay outside
+    /// the visible area too.
+    private var homeScreenBackdrop: some View {
+        GeometryReader { geo in
+            Image("HomeScreenBackdrop")
+                .resizable()
+                .scaledToFill()
+                .frame(width: geo.size.width + 120, height: geo.size.height + 120)
+                .offset(x: -60, y: -60)
+                .blur(radius: 50, opaque: true)
+                .frame(width: geo.size.width, height: geo.size.height)
+                .clipped()
+        }
+        .ignoresSafeArea()
     }
 
     // MARK: - Tiles

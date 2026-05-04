@@ -196,8 +196,8 @@ public struct LargeWidgetTile: View {
                 widgetValueWithUnit(
                     value: widgetCarbsValue(c),
                     unit: "g",
-                    valueFont: .system(size: 64, weight: .bold, design: .rounded),
-                    unitFont: .system(size: 26, weight: .semibold, design: .rounded)
+                    valueFont: .system(size: 80, weight: .bold, design: .rounded),
+                    unitFont: .system(size: 32, weight: .semibold, design: .rounded)
                 )
                 widgetStackedTime(from: content.carbDate, hasData: c.carbGrams != nil)
                     .font(.body)
