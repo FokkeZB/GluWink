@@ -134,8 +134,9 @@ struct WidgetShowcaseView: View {
         carbGrams: Double,
         carbMinutesAgo: Double
     ) -> WidgetTileContent {
-        let glucoseDate = Date().addingTimeInterval(-glucoseMinutesAgo * 60)
-        let carbDate = Date().addingTimeInterval(-carbMinutesAgo * 60)
+        let now = captureNow
+        let glucoseDate = now.addingTimeInterval(-glucoseMinutesAgo * 60)
+        let carbDate = now.addingTimeInterval(-carbMinutesAgo * 60)
         let shield = ShieldContent(
             glucose: glucose,
             glucoseFetchedAt: glucoseDate,
@@ -148,13 +149,34 @@ struct WidgetShowcaseView: View {
             carbGraceHour: SettingsDefaults.carbGraceHour,
             carbGraceMinute: SettingsDefaults.carbGraceMinute,
             glucoseUnit: SharedDataManager.shared.glucoseUnit,
-            strings: ShieldContent.Strings.fromPackage()
+            strings: ShieldContent.Strings.fromPackage(),
+            // Anchor the staleness / carb-grace evaluation to the same
+            // 09:41 "now" the tile timestamps render against — otherwise
+            // ShieldContent compares the mock dates to the real wall-clock
+            // and flips every tile to orange (stale sensor + carb gap)
+            // when the screenshot is captured outside the morning grace
+            // window. See issue #107.
+            now: now
         )
         return WidgetTileContent(
             shieldContent: shield,
             glucoseDate: glucoseDate,
-            carbDate: carbDate
+            carbDate: carbDate,
+            referenceDate: now
         )
+    }
+
+    /// Anchor for every "now" calculation in the screenshot showcase: today
+    /// at 09:41 in the simulator's current timezone, matching the locked
+    /// status-bar override (`xcrun simctl status_bar override --time 9:41`
+    /// in `.claude/skills/appstore-screenshots/scripts/capture.sh`). Without
+    /// this, the tiles would compute their relative ages and absolute times
+    /// against the real wall-clock and produce a screenshot whose tile
+    /// timestamps disagree with its own status bar — see issue #107. Falls
+    /// back to `Date()` only if `Calendar.current` somehow refuses to
+    /// produce 09:41 today (shouldn't happen for any real iOS calendar).
+    private var captureNow: Date {
+        Calendar.current.date(bySettingHour: 9, minute: 41, second: 0, of: Date()) ?? Date()
     }
 }
 #endif
