@@ -29,6 +29,18 @@ private func widgetRelativeAgoText(from date: Date?, hasData: Bool) -> Text {
     return Text(date, style: .relative)
 }
 
+/// Combined "5 min ago · 13:42" line used by the medium and large home-screen
+/// tiles, where there is room to glance at the absolute time hours later
+/// without doing the relative-age math. The middle dot matches the separator
+/// already used by `ShieldContent` formatting; `.time` style lets SwiftUI
+/// pick locale-appropriate 12/24h formatting for free.
+private func widgetRelativeAndAbsoluteTimeText(from date: Date?, hasData: Bool) -> Text {
+    guard hasData, let date else {
+        return Text(String(localized: "widget.noData", bundle: .module))
+    }
+    return Text(date, style: .relative) + Text(" · ") + Text(date, style: .time)
+}
+
 private func widgetGlucoseValue(_ c: ShieldContent) -> String {
     c.glucoseValue > 0 ? c.formattedGlucose : "--"
 }
@@ -106,7 +118,7 @@ public struct MediumWidgetTile: View {
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
                         .opacity(0.7)
                 }
-                widgetRelativeAgoText(from: content.glucoseDate, hasData: c.glucoseValue > 0)
+                widgetRelativeAndAbsoluteTimeText(from: content.glucoseDate, hasData: c.glucoseValue > 0)
                     .font(.subheadline)
                     .opacity(0.7)
                     .lineLimit(1)
@@ -126,7 +138,7 @@ public struct MediumWidgetTile: View {
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
                         .opacity(0.7)
                 }
-                widgetRelativeAgoText(from: content.carbDate, hasData: c.carbGrams != nil)
+                widgetRelativeAndAbsoluteTimeText(from: content.carbDate, hasData: c.carbGrams != nil)
                     .font(.subheadline)
                     .opacity(0.7)
                     .lineLimit(1)
@@ -159,7 +171,7 @@ public struct LargeWidgetTile: View {
                     .font(.system(size: 64, weight: .bold, design: .rounded))
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
-                widgetRelativeAgoText(from: content.glucoseDate, hasData: c.glucoseValue > 0)
+                widgetRelativeAndAbsoluteTimeText(from: content.glucoseDate, hasData: c.glucoseValue > 0)
                     .font(.subheadline)
                     .opacity(0.7)
             }
@@ -175,7 +187,7 @@ public struct LargeWidgetTile: View {
                     .font(.system(size: 52, weight: .bold, design: .rounded))
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
-                widgetRelativeAgoText(from: content.carbDate, hasData: c.carbGrams != nil)
+                widgetRelativeAndAbsoluteTimeText(from: content.carbDate, hasData: c.carbGrams != nil)
                     .font(.subheadline)
                     .opacity(0.7)
             }
