@@ -12,19 +12,39 @@ public struct WidgetTileContent {
     public let shieldContent: ShieldContent
     public let glucoseDate: Date?
     public let carbDate: Date?
+    /// When non-nil, all relative-age and absolute-time text on the tile is
+    /// computed against this anchor instead of SwiftUI's live wall-clock.
+    /// Set only by the simulator-only screenshot showcase so the captured
+    /// image stays consistent with the locked 9:41 status bar (issue #107).
+    /// Production widget callers leave this nil to keep the live,
+    /// auto-updating `Text(date, style: .relative)` / `.time` path.
+    public let referenceDate: Date?
 
-    public init(shieldContent: ShieldContent, glucoseDate: Date?, carbDate: Date?) {
+    public init(
+        shieldContent: ShieldContent,
+        glucoseDate: Date?,
+        carbDate: Date?,
+        referenceDate: Date? = nil
+    ) {
         self.shieldContent = shieldContent
         self.glucoseDate = glucoseDate
         self.carbDate = carbDate
+        self.referenceDate = referenceDate
     }
 }
 
 // MARK: - Shared helpers
 
-private func widgetRelativeAgoText(from date: Date?, hasData: Bool) -> Text {
+private func widgetRelativeAgoText(
+    from date: Date?,
+    hasData: Bool,
+    relativeTo referenceDate: Date? = nil
+) -> Text {
     guard hasData, let date else {
         return Text(String(localized: "widget.noData", bundle: .module))
+    }
+    if let referenceDate {
+        return Text(widgetRelativeAgoString(from: date, relativeTo: referenceDate))
     }
     return Text(date, style: .relative)
 }
@@ -37,15 +57,85 @@ private func widgetRelativeAgoText(from date: Date?, hasData: Bool) -> Text {
 /// time enough vertical room to be glanceable. `.time` style lets SwiftUI
 /// pick locale-appropriate 12/24h formatting for free.
 @ViewBuilder
-private func widgetStackedTime(from date: Date?, hasData: Bool) -> some View {
+private func widgetStackedTime(
+    from date: Date?,
+    hasData: Bool,
+    relativeTo referenceDate: Date? = nil
+) -> some View {
     if hasData, let date {
         VStack(alignment: .leading, spacing: 0) {
-            Text(date, style: .relative)
-            Text(date, style: .time)
+            if let referenceDate {
+                Text(widgetRelativeAgoString(from: date, relativeTo: referenceDate))
+                Text(date.formatted(date: .omitted, time: .shortened))
+            } else {
+                Text(date, style: .relative)
+                Text(date, style: .time)
+            }
         }
     } else {
         Text(String(localized: "widget.noData", bundle: .module))
     }
+}
+
+/// Renders a relative-ago string ("3 min ago" / "1 hr, 30 min ago" /
+/// "1 u, 30 min geleden") against a fixed reference date — used by the
+/// simulator-only screenshot showcase where SwiftUI's auto-updating
+/// `Text(date, style: .relative)` would compute against the real
+/// wall-clock and drift away from the locked 9:41 status bar (issue #107).
+/// Production widgets keep the live path; this helper is `internal` so
+/// SharedKit tests can pin its output.
+///
+/// Uses `DateComponentsFormatter` (multi-unit) rather than
+/// `RelativeDateTimeFormatter` (single-unit) so a 90-minute gap reads as
+/// "1 hr, 30 min ago" to match SwiftUI's live output — not rounded to
+/// "1 hr ago", which would disagree with the tile's own absolute-time
+/// label (e.g. "09:41" status bar + "1 hr ago" + "08:11" absolute → the
+/// three numbers don't add up).
+func widgetRelativeAgoString(
+    from date: Date,
+    relativeTo referenceDate: Date,
+    locale: Locale = .current
+) -> String {
+    let interval = referenceDate.timeIntervalSince(date)
+    // Defensive: the showcase only ever feeds dates in the past of the
+    // anchor. If something flips (future date, equal dates), fall back
+    // to an empty string rather than rendering "in 3 min" — the tile
+    // would just hide the row, which is better than a confusing future
+    // tense.
+    guard interval > 0 else { return "" }
+
+    let formatter = DateComponentsFormatter()
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.locale = locale
+    formatter.calendar = calendar
+    // `.short` renders "1 hr, 30 min" / "1 u, 30 min" — two compact
+    // units, matching SwiftUI's `Text(date, style: .relative)` output
+    // ("2 hr, 5 min ago"). `.abbreviated` collapses to "1hr 30m" which
+    // reads as a typo at marketing-screenshot scale.
+    formatter.unitsStyle = .short
+    formatter.allowedUnits = [.hour, .minute]
+    formatter.maximumUnitCount = 2
+    formatter.zeroFormattingBehavior = .dropAll
+
+    guard let duration = formatter.string(from: interval) else { return "" }
+
+    let template = widgetRelativeAgoTemplate(for: locale)
+    return String(format: template, duration)
+}
+
+/// Resolves the "%@ ago" / "%@ geleden" template against a specific
+/// locale — needed so the simulator screenshot path picks the right
+/// suffix when the capture script toggles `AppleLanguages`, and so
+/// SharedKit tests can pin EN and NL output deterministically.
+private func widgetRelativeAgoTemplate(for locale: Locale) -> String {
+    let code = locale.languageCode ?? "en"
+    if
+        let path = Bundle.module.path(forResource: code, ofType: "lproj"),
+        let bundle = Bundle(path: path)
+    {
+        return bundle.localizedString(forKey: "widget.relative.ago %@", value: "%@ ago", table: nil)
+    }
+    return Bundle.module.localizedString(forKey: "widget.relative.ago %@", value: "%@ ago", table: nil)
 }
 
 /// Value + unit pair (e.g. "115" "mg/dL" or "25" "g") rendered with a bold
@@ -97,7 +187,11 @@ public struct SmallWidgetTile: View {
                 valueFont: .system(.title, design: .rounded).bold(),
                 unitFont: .system(.caption, design: .rounded).weight(.semibold)
             )
-            widgetRelativeAgoText(from: content.glucoseDate, hasData: c.glucoseValue > 0)
+            widgetRelativeAgoText(
+                from: content.glucoseDate,
+                hasData: c.glucoseValue > 0,
+                relativeTo: content.referenceDate
+            )
                 .font(.caption)
                 .opacity(0.7)
 
@@ -109,7 +203,11 @@ public struct SmallWidgetTile: View {
                 valueFont: .system(.title, design: .rounded).bold(),
                 unitFont: .system(.caption, design: .rounded).weight(.semibold)
             )
-            widgetRelativeAgoText(from: content.carbDate, hasData: c.carbGrams != nil)
+            widgetRelativeAgoText(
+                from: content.carbDate,
+                hasData: c.carbGrams != nil,
+                relativeTo: content.referenceDate
+            )
                 .font(.caption)
                 .opacity(0.7)
         }
@@ -138,7 +236,11 @@ public struct MediumWidgetTile: View {
                     valueFont: .system(size: 44, weight: .bold, design: .rounded),
                     unitFont: .system(size: 18, weight: .semibold, design: .rounded)
                 )
-                widgetStackedTime(from: content.glucoseDate, hasData: c.glucoseValue > 0)
+                widgetStackedTime(
+                    from: content.glucoseDate,
+                    hasData: c.glucoseValue > 0,
+                    relativeTo: content.referenceDate
+                )
                     .font(.subheadline)
                     .opacity(0.7)
                     .lineLimit(1)
@@ -152,7 +254,11 @@ public struct MediumWidgetTile: View {
                     valueFont: .system(size: 44, weight: .bold, design: .rounded),
                     unitFont: .system(size: 18, weight: .semibold, design: .rounded)
                 )
-                widgetStackedTime(from: content.carbDate, hasData: c.carbGrams != nil)
+                widgetStackedTime(
+                    from: content.carbDate,
+                    hasData: c.carbGrams != nil,
+                    relativeTo: content.referenceDate
+                )
                     .font(.subheadline)
                     .opacity(0.7)
                     .lineLimit(1)
@@ -184,7 +290,11 @@ public struct LargeWidgetTile: View {
                     valueFont: .system(size: 80, weight: .bold, design: .rounded),
                     unitFont: .system(size: 32, weight: .semibold, design: .rounded)
                 )
-                widgetStackedTime(from: content.glucoseDate, hasData: c.glucoseValue > 0)
+                widgetStackedTime(
+                    from: content.glucoseDate,
+                    hasData: c.glucoseValue > 0,
+                    relativeTo: content.referenceDate
+                )
                     .font(.body)
                     .opacity(0.7)
             }
@@ -199,7 +309,11 @@ public struct LargeWidgetTile: View {
                     valueFont: .system(size: 80, weight: .bold, design: .rounded),
                     unitFont: .system(size: 32, weight: .semibold, design: .rounded)
                 )
-                widgetStackedTime(from: content.carbDate, hasData: c.carbGrams != nil)
+                widgetStackedTime(
+                    from: content.carbDate,
+                    hasData: c.carbGrams != nil,
+                    relativeTo: content.referenceDate
+                )
                     .font(.body)
                     .opacity(0.7)
             }

@@ -47,3 +47,5 @@
 
 /* Widget tiles (shared between StatusWidget extension and App screenshot showcase) */
 "widget.noData" = "Geen data";
+/* Suffix around a DateComponentsFormatter duration (e.g. "3 min" or "1 u, 30 min") for the simulator-only screenshot showcase. Production widgets use SwiftUI's auto-updating Text(date, style: .relative) instead. */
+"widget.relative.ago %@" = "%@ geleden";
