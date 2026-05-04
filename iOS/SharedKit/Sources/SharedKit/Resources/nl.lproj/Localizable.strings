@@ -46,6 +46,4 @@
 "shield.checks.noCarbData.0" = "Controleer gegevensbron";
 
 /* Widget tiles (shared between StatusWidget extension and App screenshot showcase) */
-"widget.glucose" = "Glucose";
-"widget.carbs" = "Koolhydraten";
 "widget.noData" = "Geen data";

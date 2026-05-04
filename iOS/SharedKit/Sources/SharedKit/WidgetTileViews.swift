@@ -29,20 +29,54 @@ private func widgetRelativeAgoText(from date: Date?, hasData: Bool) -> Text {
     return Text(date, style: .relative)
 }
 
+/// Two-line stack used by the medium and large home-screen tiles — relative
+/// age on top, absolute time directly below, no separator. Stacking (vs. a
+/// single "5 min ago · 13:42" line) lets us drop the "Glucose" / "Carbs"
+/// header labels on those tiles: the big value is already self-explanatory
+/// once you know the widget, and reclaiming that row gives the absolute
+/// time enough vertical room to be glanceable. `.time` style lets SwiftUI
+/// pick locale-appropriate 12/24h formatting for free.
+@ViewBuilder
+private func widgetStackedTime(from date: Date?, hasData: Bool) -> some View {
+    if hasData, let date {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(date, style: .relative)
+            Text(date, style: .time)
+        }
+    } else {
+        Text(String(localized: "widget.noData", bundle: .module))
+    }
+}
+
+/// Value + unit pair (e.g. "115" "mg/dL" or "25" "g") rendered with a bold
+/// value and a proportionally smaller, semibold unit at 70% opacity. All
+/// three tile sizes funnel through this helper so the unit's visual weight
+/// stays consistent — bold white value dominates, the unit recedes to a
+/// subtle label that matches the styling of the relative/absolute time
+/// below it.
+private func widgetValueWithUnit(
+    value: String,
+    unit: String,
+    valueFont: Font,
+    unitFont: Font
+) -> some View {
+    HStack(alignment: .firstTextBaseline, spacing: 4) {
+        Text(value)
+            .font(valueFont)
+            .minimumScaleFactor(0.5)
+            .lineLimit(1)
+        Text(unit)
+            .font(unitFont)
+            .opacity(0.7)
+    }
+}
+
 private func widgetGlucoseValue(_ c: ShieldContent) -> String {
     c.glucoseValue > 0 ? c.formattedGlucose : "--"
 }
 
-private func widgetGlucoseLabel(_ c: ShieldContent) -> String {
-    "\(widgetGlucoseValue(c)) \(c.glucoseUnitLabel)"
-}
-
 private func widgetCarbsValue(_ c: ShieldContent) -> String {
     c.carbGrams.map { "\($0)" } ?? "--"
-}
-
-private func widgetCarbsLabel(_ c: ShieldContent) -> String {
-    "\(widgetCarbsValue(c)) g"
 }
 
 // MARK: - Small tile
@@ -57,20 +91,24 @@ public struct SmallWidgetTile: View {
     public var body: some View {
         let c = content.shieldContent
         VStack(alignment: .leading, spacing: 6) {
-            Text(widgetGlucoseLabel(c))
-                .font(.system(.title, design: .rounded).bold())
-                .minimumScaleFactor(0.5)
-                .lineLimit(1)
+            widgetValueWithUnit(
+                value: widgetGlucoseValue(c),
+                unit: c.glucoseUnitLabel,
+                valueFont: .system(.title, design: .rounded).bold(),
+                unitFont: .system(.caption, design: .rounded).weight(.semibold)
+            )
             widgetRelativeAgoText(from: content.glucoseDate, hasData: c.glucoseValue > 0)
                 .font(.caption)
                 .opacity(0.7)
 
             Spacer(minLength: 2)
 
-            Text(widgetCarbsLabel(c))
-                .font(.system(.title, design: .rounded).bold())
-                .minimumScaleFactor(0.5)
-                .lineLimit(1)
+            widgetValueWithUnit(
+                value: widgetCarbsValue(c),
+                unit: "g",
+                valueFont: .system(.title, design: .rounded).bold(),
+                unitFont: .system(.caption, design: .rounded).weight(.semibold)
+            )
             widgetRelativeAgoText(from: content.carbDate, hasData: c.carbGrams != nil)
                 .font(.caption)
                 .opacity(0.7)
@@ -93,40 +131,28 @@ public struct MediumWidgetTile: View {
     public var body: some View {
         let c = content.shieldContent
         HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "widget.glucose", bundle: .module))
-                    .font(.caption.bold())
-                    .opacity(0.7)
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(widgetGlucoseValue(c))
-                        .font(.system(size: 44, weight: .bold, design: .rounded))
-                        .minimumScaleFactor(0.5)
-                        .lineLimit(1)
-                    Text(c.glucoseUnit.shortLabel)
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .opacity(0.7)
-                }
-                widgetRelativeAgoText(from: content.glucoseDate, hasData: c.glucoseValue > 0)
+            VStack(alignment: .leading, spacing: 4) {
+                widgetValueWithUnit(
+                    value: widgetGlucoseValue(c),
+                    unit: c.glucoseUnit.shortLabel,
+                    valueFont: .system(size: 44, weight: .bold, design: .rounded),
+                    unitFont: .system(size: 18, weight: .semibold, design: .rounded)
+                )
+                widgetStackedTime(from: content.glucoseDate, hasData: c.glucoseValue > 0)
                     .font(.subheadline)
                     .opacity(0.7)
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "widget.carbs", bundle: .module))
-                    .font(.caption.bold())
-                    .opacity(0.7)
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(widgetCarbsValue(c))
-                        .font(.system(size: 44, weight: .bold, design: .rounded))
-                        .minimumScaleFactor(0.5)
-                        .lineLimit(1)
-                    Text("g")
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .opacity(0.7)
-                }
-                widgetRelativeAgoText(from: content.carbDate, hasData: c.carbGrams != nil)
+            VStack(alignment: .leading, spacing: 4) {
+                widgetValueWithUnit(
+                    value: widgetCarbsValue(c),
+                    unit: "g",
+                    valueFont: .system(size: 44, weight: .bold, design: .rounded),
+                    unitFont: .system(size: 18, weight: .semibold, design: .rounded)
+                )
+                widgetStackedTime(from: content.carbDate, hasData: c.carbGrams != nil)
                     .font(.subheadline)
                     .opacity(0.7)
                     .lineLimit(1)
@@ -151,32 +177,30 @@ public struct LargeWidgetTile: View {
     public var body: some View {
         let c = content.shieldContent
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "widget.glucose", bundle: .module))
-                    .font(.subheadline.bold())
-                    .opacity(0.7)
-                Text(widgetGlucoseLabel(c))
-                    .font(.system(size: 64, weight: .bold, design: .rounded))
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(1)
-                widgetRelativeAgoText(from: content.glucoseDate, hasData: c.glucoseValue > 0)
-                    .font(.subheadline)
+            VStack(alignment: .leading, spacing: 6) {
+                widgetValueWithUnit(
+                    value: widgetGlucoseValue(c),
+                    unit: c.glucoseUnitLabel,
+                    valueFont: .system(size: 80, weight: .bold, design: .rounded),
+                    unitFont: .system(size: 32, weight: .semibold, design: .rounded)
+                )
+                widgetStackedTime(from: content.glucoseDate, hasData: c.glucoseValue > 0)
+                    .font(.body)
                     .opacity(0.7)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Spacer(minLength: 8)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "widget.carbs", bundle: .module))
-                    .font(.subheadline.bold())
-                    .opacity(0.7)
-                Text(widgetCarbsLabel(c))
-                    .font(.system(size: 52, weight: .bold, design: .rounded))
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(1)
-                widgetRelativeAgoText(from: content.carbDate, hasData: c.carbGrams != nil)
-                    .font(.subheadline)
+            VStack(alignment: .leading, spacing: 6) {
+                widgetValueWithUnit(
+                    value: widgetCarbsValue(c),
+                    unit: "g",
+                    valueFont: .system(size: 64, weight: .bold, design: .rounded),
+                    unitFont: .system(size: 26, weight: .semibold, design: .rounded)
+                )
+                widgetStackedTime(from: content.carbDate, hasData: c.carbGrams != nil)
+                    .font(.body)
                     .opacity(0.7)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

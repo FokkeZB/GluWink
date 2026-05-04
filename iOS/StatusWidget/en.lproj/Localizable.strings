@@ -9,8 +9,6 @@
 "widget.intent.carbs" = "Carbs";
 "widget.intent.description" = "Shows glucose or carb status.";
 
-"widget.glucose" = "Glucose";
-"widget.carbs" = "Carbs";
 "widget.noData" = "No data";
 "widget.agoMinutes %d" = "%dm ago";
 "widget.agoHoursMinutes %d %d" = "%dh %dm ago";
