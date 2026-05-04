@@ -77,27 +77,65 @@ private func widgetStackedTime(
     }
 }
 
-/// Renders a relative-ago string ("3 min. ago" / "3 min. geleden") against
-/// a fixed reference date — used by the simulator-only screenshot showcase
-/// where SwiftUI's auto-updating `Text(date, style: .relative)` would
-/// compute against the real wall-clock and drift away from the locked
-/// 9:41 status bar (issue #107). Production widgets keep the live path;
-/// this helper is `internal` so SharedKit tests can pin its output.
+/// Renders a relative-ago string ("3 min ago" / "1 hr, 30 min ago" /
+/// "1 u, 30 min geleden") against a fixed reference date — used by the
+/// simulator-only screenshot showcase where SwiftUI's auto-updating
+/// `Text(date, style: .relative)` would compute against the real
+/// wall-clock and drift away from the locked 9:41 status bar (issue #107).
+/// Production widgets keep the live path; this helper is `internal` so
+/// SharedKit tests can pin its output.
+///
+/// Uses `DateComponentsFormatter` (multi-unit) rather than
+/// `RelativeDateTimeFormatter` (single-unit) so a 90-minute gap reads as
+/// "1 hr, 30 min ago" to match SwiftUI's live output — not rounded to
+/// "1 hr ago", which would disagree with the tile's own absolute-time
+/// label (e.g. "09:41" status bar + "1 hr ago" + "08:11" absolute → the
+/// three numbers don't add up).
 func widgetRelativeAgoString(
     from date: Date,
     relativeTo referenceDate: Date,
     locale: Locale = .current
 ) -> String {
-    let formatter = RelativeDateTimeFormatter()
-    formatter.locale = locale
-    formatter.calendar = Calendar.current
-    // `.short` ("3 min. ago" / "3 min. geleden") matches the visual weight
-    // of SwiftUI's live `Text(date, style: .relative)` output ("3 min, 1
-    // sec ago"). `.abbreviated` collapses to "3m ago" which reads as a
-    // typo at marketing-screenshot scale.
+    let interval = referenceDate.timeIntervalSince(date)
+    // Defensive: the showcase only ever feeds dates in the past of the
+    // anchor. If something flips (future date, equal dates), fall back
+    // to an empty string rather than rendering "in 3 min" — the tile
+    // would just hide the row, which is better than a confusing future
+    // tense.
+    guard interval > 0 else { return "" }
+
+    let formatter = DateComponentsFormatter()
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.locale = locale
+    formatter.calendar = calendar
+    // `.short` renders "1 hr, 30 min" / "1 u, 30 min" — two compact
+    // units, matching SwiftUI's `Text(date, style: .relative)` output
+    // ("2 hr, 5 min ago"). `.abbreviated` collapses to "1hr 30m" which
+    // reads as a typo at marketing-screenshot scale.
     formatter.unitsStyle = .short
-    formatter.dateTimeStyle = .numeric
-    return formatter.localizedString(for: date, relativeTo: referenceDate)
+    formatter.allowedUnits = [.hour, .minute]
+    formatter.maximumUnitCount = 2
+    formatter.zeroFormattingBehavior = .dropAll
+
+    guard let duration = formatter.string(from: interval) else { return "" }
+
+    let template = widgetRelativeAgoTemplate(for: locale)
+    return String(format: template, duration)
+}
+
+/// Resolves the "%@ ago" / "%@ geleden" template against a specific
+/// locale — needed so the simulator screenshot path picks the right
+/// suffix when the capture script toggles `AppleLanguages`, and so
+/// SharedKit tests can pin EN and NL output deterministically.
+private func widgetRelativeAgoTemplate(for locale: Locale) -> String {
+    let code = locale.languageCode ?? "en"
+    if
+        let path = Bundle.module.path(forResource: code, ofType: "lproj"),
+        let bundle = Bundle(path: path)
+    {
+        return bundle.localizedString(forKey: "widget.relative.ago %@", value: "%@ ago", table: nil)
+    }
+    return Bundle.module.localizedString(forKey: "widget.relative.ago %@", value: "%@ ago", table: nil)
 }
 
 /// Value + unit pair (e.g. "115" "mg/dL" or "25" "g") rendered with a bold
