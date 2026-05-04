@@ -7,10 +7,10 @@ import SwiftUI
 /// `MediumWidgetTile`, and `LargeWidgetTile` from SharedKit, so the shot
 /// can never drift from the live widget visuals.
 ///
-/// Not a drop-in Home Screen simulator (no wallpaper, dock, or page dots) —
-/// just three tiles stacked on a soft background with a small header, which
-/// is what the App Store screenshot guide asks for: "small + medium + large
-/// in a stack, mix of green and red".
+/// Not a drop-in Home Screen simulator (no dock or page dots) — just three
+/// tiles stacked over a softly-blurred dark backdrop that evokes a Home
+/// Screen wallpaper, which is what the App Store screenshot guide asks for:
+/// "small + medium + large in a stack, mix of green and red".
 struct WidgetShowcaseView: View {
     // Widget geometry for a 6.9" iPhone. Hard-coded because we only capture
     // on one device class right now; revisit when we add iPad or 6.7".
@@ -46,7 +46,64 @@ struct WidgetShowcaseView: View {
             Spacer(minLength: 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemGray6))
+        .background(homeScreenBackdrop)
+    }
+
+    // MARK: - Backdrop
+
+    /// Softly-blurred dark backdrop that evokes a Home Screen wallpaper
+    /// behind a widget stack, so the App Store shot reads as "widgets on
+    /// your phone" rather than "widgets on a marketing card". Pure SwiftUI
+    /// (no asset, no licensing concerns) — a few overlapping radial
+    /// gradients in muted cool tones give the blur something to soften,
+    /// and the dark neutral palette lets the green / orange tile fills
+    /// carry all the colour. Locale-independent by construction.
+    private var homeScreenBackdrop: some View {
+        ZStack {
+            Color(red: 0.07, green: 0.09, blue: 0.13)
+
+            RadialGradient(
+                colors: [
+                    Color(red: 0.22, green: 0.28, blue: 0.42).opacity(0.85),
+                    .clear
+                ],
+                center: .topLeading,
+                startRadius: 0,
+                endRadius: 520
+            )
+
+            RadialGradient(
+                colors: [
+                    Color(red: 0.32, green: 0.20, blue: 0.40).opacity(0.55),
+                    .clear
+                ],
+                center: UnitPoint(x: 0.85, y: 0.25),
+                startRadius: 0,
+                endRadius: 480
+            )
+
+            RadialGradient(
+                colors: [
+                    Color(red: 0.10, green: 0.22, blue: 0.32).opacity(0.7),
+                    .clear
+                ],
+                center: .bottomTrailing,
+                startRadius: 0,
+                endRadius: 620
+            )
+
+            RadialGradient(
+                colors: [
+                    Color(red: 0.04, green: 0.06, blue: 0.10).opacity(0.6),
+                    .clear
+                ],
+                center: UnitPoint(x: 0.15, y: 0.75),
+                startRadius: 0,
+                endRadius: 500
+            )
+        }
+        .blur(radius: 40)
+        .ignoresSafeArea()
     }
 
     // MARK: - Tiles
