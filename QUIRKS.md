@@ -140,6 +140,24 @@ No recursion. If the PNGs live in `iOS/fastlane/screenshots/<locale>/iPhone-6.9/
 
 The fix is the layout itself: keep PNGs directly under `<locale>/` — `capture.sh`, `sync-screenshots.sh`, and the `Deliverfile` comment all reflect this. If a future agent is tempted to re-introduce a device-size subdir ("so the Watch shots don't collide with iPhone"), don't — deliver derives the device tier from the PNG **pixel dimensions** (1320×2868 → `APP_IPHONE_67` in `deliver/lib/deliver/app_screenshot.rb`, which ASC accepts for 6.9" devices too). Mixing iPhone + Watch + iPad in the same locale folder is fine; deliver buckets them by resolution, not by filename or subdir.
 
+## Agent tooling
+
+### Cursor's image Read tool serves stale cached bytes for the same path
+
+When an agent regenerates a PNG at a path it (or any tool in the session) previously read, Cursor's `Read` tool can return the **original** image bytes for a while — even though `shasum`, `ls -la`, `git diff`, and the filesystem itself all show the new image. Observed on 2026-05-04 while iterating on `04_widgets.png` during #107 / PR #108: after running `capture.sh`, `Read` kept rendering the pre-regeneration image for several minutes, and at one point served the `en-US/` PNG's bytes when asked for `nl-NL/` and vice versa. The files on disk were correct the whole time.
+
+Consequence for agents: **do not verify screenshot regen by "viewing" the PNG through the Read tool.** You will either see the old image and think nothing changed, or see the wrong locale's image and invent a bug that isn't there. Either way you'll burn a round trip (or worse, a whole re-implementation) fixing something that was already fixed.
+
+What to trust instead:
+
+- `shasum <path>` changes after a regen → the file on disk is new. Done.
+- `ls -la <path>` timestamp moves forward → same.
+- `git diff` / `git status --short` → git reads from disk, not Cursor's cache.
+- Manual eyeball via Finder / the IDE's own image viewer tab (outside the agent tool chain) → also fresh.
+- The owner opening the file and looking at it → ground truth.
+
+If visual verification is genuinely necessary and the owner isn't in the loop for this round, compare hashes against the last committed version (`git show HEAD:<path> | shasum` vs `shasum <path>`) and trust the cryptographic delta. When the owner is available (our usual mode), defer visual sign-off to them — they see the real pixels in the IDE, not a cached render. This matters most for the App Store screenshot flow, where "does this image say what I think it says" is the whole point of the diff.
+
 ## Naming
 
 ### Bundle identifiers kept as nl.fokkezb.*
