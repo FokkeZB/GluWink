@@ -6,9 +6,24 @@
 /* Positive titles (no attention needed) */
 "shield.positiveTitle.0" = "Looking good!";
 "shield.positiveTitle.1" = "Keep it up!";
-"shield.positiveTitle.2" = "Nice work!";
+"shield.positiveTitle.2" = "Nice work.";
 "shield.positiveTitle.3" = "All good!";
-"shield.positiveTitle.4" = "Well done!";
+"shield.positiveTitle.4" = "Well done.";
+"shield.positiveTitle.5" = "You've got this.";
+"shield.positiveTitle.6" = "Right on track.";
+"shield.positiveTitle.7" = "Smooth sailing.";
+"shield.positiveTitle.8" = "Solid check-in.";
+"shield.positiveTitle.9" = "Nicely done.";
+"shield.positiveTitle.10" = "On top of it.";
+"shield.positiveTitle.11" = "Steady wins.";
+"shield.positiveTitle.12" = "That's how it's done.";
+"shield.positiveTitle.13" = "Quietly crushing it.";
+"shield.positiveTitle.14" = "Way to stay on it.";
+"shield.positiveTitle.15" = "Proud of you.";
+"shield.positiveTitle.16" = "Doing the work.";
+"shield.positiveTitle.17" = "Good rhythm today.";
+"shield.positiveTitle.18" = "Easy does it.";
+"shield.positiveTitle.19" = "Just keep going.";
 
 /* Attention titles (action needed) */
 "shield.attentionTitle.0" = "Heads up!";

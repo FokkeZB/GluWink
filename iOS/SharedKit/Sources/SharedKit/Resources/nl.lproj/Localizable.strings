@@ -6,9 +6,24 @@
 /* Positive titles (no attention needed) */
 "shield.positiveTitle.0" = "Goed bezig!";
 "shield.positiveTitle.1" = "Lekker bezig!";
-"shield.positiveTitle.2" = "Top!";
+"shield.positiveTitle.2" = "Top.";
 "shield.positiveTitle.3" = "Alles goed!";
-"shield.positiveTitle.4" = "Netjes!";
+"shield.positiveTitle.4" = "Netjes.";
+"shield.positiveTitle.5" = "Je doet het super.";
+"shield.positiveTitle.6" = "Helemaal op koers.";
+"shield.positiveTitle.7" = "Loopt lekker.";
+"shield.positiveTitle.8" = "Mooi afgevinkt.";
+"shield.positiveTitle.9" = "Mooi gedaan.";
+"shield.positiveTitle.10" = "Je hebt het in de hand.";
+"shield.positiveTitle.11" = "Rustig en sterk.";
+"shield.positiveTitle.12" = "Zo doen we dat.";
+"shield.positiveTitle.13" = "Knap hoor.";
+"shield.positiveTitle.14" = "Mooi volgehouden.";
+"shield.positiveTitle.15" = "Trots op je.";
+"shield.positiveTitle.16" = "Goed dat je het doet.";
+"shield.positiveTitle.17" = "Lekker ritme vandaag.";
+"shield.positiveTitle.18" = "Rustig aan, gaat goed.";
+"shield.positiveTitle.19" = "Gewoon lekker doorgaan.";
 
 /* Attention titles (action needed) */
 "shield.attentionTitle.0" = "Even opletten!";
