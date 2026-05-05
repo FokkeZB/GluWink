@@ -166,4 +166,5 @@
 /* Inchecken */
 "checkin.disarmButton" = "Klaar";
 "checkin.disarmCountdown %lld" = "Wacht (%llds)";
+"checkin.cooldownHelper" = "Dit is je moment om echt te doen wat je net hebt afgevinkt — en alles wat er nog bij je opkomt.";
 "checkin.acknowledgedDescription" = "Je hebt al ingecheckt. Afscherming keert binnenkort terug.";

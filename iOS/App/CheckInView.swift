@@ -58,22 +58,32 @@ struct CheckInView: View {
             }
 
             if checkedIndices.count == items.count {
-                Button {
-                    onDisarm()
-                } label: {
-                    HStack {
-                        Image(systemName: disarmReady ? "shield.slash" : "hourglass")
-                        Text(disarmReady
-                            ? String(localized: "checkin.disarmButton")
-                            : String(localized: "checkin.disarmCountdown \(cooldownRemaining)"))
+                VStack(spacing: 8) {
+                    Button {
+                        onDisarm()
+                    } label: {
+                        HStack {
+                            Image(systemName: disarmReady ? "shield.slash" : "hourglass")
+                            Text(disarmReady
+                                ? String(localized: "checkin.disarmButton")
+                                : String(localized: "checkin.disarmCountdown \(cooldownRemaining)"))
+                        }
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
                     }
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .buttonStyle(.borderedProminent)
+                    .tint(BrandTint.green)
+                    .disabled(!disarmReady)
+
+                    if !disarmReady {
+                        Text(String(localized: "checkin.cooldownHelper"))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .transition(.opacity)
+                    }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(BrandTint.green)
-                .disabled(!disarmReady)
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
