@@ -8,9 +8,13 @@ import SwiftUI
 /// can never drift from the live widget visuals.
 ///
 /// Not a drop-in Home Screen simulator (no dock or page dots) — just three
-/// tiles stacked over a heavily-blurred copy of the stock iOS dark wallpaper,
-/// which is what the App Store screenshot guide asks for:
-/// "small + medium + large in a stack, mix of green and red".
+/// tiles stacked over a heavily-blurred copy of the stock iOS dark wallpaper.
+/// Composition shows all three brand attention colors (green → orange → red)
+/// across the stack so a single shot tells the full traffic-light story:
+/// small row pairs calm green and needs-attention orange, the medium tile
+/// shows critical red, and the large hero tile stays green for the most
+/// glanceable numbers. See AGENTS.md → "Marketing Copy (keep in sync)" for
+/// the brand-vocabulary contract on the three-color signal.
 struct WidgetShowcaseView: View {
     // Widget geometry for a 6.9" iPhone. Hard-coded because we only capture
     // on one device class right now; revisit when we add iPad or 6.7".
@@ -37,7 +41,7 @@ struct WidgetShowcaseView: View {
                 smallTile(attentionContent)
             }
 
-            mediumTile(calmContent)
+            mediumTile(criticalContent)
                 .frame(width: mediumSize.width, height: mediumSize.height)
 
             largeTile(calmContent)
@@ -122,6 +126,20 @@ struct WidgetShowcaseView: View {
     private var attentionContent: WidgetTileContent {
         makeContent(
             glucose: 14.8,
+            glucoseMinutesAgo: 2,
+            carbGrams: 30,
+            carbMinutesAgo: 15
+        )
+    }
+
+    /// Red, critical state — mirror of `ScreenshotHarness.redShield`.
+    /// Glucose 21.2 mmol/L is at/above the default critical threshold
+    /// (20.0), so `ShieldContent.isCriticalGlucose` flips true and the
+    /// tile background resolves to `BrandTint.red` automatically via
+    /// `attentionLevel.tint`.
+    private var criticalContent: WidgetTileContent {
+        makeContent(
+            glucose: 21.2,
             glucoseMinutesAgo: 2,
             carbGrams: 30,
             carbMinutesAgo: 15
