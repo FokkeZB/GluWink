@@ -91,13 +91,12 @@ struct CheckInView: View {
             }
         }
         .onReceive(timer) { _ in
-            guard cooldownEndDate != nil, !disarmReady else { return }
-            if cooldownRemaining == 0 {
-                cooldownEndDate = nil
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    disarmReady = true
-                }
-            }
+            // Force a body re-evaluation every second so `cooldownRemaining`
+            // refreshes the displayed count. The actual flip-to-ready is
+            // scheduled via `DispatchQueue.asyncAfter` in `startCooldown`,
+            // not driven from here -- a recompose around the deadline can
+            // resubscribe the timer publisher and drop the final tick,
+            // which is exactly the "stuck at Wacht (0s)" symptom.
         }
     }
 
@@ -160,7 +159,19 @@ struct CheckInView: View {
             }
             return
         }
-        cooldownEndDate = Date().addingTimeInterval(TimeInterval(configured))
+        let end = Date().addingTimeInterval(TimeInterval(configured))
+        cooldownEndDate = end
+        // Independent one-shot for the actual flip. The per-second timer is
+        // for display only; relying on it to also fire the flip is fragile
+        // because a parent recompose can resubscribe the publisher and drop
+        // the final tick.
+        DispatchQueue.main.asyncAfter(deadline: .now() + TimeInterval(configured)) {
+            guard cooldownEndDate == end, !disarmReady else { return }
+            cooldownEndDate = nil
+            withAnimation(.easeInOut(duration: 0.3)) {
+                disarmReady = true
+            }
+        }
     }
 }
 
