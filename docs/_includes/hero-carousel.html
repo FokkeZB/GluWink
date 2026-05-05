@@ -18,11 +18,13 @@
   tilted and overlapping the header's bottom border — one home for the
   brand mark, and the hero is free to compose phone + watch only.
 
-  Slide 1 of the phone carousel paints with a real `src` (LCP, preloaded
-  via head.html); slides 2–5 ship with `data-src` and are hydrated on
-  demand by the carousel JS. The watch's first slide also uses real `src`
-  (it's visible from page load, just not preloaded); watch slide 2 uses
-  `data-src` and is warmed during idle.
+  Slide 1 of the phone carousel paints with a real `src` and `loading="eager"`
+  + `fetchpriority="high"` (it's the LCP element, preloaded via head.html);
+  slides 2–5 ship with real `src` plus `loading="lazy"` so the browser defers
+  their fetch until they're about to scroll into view. Same shape for the
+  watch: slide 1 eager, slide 2 lazy. Native `loading="lazy"` replaces an
+  earlier `data-src` + JS-driven hydration scheme — the browser handles
+  deferred loading natively and htmlproofer can verify every reference exists.
 
   Each slide wraps its image in either a `.device-stage--iphone` (verbatim
   devices.css iPhone 14 Pro, phone slides) or a `.device-stage--watch`
@@ -53,7 +55,7 @@
       <li class="hero-carousel__slide" data-slide aria-hidden="true">
         <div class="device-stage--iphone">
           <div class="device device-iphone-14-pro">
-            <div class="device-frame"><img class="device-screen" data-src="{{ base | append: '02_orangeShield.png' | relative_url }}" alt="{{ data.screenshots.alt.orange }}" width="390" height="847" decoding="async"></div>
+            <div class="device-frame"><img class="device-screen" src="{{ base | append: '02_orangeShield.png' | relative_url }}" alt="{{ data.screenshots.alt.orange }}" width="390" height="847" loading="lazy" decoding="async"></div>
             <div class="device-stripe"></div>
             <div class="device-btns"></div>
             <div class="device-power"></div>
@@ -64,7 +66,7 @@
       <li class="hero-carousel__slide" data-slide aria-hidden="true">
         <div class="device-stage--iphone">
           <div class="device device-iphone-14-pro">
-            <div class="device-frame"><img class="device-screen" data-src="{{ base | append: '03_redShield.png' | relative_url }}" alt="{{ data.screenshots.alt.red }}" width="390" height="847" decoding="async"></div>
+            <div class="device-frame"><img class="device-screen" src="{{ base | append: '03_redShield.png' | relative_url }}" alt="{{ data.screenshots.alt.red }}" width="390" height="847" loading="lazy" decoding="async"></div>
             <div class="device-stripe"></div>
             <div class="device-btns"></div>
             <div class="device-power"></div>
@@ -75,7 +77,7 @@
       <li class="hero-carousel__slide" data-slide aria-hidden="true">
         <div class="device-stage--iphone">
           <div class="device device-iphone-14-pro">
-            <div class="device-frame"><img class="device-screen" data-src="{{ base | append: '04_widgets.png' | relative_url }}" alt="{{ data.screenshots.alt.widgets }}" width="390" height="847" decoding="async"></div>
+            <div class="device-frame"><img class="device-screen" src="{{ base | append: '04_widgets.png' | relative_url }}" alt="{{ data.screenshots.alt.widgets }}" width="390" height="847" loading="lazy" decoding="async"></div>
             <div class="device-stripe"></div>
             <div class="device-btns"></div>
             <div class="device-power"></div>
@@ -86,7 +88,7 @@
       <li class="hero-carousel__slide" data-slide aria-hidden="true">
         <div class="device-stage--iphone">
           <div class="device device-iphone-14-pro">
-            <div class="device-frame"><img class="device-screen" data-src="{{ base | append: '05_settings.png' | relative_url }}" alt="{{ data.screenshots.alt.settings }}" width="390" height="847" decoding="async"></div>
+            <div class="device-frame"><img class="device-screen" src="{{ base | append: '05_settings.png' | relative_url }}" alt="{{ data.screenshots.alt.settings }}" width="390" height="847" loading="lazy" decoding="async"></div>
             <div class="device-stripe"></div>
             <div class="device-btns"></div>
             <div class="device-power"></div>
@@ -125,7 +127,7 @@
         <div class="device-stage--watch">
           <div class="device device-apple-watch-s8">
             <div class="device-frame">
-              <img class="device-screen" data-src="{{ base | append: '07_watchApp.png' | relative_url }}" alt="{{ data.screenshots.alt.watchApp }}" width="268" height="324" decoding="async">
+              <img class="device-screen" src="{{ base | append: '07_watchApp.png' | relative_url }}" alt="{{ data.screenshots.alt.watchApp }}" width="268" height="324" loading="lazy" decoding="async">
             </div>
             <div class="device-stripe"></div>
             <div class="device-header"></div>
