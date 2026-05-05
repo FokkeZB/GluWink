@@ -116,6 +116,14 @@ struct CheckInView: View {
                     }
                 }
             } else {
+                // Park the unlock cursor past the end so the just-checked
+                // row stops being `isUnlocked == true`. Without this the
+                // last row keeps the enabled-button styling (full opacity
+                // label) while earlier rows render with the disabled-state
+                // dim, and the checklist looks asymmetric.
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    nextUnlockIndex = items.count
+                }
                 startCooldown()
             }
         } label: {
