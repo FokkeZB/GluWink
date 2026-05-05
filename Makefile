@@ -92,7 +92,7 @@ venv-clean:
 
 # --- App Store listing (fastlane deliver) ---
 
-.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta watchface-prepare watchface-capture docs-sync-screenshots docs-bootstrap docs-serve docs-clean docs-build docs-publish-check docs-audit docs-og-images
+.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta watchface-prepare watchface-capture docs-sync-screenshots docs-bootstrap docs-serve docs-clean docs-build docs-publish-check docs-audit docs-check docs-og-images
 
 ## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile)
 appstore-bootstrap:
@@ -218,6 +218,28 @@ docs-publish-check: docs-build
 ## and offer to fix it.
 docs-audit:
 	bash docs/scripts/lighthouse-audit.sh
+
+## Run the same gates GitHub Actions runs on every docs-touching PR
+## (.github/workflows/docs-check.yml). Three layers, each catching a
+## distinct class of regression — keep this target and the workflow
+## in lock-step so "passes locally" means "passes CI":
+##
+##   1. Production Jekyll build (Liquid errors, missing _data refs,
+##      plugin loading failures — anything that crashes the build).
+##   2. htmlproofer over docs/_site/ — broken internal links, missing
+##      images (including og:image), missing alt attributes, malformed
+##      HTML. External links are skipped (--disable-external) so the
+##      check stays unflaky; periodic external-link audits belong in
+##      a cron, not a per-PR gate.
+##   3. docs/scripts/site-check.sh — project-specific smoke greps that
+##      defend the canonical/OG/sitemap/robots invariants we don't
+##      want to regress. See the script's header for the full list.
+##
+## See #62 for the design and staged rollout.
+docs-check: docs-build
+	cd docs && $(RUN_RUBY) bundle exec htmlproofer _site \
+		--disable-external --no-enforce-https --no-ignore-empty-alt
+	bash docs/scripts/site-check.sh
 
 ## Regenerate docs/assets/og-{en,nl}.png — the per-locale Open Graph cards
 ## referenced by data.meta.og_image. Idempotent. Requires Python 3 with

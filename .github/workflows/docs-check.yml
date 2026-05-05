@@ -1,13 +1,21 @@
 # Build the marketing site exactly the way GitHub Pages will publish it
-# and fail the PR if Jekyll can't produce a clean static tree. Catches
-# Liquid syntax errors, missing _data references, broken includes, plugin
-# loading failures, and anything else that surfaces only in JEKYLL_ENV=
-# production but not in the live-reload dev server.
+# and fail the PR if Jekyll can't produce a clean static tree, htmlproofer
+# finds a broken link / missing image / missing alt, or the smoke greps in
+# docs/scripts/site-check.sh detect a regression in canonical / OG /
+# sitemap / robots invariants.
 #
-# Layer 1 of the site-check stack from #62. Future layers (htmlproofer
-# for asset/link validation, project-specific smoke greps for the
-# canonical/OG dedupe class of bug) land in the PR that fixes #51,
-# alongside the bugs they're meant to catch.
+# Three layers from #62, each catching a distinct class of regression:
+#
+#   1. Layer 1 — `bundle exec jekyll build` (Liquid syntax, missing
+#      _data refs, plugin loading failures, broken includes).
+#   2. Layer 2 — `htmlproofer _site` (broken internal links, missing
+#      images including og:image, missing alt, malformed HTML).
+#   3. Layer 3 — `docs/scripts/site-check.sh` (project-specific
+#      assertions: canonical dedupe, OG locale, sitemap shape, robots
+#      host).
+#
+# Mirrors `make docs-check` step-for-step so "passes locally" means
+# "passes CI".
 #
 # Triggered only on PRs and main pushes that actually touch the site or
 # this workflow, so docs-only churn doesn't burn minutes on every iOS PR.
@@ -45,14 +53,37 @@ jobs:
       # ruby-version isn't set, keeping CI in lock-step with the local
       # pin (mise.toml + docs/.ruby-version) without duplicating it here.
       # bundler-cache restores docs/vendor/bundle/ keyed on
-      # docs/Gemfile.lock — first run installs gems, every subsequent
-      # run is a cache hit.
+      # docs/Gemfile.lock — first run installs gems (including the
+      # html-proofer gem from the :test group), every subsequent run is
+      # a cache hit.
       - uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
           working-directory: docs
 
-      - name: Build site (production)
+      - name: Build site (production) — Layer 1
         env:
           JEKYLL_ENV: production
         run: bundle exec jekyll build --strict_front_matter --trace
+
+      # Validate the static output Jekyll just produced. htmlproofer is a
+      # :test-group gem (see docs/Gemfile) so it isn't shipped to GitHub
+      # Pages — only this workflow and `make docs-check` install it.
+      # --disable-external keeps the check unflaky (external link
+      # validation belongs in a periodic cron, not a per-PR gate).
+      # --no-ignore-empty-alt is deliberately strict: if a contributor
+      # adds a decorative <img>, they're nudged to mark it
+      # aria-hidden="true" instead of relying on alt="" alone.
+      # htmlproofer's image check covers <img> and <source> only, not
+      # <meta property="og:image"> — that case is asserted by Layer 3
+      # below (see docs/scripts/site-check.sh).
+      - name: Validate _site/ — Layer 2 (htmlproofer)
+        run: bundle exec htmlproofer _site --disable-external --no-enforce-https --no-ignore-empty-alt
+
+      # Project-specific smoke greps over docs/_site/ — see the script's
+      # header for the full list of invariants. Resolves paths relative
+      # to its own location, so the working-directory above doesn't
+      # affect it.
+      - name: Smoke checks — Layer 3 (site-check.sh)
+        working-directory: ${{ github.workspace }}
+        run: bash docs/scripts/site-check.sh
