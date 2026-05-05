@@ -329,7 +329,7 @@ struct HomeView: View {
 
     @ViewBuilder
     private func statusPanel(content: ShieldContent, shieldingEnabled: Bool, shieldsArmed: Bool) -> some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 28) {
             Text(pinnedTitle ?? content.title)
                 .font(.title.bold())
                 .foregroundStyle(Color(.label))

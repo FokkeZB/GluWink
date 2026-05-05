@@ -84,6 +84,7 @@ struct CheckInView: View {
                             .transition(.opacity)
                     }
                 }
+                .padding(.top, 12)
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
