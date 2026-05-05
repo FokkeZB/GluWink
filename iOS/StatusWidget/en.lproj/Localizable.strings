@@ -10,8 +10,3 @@
 "widget.intent.description" = "Shows glucose or carb status.";
 
 "widget.noData" = "No data";
-"widget.agoMinutes %d" = "%dm ago";
-"widget.agoHoursMinutes %d %d" = "%dh %dm ago";
-"widget.shortAgoMinutes %d" = "%dm ago";
-"widget.shortAgoHoursMinutes %d %d" = "%dh %dm ago";
-"widget.tapToCheckIn" = "Tap for Tips";
