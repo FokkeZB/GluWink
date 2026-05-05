@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 /// Visual-only tile bodies shared between the `StatusWidget` extension and
 /// the App's screenshot showcase (`WidgetShowcaseView`). The widget extension
@@ -268,6 +271,123 @@ public struct MediumWidgetTile: View {
         .foregroundStyle(.white)
         .frame(maxHeight: .infinity)
         .padding()
+    }
+}
+
+// MARK: - Accessory / Lock Screen tiles
+//
+// These mirror the Home Screen tile pattern: the visual body lives here in
+// SharedKit so the App's screenshot showcase (`WidgetShowcaseView`) and the
+// real `StatusWidget` extension render an identical picture. The widget
+// wrappers in `StatusWidget/StatusWidgetViews.swift` add the WidgetKit-only
+// chrome (`AccessoryWidgetBackground()` and `containerBackground(for: .widget)`).
+//
+// Foreground coloring is the wrapper's job, not the tile's — on a real
+// Lock Screen iOS strips custom foreground colors and renders accessory
+// widgets in vibrancy / desaturated white. The widget wrapper still applies
+// `level.tint` (iOS strips it as appropriate), and the showcase wrapper
+// applies a translucent white that mimics the vibrancy result. Either way
+// the *tile* itself is a layout-only view.
+
+public struct AccessoryCircularTile: View {
+    public let content: WidgetTileContent
+    public let forGlucose: Bool
+
+    public init(content: WidgetTileContent, forGlucose: Bool) {
+        self.content = content
+        self.forGlucose = forGlucose
+    }
+
+    public var body: some View {
+        let c = content.shieldContent
+        VStack(spacing: -2) {
+            Text(forGlucose ? widgetGlucoseValue(c) : widgetCarbsValue(c))
+                .font(.system(.title2, design: .rounded).bold())
+                .minimumScaleFactor(0.6)
+                .lineLimit(1)
+            Text(forGlucose ? c.glucoseUnit.shortLabel : "g")
+                .font(.system(.caption, design: .rounded))
+        }
+        .multilineTextAlignment(.center)
+    }
+}
+
+public struct AccessoryRectangularTile: View {
+    public let content: WidgetTileContent
+
+    public init(content: WidgetTileContent) {
+        self.content = content
+    }
+
+    public var body: some View {
+        let c = content.shieldContent
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 4) {
+                Image(systemName: c.glucoseNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
+                    .font(.caption2.bold())
+                    .widgetAccentable()
+                HStack(spacing: 2) {
+                    Text(widgetGlucoseValue(c))
+                        .font(.system(.headline, design: .rounded).bold())
+                    Text(c.glucoseUnit.shortLabel)
+                        .font(.caption2)
+                }
+                .lineLimit(1)
+                widgetRelativeAgoText(
+                    from: content.glucoseDate,
+                    hasData: c.glucoseValue > 0,
+                    relativeTo: content.referenceDate
+                )
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            HStack(spacing: 4) {
+                Image(systemName: c.carbsNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
+                    .font(.caption2.bold())
+                    .widgetAccentable()
+                HStack(spacing: 2) {
+                    Text(widgetCarbsValue(c))
+                        .font(.system(.headline, design: .rounded).bold())
+                    Text("g")
+                        .font(.caption2)
+                }
+                .lineLimit(1)
+                widgetRelativeAgoText(
+                    from: content.carbDate,
+                    hasData: c.carbGrams != nil,
+                    relativeTo: content.referenceDate
+                )
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+    }
+}
+
+public struct AccessoryInlineTile: View {
+    public let content: WidgetTileContent
+    public let forGlucose: Bool
+
+    public init(content: WidgetTileContent, forGlucose: Bool) {
+        self.content = content
+        self.forGlucose = forGlucose
+    }
+
+    public var body: some View {
+        let c = content.shieldContent
+        let needsAttention = forGlucose ? c.glucoseNeedsAttention : c.carbsNeedsAttention
+        let icon = needsAttention ? "exclamationmark.triangle" : "checkmark.circle"
+        // Inline is space-constrained on the Lock Screen so we drop the
+        // unit suffix from glucose — the value alone (e.g. "115" or "6.4")
+        // is what the user glances for. Carbs always carry the "g" suffix
+        // because the bare number reads as ambiguous.
+        let text: String = forGlucose
+            ? (c.glucoseValue > 0 ? c.formattedGlucose : "--")
+            : "\(widgetCarbsValue(c))g"
+        Label(text, systemImage: icon)
     }
 }
 
