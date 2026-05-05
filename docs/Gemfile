@@ -12,3 +12,10 @@ end
 
 # webrick is no longer in Ruby's stdlib (since 3.0); jekyll serve needs it.
 gem "webrick", "~> 1.8"
+
+# Validate the built site (Layer 2 of `make docs-check` — see #62). Kept in
+# a :test group so production / GitHub Pages publishing never even touches
+# it; only `make docs-check` and the docs-check.yml workflow install it.
+group :test do
+  gem "html-proofer", "~> 5.0"
+end
