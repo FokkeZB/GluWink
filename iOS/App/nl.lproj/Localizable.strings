@@ -76,8 +76,12 @@
 "settings.dataHeader" = "Veroudering Gegevens";
 "settings.staleMinutes" = "Verouderd na";
 "settings.minutesSuffix %lld" = "%lld min";
+"settings.secondsSuffix %lld" = "%lld s";
 "settings.carbHeader" = "Koolhydraten Gratie";
 "settings.carbGraceFooter" = "Koolhydraat-aandachtschecks worden overgeslagen vóór dit tijdstip elke dag.";
+"settings.cooldownHeader" = "Pauze na inchecken";
+"settings.cooldown" = "Pauze";
+"settings.cooldownFooter" = "Als alle vakjes zijn aangevinkt, wacht de bevestig-knop nog even voordat hij te tikken is — een moment om écht te doen wat je net hebt aangevinkt. Zet op 0 om het wachten over te slaan.";
 "settings.attentionRulesRow" = "Aandachtsregels";
 "settings.shieldingEnabled" = "Afscherming actief";
 "settings.onlyWhenAttention" = "Alleen bij aandacht nodig";
@@ -161,5 +165,6 @@
 
 /* Inchecken */
 "checkin.disarmButton" = "Klaar";
-"checkin.disarmWait" = "Wacht…";
+"checkin.disarmCountdown %lld" = "Wacht (%llds)";
+"checkin.cooldownHelper" = "Dit is je moment om echt te doen wat je net hebt afgevinkt — en alles wat er nog bij je opkomt.";
 "checkin.acknowledgedDescription" = "Je hebt al ingecheckt. Afscherming keert binnenkort terug.";

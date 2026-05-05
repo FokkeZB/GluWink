@@ -425,7 +425,7 @@ struct AttentionRulesSettingsView: View {
             carbGraceMinute: carbGraceMinute,
             attentionIntervalMinutes: data.attentionIntervalMinutes ?? ActivityScheduler.defaultAttentionInterval,
             noAttentionIntervalMinutes: data.noAttentionIntervalMinutes ?? ActivityScheduler.defaultNoAttentionInterval,
-            cooldownSeconds: data.cooldownSeconds ?? 60
+            cooldownSeconds: data.cooldownSeconds ?? 30
         )
         // A threshold/grace tweak is an explicit user action — re-arm or
         // disarm shields immediately rather than waiting for the next
@@ -447,6 +447,7 @@ struct ShieldingSettingsView: View {
     @State private var onlyWhenAttention: Bool
     @State private var attentionInterval: Double
     @State private var noAttentionInterval: Double
+    @State private var cooldownSeconds: Double
     @State private var isAuthorizing = false
     @State private var authError: String?
     @State private var hasAnyDataSource: Bool
@@ -458,6 +459,7 @@ struct ShieldingSettingsView: View {
         _onlyWhenAttention = State(initialValue: data.onlyShieldWhenAttention)
         _attentionInterval = State(initialValue: Double(data.attentionIntervalMinutes ?? ActivityScheduler.defaultAttentionInterval))
         _noAttentionInterval = State(initialValue: Double(data.noAttentionIntervalMinutes ?? ActivityScheduler.defaultNoAttentionInterval))
+        _cooldownSeconds = State(initialValue: Double(data.cooldownSeconds ?? 30))
         _hasAnyDataSource = State(initialValue: data.hasAnyDataSource)
     }
 
@@ -562,6 +564,20 @@ struct ShieldingSettingsView: View {
                     Text("settings.intervalsFooter", tableName: "Localizable")
                 }
 
+                Section {
+                    HStack {
+                        Text("settings.cooldown", tableName: "Localizable")
+                        Spacer()
+                        Text(String(localized: "settings.secondsSuffix \(Int(cooldownSeconds))"))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $cooldownSeconds, in: 0...300, step: 15)
+                } header: {
+                    Text("settings.cooldownHeader", tableName: "Localizable")
+                } footer: {
+                    Text("settings.cooldownFooter", tableName: "Localizable")
+                }
             }
         }
         .navigationTitle(String(localized: "settings.shieldingHeader"))
@@ -569,6 +585,7 @@ struct ShieldingSettingsView: View {
         .onChange(of: selection) { saveShielding() }
         .onChange(of: attentionInterval) { saveShielding() }
         .onChange(of: noAttentionInterval) { saveShielding() }
+        .onChange(of: cooldownSeconds) { saveShielding() }
         .onAppear {
             // The user might have toggled a data source off in another
             // screen and navigated back here; pick up the latest state so
@@ -597,7 +614,7 @@ struct ShieldingSettingsView: View {
             carbGraceMinute: data.carbGraceMinute ?? SettingsDefaults.carbGraceMinute,
             attentionIntervalMinutes: Int(attentionInterval),
             noAttentionIntervalMinutes: Int(noAttentionInterval),
-            cooldownSeconds: data.cooldownSeconds ?? 60
+            cooldownSeconds: Int(cooldownSeconds)
         )
 
         data.flush()
