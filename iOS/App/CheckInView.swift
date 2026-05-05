@@ -1,9 +1,12 @@
+import Combine
 import SharedKit
 import SwiftUI
 
 /// Interactive check-in flow shown when attention is needed.
 /// Items unlock one by one with a delay. After all are checked,
-/// a Disarm button appears after a final delay.
+/// a live cooldown ticks down before the disarm button becomes ready —
+/// a forced pause so the child actually does what they just acknowledged
+/// instead of tapping straight through.
 struct CheckInView: View {
     let items: [String]
     let onDisarm: () -> Void
@@ -11,9 +14,15 @@ struct CheckInView: View {
     @State private var checkedIndices: Set<Int>
     @State private var nextUnlockIndex: Int
     @State private var disarmReady = false
+    /// When set, the disarm button is in cooldown mode and shows
+    /// `endDate.timeIntervalSinceNow` rounded up to whole seconds. `nil`
+    /// means "no countdown active" (either not yet started, or finished
+    /// and `disarmReady = true`, or reset by an unchecked box).
+    @State private var cooldownEndDate: Date?
 
     private let itemDelay: TimeInterval = 1.5
-    private let disarmDelay: TimeInterval = 2.0
+
+    private let timer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
 
     init(items: [String], onDisarm: @escaping () -> Void) {
         self.items = items
@@ -37,6 +46,11 @@ struct CheckInView: View {
         _nextUnlockIndex = State(initialValue: -1)
     }
 
+    private var cooldownRemaining: Int {
+        guard let end = cooldownEndDate else { return 0 }
+        return max(0, Int(end.timeIntervalSinceNow.rounded(.up)))
+    }
+
     var body: some View {
         VStack(spacing: 16) {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
@@ -51,7 +65,7 @@ struct CheckInView: View {
                         Image(systemName: disarmReady ? "shield.slash" : "hourglass")
                         Text(disarmReady
                             ? String(localized: "checkin.disarmButton")
-                            : String(localized: "checkin.disarmWait"))
+                            : String(localized: "checkin.disarmCountdown \(cooldownRemaining)"))
                     }
                     .font(.headline)
                     .frame(maxWidth: .infinity)
@@ -76,6 +90,15 @@ struct CheckInView: View {
                 }
             }
         }
+        .onReceive(timer) { _ in
+            guard cooldownEndDate != nil, !disarmReady else { return }
+            if cooldownRemaining == 0 {
+                cooldownEndDate = nil
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    disarmReady = true
+                }
+            }
+        }
     }
 
     private func checkRow(index: Int, text: String) -> some View {
@@ -95,11 +118,7 @@ struct CheckInView: View {
                     }
                 }
             } else {
-                DispatchQueue.main.asyncAfter(deadline: .now() + disarmDelay) {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        disarmReady = true
-                    }
-                }
+                startCooldown()
             }
         } label: {
             HStack(spacing: 12) {
@@ -127,6 +146,21 @@ struct CheckInView: View {
             return i
         }
         return items.count
+    }
+
+    /// Capture the configured cooldown once at the moment the last box is
+    /// checked and arm the live countdown. A non-positive value (e.g. user
+    /// dialled it down to 0) skips the wait entirely and flips the button
+    /// to its ready state.
+    private func startCooldown() {
+        let configured = SharedDataManager.shared.cooldownSeconds ?? 60
+        guard configured > 0 else {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                disarmReady = true
+            }
+            return
+        }
+        cooldownEndDate = Date().addingTimeInterval(TimeInterval(configured))
     }
 }
 

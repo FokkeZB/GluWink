@@ -76,8 +76,12 @@
 "settings.dataHeader" = "Data Staleness";
 "settings.staleMinutes" = "Stale after";
 "settings.minutesSuffix %lld" = "%lld min";
+"settings.secondsSuffix %lld" = "%lld s";
 "settings.carbHeader" = "Carb Grace Period";
 "settings.carbGraceFooter" = "Carb attention checks are skipped before this time each day.";
+"settings.cooldownHeader" = "Check-In Cooldown";
+"settings.cooldown" = "Cooldown";
+"settings.cooldownFooter" = "After all check-in boxes are ticked, the dismiss button waits this long before becoming tappable — a moment to actually do what you just acknowledged. Set to 0 to skip the wait.";
 "settings.attentionRulesRow" = "Attention Rules";
 "settings.shieldingEnabled" = "Shielding enabled";
 "settings.onlyWhenAttention" = "Only when attention needed";
@@ -161,5 +165,5 @@
 
 /* Check-In Flow */
 "checkin.disarmButton" = "All Done";
-"checkin.disarmWait" = "Wait…";
+"checkin.disarmCountdown %lld" = "Wait (%llds)";
 "checkin.acknowledgedDescription" = "You've already checked in. Shields will return soon.";
