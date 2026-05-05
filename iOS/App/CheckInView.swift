@@ -43,7 +43,7 @@ struct CheckInView: View {
         #endif
 
         _checkedIndices = State(initialValue: [])
-        _nextUnlockIndex = State(initialValue: -1)
+        _nextUnlockIndex = State(initialValue: 0)
     }
 
     private var cooldownRemaining: Int {
@@ -89,18 +89,6 @@ struct CheckInView: View {
             }
         }
         .padding(.horizontal, 32)
-        .onAppear {
-            #if targetEnvironment(simulator)
-            // Harness already seeded `nextUnlockIndex` in init; don't let
-            // the 1.5s timer stomp it back to 0.
-            if ScreenshotHarness.isActive { return }
-            #endif
-            DispatchQueue.main.asyncAfter(deadline: .now() + itemDelay) {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    nextUnlockIndex = 0
-                }
-            }
-        }
         .onReceive(timer) { _ in
             // Force a body re-evaluation every second so `cooldownRemaining`
             // refreshes the displayed count. The actual flip-to-ready is
