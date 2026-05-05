@@ -2,19 +2,37 @@
 import SharedKit
 import SwiftUI
 
-/// Mock "Home Screen widgets" scene used only for the App Store screenshot
-/// flow (`-UITest_Scene widgets`). Renders the real `SmallWidgetTile`,
-/// `MediumWidgetTile`, and `LargeWidgetTile` from SharedKit, so the shot
-/// can never drift from the live widget visuals.
+/// Mock "Home Screen + Lock Screen widgets" scene used only for the App
+/// Store screenshot flow (`-UITest_Scene widgets`). Renders the real
+/// `SmallWidgetTile`, `MediumWidgetTile`, `LargeWidgetTile`,
+/// `AccessoryCircularTile`, and `AccessoryRectangularTile` from SharedKit,
+/// so the shot can never drift from the live widget visuals.
 ///
-/// Not a drop-in Home Screen simulator (no dock or page dots) — just three
-/// tiles stacked over a heavily-blurred copy of the stock iOS dark wallpaper.
-/// Composition shows all three brand attention colors (green → orange → red)
-/// across the stack so a single shot tells the full traffic-light story:
-/// small row pairs calm green and needs-attention orange, the medium tile
-/// shows critical red, and the large hero tile stays green for the most
-/// glanceable numbers. See AGENTS.md → "Marketing Copy (keep in sync)" for
-/// the brand-vocabulary contract on the three-color signal.
+/// Not a drop-in Home Screen simulator (no dock or page dots) — three
+/// Home Screen tiles (small + medium + large) stack over a heavily-blurred
+/// copy of the stock iOS dark wallpaper, and the slot beside the small
+/// tile holds a compact "Lock Screen cluster" that mirrors how iOS
+/// actually renders accessory widgets: a rectangular widget on top with
+/// no background (text directly on the wallpaper) and two circular
+/// widgets below on translucent-glass discs. No section headers — the
+/// visual contrast between the colored Home Screen tiles and the white-
+/// vibrant Lock Screen accessories reads as "Home Screen vs Lock Screen"
+/// without needing an Apple-style label.
+///
+/// The Home Screen stack tells the green → red → orange story across
+/// the three tiles (calm green small + critical red medium + attention
+/// orange large hero) so a single shot covers all three brand attention
+/// colors. The Lock Screen cluster intentionally does NOT carry brand
+/// colour, because real iOS strips foreground tints on accessory widgets
+/// (see QUIRKS.md → "Lock Screen accessory widgets cannot show custom
+/// colors"). Showing fake brand red/green/orange on the Lock Screen mocks
+/// would advertise behaviour the shipping app can't deliver. The
+/// rectangular's `⚠` / `✓` icons + relative-time row still communicate
+/// state honestly.
+///
+/// Mock state: the entire Lock Screen cluster renders in
+/// `attentionContent` so all three accessories show consistent data, the
+/// way they would on a real Lock Screen at one moment in time.
 struct WidgetShowcaseView: View {
     // Widget geometry for a 6.9" iPhone. Hard-coded because we only capture
     // on one device class right now; revisit when we add iPad or 6.7".
@@ -32,19 +50,29 @@ struct WidgetShowcaseView: View {
     /// a side-by-side with the shipping widget on an iPhone 16 Pro Max.
     private let widgetContentMargin: CGFloat = 12
 
+    // Lock Screen accessory geometry inside the 170×170pt cluster slot.
+    // iOS gives accessory widgets specific point sizes (circular ~76pt
+    // diameter, rectangular ~158×72pt). The circulars share the cluster's
+    // bottom row side by side, so the diameter is sized down to fit two of
+    // them inside 170pt with breathing room.
+    private let accessoryCircularSide: CGFloat = 76
+    private let accessoryRectangularHeight: CGFloat = 60
+
     var body: some View {
         VStack(spacing: 20) {
             Spacer(minLength: 12)
 
-            HStack(spacing: 16) {
+            HStack(alignment: .top, spacing: 16) {
                 smallTile(calmContent)
-                smallTile(attentionContent)
+                    .frame(width: smallSide, height: smallSide)
+                lockScreenCluster
+                    .frame(width: smallSide, height: smallSide)
             }
 
             mediumTile(criticalContent)
                 .frame(width: mediumSize.width, height: mediumSize.height)
 
-            largeTile(calmContent)
+            largeTile(attentionContent)
                 .frame(width: largeSize.width, height: largeSize.height)
 
             Spacer(minLength: 12)
@@ -105,6 +133,81 @@ struct WidgetShowcaseView: View {
             .padding(widgetContentMargin)
             .background(content.shieldContent.attentionLevel.tint)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+    }
+
+    // MARK: - Lock Screen cluster
+
+    /// Compact Lock Screen mock that fits inside a 170×170pt slot — the
+    /// same footprint a second small Home Screen tile would take. Layout
+    /// mirrors how iOS actually renders accessory widgets:
+    ///
+    /// - Rectangular widget on top, no glass background — text sits
+    ///   directly on the wallpaper, the way `AccessoryWidgetBackground()`
+    ///   resolves to nothing on real Lock Screens.
+    /// - Two circular widgets below (glucose left, carbs right), each on
+    ///   a translucent glass disc — the way iOS draws
+    ///   `AccessoryWidgetBackground()` for circular accessories.
+    ///
+    /// The inline accessory family is intentionally omitted from the
+    /// cluster mock: on a real Lock Screen the inline widget lives in
+    /// its own slot above the time, separate from the configured-widget
+    /// row, and rendering it next to the rectangular/circulars would
+    /// misrepresent the iOS layout. The "GluWink ships an inline widget
+    /// too" story is carried by the StatusWidget extension itself, which
+    /// users discover when they pick a widget for that slot.
+    ///
+    /// All Lock Screen content uses a single mock state
+    /// (`attentionContent`) — on a real Lock Screen all your widgets show
+    /// the same data at the same moment. Mixing states here would look
+    /// staged.
+    private var lockScreenCluster: some View {
+        VStack(spacing: 10) {
+            accessoryRectangularCard(content: attentionContent)
+            HStack(spacing: 12) {
+                accessoryCircularPill(content: attentionContent, forGlucose: true)
+                accessoryCircularPill(content: attentionContent, forGlucose: false)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    /// `AccessoryCircularTile` on a translucent glass disc — matching
+    /// how iOS draws `AccessoryWidgetBackground()` for circular
+    /// accessories on the Lock Screen. The background is a flat
+    /// translucent fill rather than `.ultraThinMaterial` because the
+    /// Material types don't render with vibrancy outside a real Lock
+    /// Screen context (they fall back to opaque grey on the captured
+    /// PNG, which loses the "glass" cue). Foreground is white-ish to
+    /// mimic the vibrancy treatment iOS applies when the widget renders
+    /// against a wallpaper — see QUIRKS.md → "Lock Screen accessory
+    /// widgets cannot show custom colors".
+    private func accessoryCircularPill(content: WidgetTileContent, forGlucose: Bool) -> some View {
+        AccessoryCircularTile(content: content, forGlucose: forGlucose)
+            .foregroundStyle(.white.opacity(0.85))
+            .padding(4)
+            .frame(width: accessoryCircularSide, height: accessoryCircularSide)
+            .background(lockScreenGlass)
+            .clipShape(Circle())
+    }
+
+    /// `AccessoryRectangularTile` rendered with no background — on real
+    /// Lock Screens, rectangular widgets sit directly on the wallpaper
+    /// without a glass disc. Text uses white-ish vibrancy with `.secondary`
+    /// dimming for the relative-time tail, matching the way iOS renders
+    /// accessory text against a wallpaper.
+    private func accessoryRectangularCard(content: WidgetTileContent) -> some View {
+        AccessoryRectangularTile(content: content)
+            .foregroundStyle(.white.opacity(0.85))
+            .frame(width: smallSide, height: accessoryRectangularHeight, alignment: .leading)
+    }
+
+    /// Translucent fill that stands in for the iOS Lock Screen widget
+    /// container (`AccessoryWidgetBackground`) on circular accessories.
+    /// Tuned to read as "glass on top of the wallpaper" against the
+    /// heavily-blurred dark backdrop. Tweak the opacity here, not at
+    /// each call site.
+    private var lockScreenGlass: some View {
+        Color.white.opacity(0.22)
     }
 
     // MARK: - Mock content
