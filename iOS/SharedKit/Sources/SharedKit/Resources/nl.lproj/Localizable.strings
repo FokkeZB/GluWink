@@ -1,5 +1,4 @@
 /* Shield UI */
-"shield.closeButton" = "Sluit App";
 "shield.doneButton" = "Doorgaan";
 "shield.checkInButton" = "Ga ik doen";
 "shield.criticalCannotDismiss %@" = "Je glucose is kritiek hoog. Het schild kan pas weer weg als je glucose onder %@ is.";

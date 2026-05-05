@@ -3,8 +3,6 @@
 "watch.widget.metricTitle" = "Enkele meting";
 "watch.widget.metricDescription" = "Toon glucose of koolhydraten.";
 "watch.widget.noData" = "Geen data";
-"watch.widget.agoMinutes %d" = "%dm";
-"watch.widget.agoHoursMinutes %d %d" = "%du %dm";
 
 "watch.widget.intent.metricType" = "Meting";
 "watch.widget.intent.glucose" = "Glucose";

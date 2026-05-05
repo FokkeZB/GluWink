@@ -8,7 +8,6 @@
 "home.welcome.tagline %@" = "Turn your iPhone and Apple Watch from your biggest distraction into your best tool. Glucose and carbs everywhere. Apps blocked when something needs your attention.";
 
 /* Setup Checklist */
-"setup.checklist.title" = "Set up";
 "setup.checklist.hide" = "Hide";
 "setup.checklist.hideConfirmTitle" = "Hide setup tips?";
 "setup.checklist.hideConfirmMessage" = "You can configure or change everything later from Settings. The checklist will reappear if you turn off every data source.";
@@ -32,13 +31,7 @@
 
 /* HealthKit Settings */
 "healthkit.settings.title" = "Apple Health";
-"healthkit.settings.statusHeader" = "Status";
-"healthkit.settings.statusLabel" = "Apple Health";
-"healthkit.settings.statusNotConnected" = "Not connected";
-"healthkit.settings.statusRequested" = "Connected";
-"healthkit.settings.statusFooterNotDetermined" = "Grant read access to glucose and carbs so the app can show your latest values.";
 "healthkit.settings.statusFooterRequested" = "Apple Health can't show whether read access is granted. If glucose data isn't appearing, open the Health app to review permissions for this app.";
-"healthkit.settings.requestButton" = "Connect Apple Health";
 "healthkit.settings.openHealthButton" = "Open Health app";
 "healthkit.settings.sectionFooter" = "Permissions are managed in the Health app under Sharing › Apps.";
 "healthkit.settings.enabledToggle" = "Enable Apple Health";
@@ -84,10 +77,7 @@
 "settings.staleMinutes" = "Stale after";
 "settings.minutesSuffix %lld" = "%lld min";
 "settings.carbHeader" = "Carb Grace Period";
-"settings.carbGrace" = "No attention before";
 "settings.carbGraceFooter" = "Carb attention checks are skipped before this time each day.";
-"settings.hour" = "Hour";
-"settings.minute" = "Minute";
 "settings.attentionRulesRow" = "Attention Rules";
 "settings.shieldingEnabled" = "Shielding enabled";
 "settings.onlyWhenAttention" = "Only when attention needed";
@@ -98,17 +88,12 @@
 "settings.intervalsFooter" = "How often shields return after dismissal (minimum 15 min, iOS limit).";
 "settings.attentionInterval" = "Needs attention";
 "settings.noAttentionInterval" = "No attention needed";
-"settings.cooldownHeader" = "Attention Cooldown";
-"settings.cooldownFooter" = "How long the child must wait before they can dismiss the attention items.";
-"settings.cooldown" = "Cooldown";
-"settings.secondsSuffix %lld" = "%lld sec";
 "settings.demoData" = "Demo";
 "settings.demoEnabled" = "Demo";
 "settings.demoFooter" = "Simulates glucose and carb data. Disable to resume real HealthKit data.";
 "settings.demoHasData" = "Has data";
 "settings.demoGlucose" = "Glucose";
 "settings.demoCarbs" = "Carbs";
-"settings.minutesAgo" = "Minutes ago";
 "settings.demoAt" = "At";
 "settings.setPassphrase" = "Set a Passphrase";
 "settings.changePassphrase" = "Change Passphrase";
@@ -178,7 +163,3 @@
 "checkin.disarmButton" = "All Done";
 "checkin.disarmWait" = "Wait…";
 "checkin.acknowledgedDescription" = "You've already checked in. Shields will return soon.";
-
-/* Shielding Active */
-"active.title" = "Shielding Active";
-"active.description %@" = "%@ is protecting this device. Apps will be shielded until a diabetes check-in is completed.";

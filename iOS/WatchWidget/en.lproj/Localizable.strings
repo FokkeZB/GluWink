@@ -3,8 +3,6 @@
 "watch.widget.metricTitle" = "Single Metric";
 "watch.widget.metricDescription" = "Show glucose or carbs.";
 "watch.widget.noData" = "No data";
-"watch.widget.agoMinutes %d" = "%dm ago";
-"watch.widget.agoHoursMinutes %d %d" = "%dh %dm ago";
 
 "watch.widget.intent.metricType" = "Metric";
 "watch.widget.intent.glucose" = "Glucose";
