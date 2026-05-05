@@ -153,7 +153,7 @@ struct CheckInView: View {
     /// dialled it down to 0) skips the wait entirely and flips the button
     /// to its ready state.
     private func startCooldown() {
-        let configured = SharedDataManager.shared.cooldownSeconds ?? 60
+        let configured = SharedDataManager.shared.cooldownSeconds ?? 30
         guard configured > 0 else {
             withAnimation(.easeInOut(duration: 0.3)) {
                 disarmReady = true

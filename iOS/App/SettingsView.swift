@@ -277,7 +277,7 @@ struct AttentionRulesSettingsView: View {
         _staleMinutes = State(initialValue: Double(data.glucoseStaleMinutes ?? SettingsDefaults.staleMinutes))
         _carbGraceHour = State(initialValue: data.carbGraceHour ?? SettingsDefaults.carbGraceHour)
         _carbGraceMinute = State(initialValue: data.carbGraceMinute ?? SettingsDefaults.carbGraceMinute)
-        _cooldownSeconds = State(initialValue: Double(data.cooldownSeconds ?? 60))
+        _cooldownSeconds = State(initialValue: Double(data.cooldownSeconds ?? 30))
     }
 
     private var highRange: ClosedRange<Double> {
@@ -615,7 +615,7 @@ struct ShieldingSettingsView: View {
             carbGraceMinute: data.carbGraceMinute ?? SettingsDefaults.carbGraceMinute,
             attentionIntervalMinutes: Int(attentionInterval),
             noAttentionIntervalMinutes: Int(noAttentionInterval),
-            cooldownSeconds: data.cooldownSeconds ?? 60
+            cooldownSeconds: data.cooldownSeconds ?? 30
         )
 
         data.flush()
