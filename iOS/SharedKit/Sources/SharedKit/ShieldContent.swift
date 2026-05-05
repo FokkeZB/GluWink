@@ -345,7 +345,7 @@ public extension ShieldContent {
         /// Load a numbered list of strings with a display-name fallback (for titles).
         private static func loadList(bundle: Bundle, prefix: String) -> [String] {
             var results: [String] = []
-            for i in 0..<20 {
+            for i in 0..<30 {
                 let key = "\(prefix).\(i)"
                 let value = bundle.localizedString(forKey: key, value: key, table: nil)
                 if value == key { break }
