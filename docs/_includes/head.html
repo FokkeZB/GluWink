@@ -8,10 +8,12 @@
 <title>{{ page.meta_title | default: data.meta.title }}</title>
 <meta name="description" content="{{ page.meta_description | default: data.meta.description }}">
 
+{%- unless page.no_canonical -%}
 <link rel="canonical" href="{{ site.url }}{{ page.url | default: '/' }}">
 <link rel="alternate" hreflang="{{ data.lang }}" href="{{ site.url }}{{ page.url | default: '/' }}">
 <link rel="alternate" hreflang="{{ page.hreflang_other }}" href="{{ site.url }}{{ page.hreflang_other_url }}">
 <link rel="alternate" hreflang="x-default" href="{{ site.url }}/">
+{%- endunless -%}
 
 <link rel="icon" type="image/png" sizes="32x32" href="{{ '/assets/icons/favicon-32.png' | relative_url }}">
 <link rel="icon" type="image/png" sizes="16x16" href="{{ '/assets/icons/favicon-16.png' | relative_url }}">
@@ -21,8 +23,10 @@
 <meta property="og:locale" content="{{ data.locale | replace: '-', '_' }}">
 <meta property="og:title" content="{{ page.meta_title | default: data.meta.title }}">
 <meta property="og:description" content="{{ page.meta_description | default: data.meta.description }}">
+{%- unless page.no_canonical -%}
 <meta property="og:url" content="{{ site.url }}{{ page.url | default: '/' }}">
-<meta property="og:image" content="{{ site.url }}{{ data.meta.og_image | default: '/assets/og-en.png' }}">
+{%- endunless -%}
+<meta property="og:image" content="{{ site.url }}{{ data.meta.og_image }}">
 <meta name="twitter:card" content="summary_large_image">
 
 <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}?v={{ site.time | date: '%s' }}">
@@ -40,5 +44,3 @@
 <link rel="preload" as="image" fetchpriority="high"
       href="{{ '/assets/screenshots/' | append: data.locale | append: '/01_greenShield.png' | relative_url }}">
 {%- endif -%}
-
-{%- seo title=false -%}

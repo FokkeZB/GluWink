@@ -5,10 +5,9 @@ source "https://rubygems.org"
 
 gem "github-pages", group: :jekyll_plugins
 
-# Plugins enabled in _config.yml. Both are on GH Pages' allowlist.
+# Plugins enabled in _config.yml. On GH Pages' allowlist.
 group :jekyll_plugins do
   gem "jekyll-sitemap"
-  gem "jekyll-seo-tag"
 end
 
 # webrick is no longer in Ruby's stdlib (since 3.0); jekyll serve needs it.
