@@ -4,7 +4,15 @@
 <header class="site-header" role="banner">
   <div class="wrap site-header__inner">
     <a class="brand" href="{{ home_url | relative_url }}" aria-label="GluWink home">
-      <img src="{{ '/assets/icons/iOS.png' | relative_url }}" alt="" width="60" height="60" decoding="async" fetchpriority="high">
+      {%- comment -%}
+        The icon is purely decorative — the wordmark `<span>` next to it
+        already carries "GluWink" as text, and the link itself has an
+        aria-label. `aria-hidden="true"` tells assistive tech (and
+        htmlproofer's image check) to skip it; the empty `alt=""` is the
+        HTML5 idiom for a decorative image so non-AT crawlers don't read
+        the filename.
+      {%- endcomment -%}
+      <img src="{{ '/assets/icons/iOS.png' | relative_url }}" alt="" aria-hidden="true" width="60" height="60" decoding="async" fetchpriority="high">
       <span class="brand__name">GluWink</span>
     </a>
     <nav class="nav" aria-label="primary">
