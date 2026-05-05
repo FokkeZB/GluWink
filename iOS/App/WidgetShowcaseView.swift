@@ -59,9 +59,13 @@ struct WidgetShowcaseView: View {
     private let accessoryRectangularHeight: CGFloat = 60
 
     var body: some View {
+        // Pin the deck to the top of the safe area so the small + Lock
+        // Screen row sits just below the camera-hole / Dynamic Island
+        // chrome rather than centering vertically with empty wallpaper
+        // above it. The bottom Spacer absorbs whatever slack is left,
+        // which the translucent caption banner can then overlay without
+        // hiding tile content above it.
         VStack(spacing: 20) {
-            Spacer(minLength: 12)
-
             HStack(alignment: .top, spacing: 16) {
                 smallTile(calmContent)
                     .frame(width: smallSide, height: smallSide)
@@ -78,6 +82,7 @@ struct WidgetShowcaseView: View {
             Spacer(minLength: 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.top, 8)
         .background(homeScreenBackdrop)
     }
 
