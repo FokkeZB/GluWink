@@ -57,6 +57,13 @@ private func relativeAgoText(from date: Date?, hasData: Bool) -> Text {
     return Text(date, style: .relative)
 }
 
+/// Doubles as a watch-face complication and as a Smart Stack tile on
+/// watchOS 10+. The `.accessoryRectangular` family is what Smart Stack
+/// consumes in its swipe-up panel, so a single widget covers both
+/// surfaces — we stay forward-only (one source of truth) and lean on
+/// `TimelineEntryRelevance` (set by `WatchEntryBuilder`) to ask Smart
+/// Stack to float us up when glucose actually needs the user's
+/// attention. See `WatchRelevanceScorer` for the score → level mapping.
 struct WatchRectangularWidget: Widget {
     let kind = "WatchStatusWidget"
 
