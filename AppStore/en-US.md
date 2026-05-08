@@ -112,9 +112,10 @@ Highlights in 1.0:
 • Home Screen, Lock Screen, and StandBy widgets.
 • Apple Watch app and complications.
 • Passphrase-gated settings for parents and accountability partners.
+• A bundled iMessage sticker pack with the GluWink mascot.
 • Fully localized in English and Dutch.
 ```
-*(~580 / 4000)*
+*(~640 / 4000)*
 
 ## Screenshot captions
 
