@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or discussion
+    url: https://github.com/FokkeZB/GluWink/discussions
+    about: For questions, ideas, or general discussion. The issue tracker is for tracked work (bugs and feature requests).

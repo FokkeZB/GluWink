@@ -1,0 +1,56 @@
+name: Feature request
+description: Suggest a new feature or an enhancement to an existing one.
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest something. Smaller / sharper requests are easier to act on — if your idea spans several features, consider opening one issue per feature so each can be discussed and prioritised on its own.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What's the situation today that this would improve? Describe the user experience, not the implementation.
+      placeholder: When my child opens the shield with low glucose, they have to ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What you'd like to see. Mockups, screenshots, or rough text are all fine.
+      placeholder: Add a button that ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about and why you didn't pick them. Saying "none" is fine if you've only got one idea.
+      placeholder: I considered X, but it would mean ...
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Who benefits?
+      description: GluWink supports two audiences with different constraints. Be honest about which one this helps — both is also a valid answer.
+      options:
+        - Children (parent-managed via Family Sharing)
+        - Adults (self-managing)
+        - Either / both
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have searched [existing issues](https://github.com/FokkeZB/GluWink/issues?q=is%3Aissue) and [discussions](https://github.com/FokkeZB/GluWink/discussions) and this is not already on the table.
+          required: true
+        - label: I've read the [security model](../../AGENTS.md#security-design-philosophy) and this proposal does not weaken the passphrase gate or give the child a bypass route.
+          required: true
