@@ -14,7 +14,7 @@ The primary channel is GitHub's [private vulnerability reporting](https://docs.g
 
 > Go to the repository's **Security** tab → **Report a vulnerability**.
 
-That opens a private advisory only the maintainer and you can see, with a structured template for the details. If you can't use that flow, fall back to the maintainer email at `<MAINTAINER_EMAIL>` (placeholder — see the note in the PR; the maintainer will replace this before merge).
+That opens a private advisory only the maintainer and you can see, with a structured template for the details. If you can't use that flow, fall back to the maintainer email at mail@fokkezb.nl.
 
 When you report, please include:
 
