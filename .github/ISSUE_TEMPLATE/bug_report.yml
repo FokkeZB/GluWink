@@ -1,0 +1,100 @@
+name: Bug report
+description: Something isn't working the way it should.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. The more concrete this is, the faster it gets fixed.
+
+        For security issues (shielding bypass, passphrase / Keychain handling, App Group data exposure, anything that could let a child circumvent the shield without the configured passphrase), please use the security policy in [`SECURITY.md`](../../SECURITY.md) instead — those go through GitHub's private vulnerability reporting, not this public form.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences. What did you expect, and what happened instead?
+      placeholder: I expected X, but Y happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: A numbered list. Include taps, screens, and anything off-device (e.g. CGM app state, Health permissions).
+      placeholder: |
+        1. Open GluWink
+        2. Tap the gear icon and enter the passphrase
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      placeholder: The shield should re-arm after 30 minutes.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      placeholder: The shield never re-arms.
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device + iOS version
+      description: e.g. "iPhone 15 Pro, iOS 18.2". Apple Watch model + watchOS version too if the bug is on the watch.
+      placeholder: iPhone 15 Pro, iOS 18.2
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: GluWink version
+      description: |
+        Visible in Settings → about the bottom of the screen. Format: `1.2.3 (45)` — `CFBundleShortVersionString` then build number in parens.
+      placeholder: 1.2.3 (45)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: data-source
+    attributes:
+      label: Data source
+      description: Which data source is configured?
+      options:
+        - Apple Health (HealthKit)
+        - Nightscout
+        - Demo / mock data
+        - Multiple sources enabled
+        - None / not configured yet
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, screenshots, or recordings
+      description: |
+        Drag and drop screenshots / screen recordings into this field. For logs, Console.app on macOS with the iPhone connected over USB filtered by `subsystem:nl.fokkezb.GluWink` is the easiest path.
+      placeholder: (paste / drag here)
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have searched [existing issues](https://github.com/FokkeZB/GluWink/issues?q=is%3Aissue) and this is not a duplicate.
+          required: true
+        - label: This is not a security issue (those go through [`SECURITY.md`](../../SECURITY.md)).
+          required: true
