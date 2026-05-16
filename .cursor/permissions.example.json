@@ -84,6 +84,9 @@
     "wc",
     "awk",
     "sort",
-    "uniq"
+    "uniq",
+    "grep",
+    "strings",
+    "nm"
   ]
 }
