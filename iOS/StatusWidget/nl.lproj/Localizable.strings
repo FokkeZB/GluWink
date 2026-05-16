@@ -1,12 +1,8 @@
 /* Widget */
 "widget.description" = "Glucose- en koolhydraatstatus in één oogopslag.";
-"widget.metricTitle" = "Enkele meting";
-"widget.metricDescription" = "Toon glucose of koolhydraten.";
-
-/* Widget intent (configuration) */
-"widget.intent.metricType" = "Meting";
-"widget.intent.glucose" = "Glucose";
-"widget.intent.carbs" = "Koolhydraten";
-"widget.intent.description" = "Toont glucose- of koolhydraatstatus.";
+"widget.glucoseTitle" = "Glucose";
+"widget.glucoseDescription" = "Laatste glucosemeting.";
+"widget.carbsTitle" = "Koolhydraten";
+"widget.carbsDescription" = "Laatste koolhydraateninvoer.";
 
 "widget.noData" = "Geen data";

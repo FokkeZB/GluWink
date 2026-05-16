@@ -1,12 +1,8 @@
 /* Widget */
 "widget.description" = "Glucose and carb status at a glance.";
-"widget.metricTitle" = "Single Metric";
-"widget.metricDescription" = "Show glucose or carbs.";
-
-/* Widget intent (configuration) */
-"widget.intent.metricType" = "Metric";
-"widget.intent.glucose" = "Glucose";
-"widget.intent.carbs" = "Carbs";
-"widget.intent.description" = "Shows glucose or carb status.";
+"widget.glucoseTitle" = "Glucose";
+"widget.glucoseDescription" = "Latest glucose reading.";
+"widget.carbsTitle" = "Carbs";
+"widget.carbsDescription" = "Latest carb entry.";
 
 "widget.noData" = "No data";

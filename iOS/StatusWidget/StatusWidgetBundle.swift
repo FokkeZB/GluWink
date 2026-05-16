@@ -12,6 +12,7 @@ import WidgetKit
 struct StatusWidgetBundle: WidgetBundle {
     var body: some Widget {
         StatusWidget()
-        StatusMetricWidget()
+        StatusGlucoseWidget()
+        StatusCarbsWidget()
     }
 }
