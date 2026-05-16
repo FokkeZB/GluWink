@@ -6,8 +6,6 @@ struct WatchEntry: TimelineEntry {
     let date: Date
     let content: ShieldContent
     let metric: WatchMetricType
-    let glucoseDate: Date?
-    let carbDate: Date?
     /// Smart Stack relevance hint. WatchOS 10+ surfaces widgets with the
     /// highest valid relevance score in the swipe-up Smart Stack. Set on
     /// every entry from `WatchRelevanceScorer` so the rectangular tile
@@ -56,8 +54,6 @@ enum WatchEntryBuilder {
             date: now,
             content: content,
             metric: metric,
-            glucoseDate: WatchDataManager.glucoseFetchedAt,
-            carbDate: WatchDataManager.lastCarbEntryAt,
             relevance: WatchRelevanceScorer.relevance(for: content.attentionLevel)
         )
     }

@@ -87,7 +87,7 @@ enum WatchDataManager {
     ///
     /// Used by both `content()` and the static `glucoseFetchedAt` /
     /// `lastCarbEntryAt` getters so widget `WatchEntry` dates and watch app
-    /// "Xm ago" labels stay consistent with `ShieldContent.glucoseAgoMinutes`
+    /// "Xm ago" labels stay consistent with `ShieldContent.glucose?.agoMinutes`
     /// — without this, the static getters returned `nil` in mock-mode
     /// simulator runs because the watch sim has no provisioned App Group.
     private static func bridgeOrDefaultsDate(forKey key: String, bridge: [String: Any]?) -> Date? {

@@ -31,15 +31,20 @@ public struct ShieldContent: Sendable {
     /// because shielding is gated on having a data source.
     public let hasNoData: Bool
     public let buttonLabel: String
-    public let glucoseValue: Double
-    public let glucoseAgoMinutes: Int?
-    public let carbGrams: Int?
-    public let carbAgoMinutes: Int?
+    /// Latest glucose sample if any is available — value, sample timestamp,
+    /// minutes-ago, and pre-formatted display string are bundled as one
+    /// atomic optional. There is no way to express "value but no date" or
+    /// "date but no value" at the type level. Read callers MUST treat the
+    /// presence of a reading and the readability of its individual fields
+    /// as inseparable: `if let g = content.glucose { ...g.formatted... }`.
+    public let glucose: Glucose?
+    /// Latest carb entry, atomic with its sample timestamp. Same contract
+    /// as `glucose` — `nil` means "no carb data" and consumers must render
+    /// the no-data state on all metric surfaces.
+    public let carbs: Carbs?
     public let attentionItems: [String]
     public let activeScenarios: [AttentionScenario]
     public let glucoseUnit: GlucoseUnit
-    /// Glucose formatted in the display unit (e.g. "6.4" or "115"), no unit label.
-    public let formattedGlucose: String
     public let glucoseUnitLabel: String
 
     public init(
@@ -60,7 +65,6 @@ public struct ShieldContent: Sendable {
     ) {
         self.glucoseUnit = glucoseUnit
         glucoseUnitLabel = glucoseUnit.label
-        glucoseValue = glucose
         let hasGlucose = glucose > 0
         var dataLines: [String] = []
         var scenarios: [AttentionScenario] = []
@@ -71,12 +75,16 @@ public struct ShieldContent: Sendable {
 
         if hasGlucose, let glucoseDate = glucoseFetchedAt {
             let gMins = Int(now.timeIntervalSince(glucoseDate) / 60)
-            glucoseAgoMinutes = gMins
-            let formatted = glucoseUnit.formattedWithUnit(glucose)
-            formattedGlucose = glucoseUnit.formatted(glucose)
+            self.glucose = Glucose(
+                mmol: glucose,
+                sampleDate: glucoseDate,
+                agoMinutes: gMins,
+                formatted: glucoseUnit.formatted(glucose)
+            )
+            let formattedWithUnit = glucoseUnit.formattedWithUnit(glucose)
             let timeStr = timeFormatter.string(from: glucoseDate)
             let agoStr = Self.shortAgo(gMins, strings: strings)
-            dataLines.append(String(format: strings.glucose, formatted, timeStr, agoStr))
+            dataLines.append(String(format: strings.glucose, formattedWithUnit, timeStr, agoStr))
 
             if glucose < lowGlucoseThreshold {
                 scenarios.append(.lowGlucose)
@@ -104,8 +112,7 @@ public struct ShieldContent: Sendable {
                 scenarios.append(.staleSensor)
             }
         } else {
-            glucoseAgoMinutes = nil
-            formattedGlucose = "--"
+            self.glucose = nil
             dataLines.append(strings.glucoseNoData)
             scenarios.append(.noGlucoseData)
         }
@@ -117,9 +124,12 @@ public struct ShieldContent: Sendable {
             || (currentHour == carbGraceHour && currentMinute < carbGraceMinute)
 
         if let carbDate = lastCarbEntryAt, let grams = lastCarbGrams {
-            carbGrams = Int(grams)
             let cMins = Int(now.timeIntervalSince(carbDate) / 60)
-            carbAgoMinutes = cMins
+            self.carbs = Carbs(
+                grams: Int(grams),
+                sampleDate: carbDate,
+                agoMinutes: cMins
+            )
             let timeStr = timeFormatter.string(from: carbDate)
             let agoStr = Self.shortAgo(cMins, strings: strings)
             dataLines.append(String(format: strings.carbsEntry, Int(grams), timeStr, agoStr))
@@ -127,8 +137,7 @@ public struct ShieldContent: Sendable {
                 scenarios.append(.carbGap)
             }
         } else {
-            carbGrams = nil
-            carbAgoMinutes = nil
+            self.carbs = nil
             dataLines.append(strings.carbsNoData)
             scenarios.append(.noCarbData)
         }
@@ -204,6 +213,48 @@ public struct ShieldContent: Sendable {
             return String(format: strings.agoMinutes, minutes)
         }
         return String(format: strings.agoHoursMinutes, minutes / 60, minutes % 60)
+    }
+}
+
+public extension ShieldContent {
+    /// A glucose sample paired indivisibly with its timestamp. The whole
+    /// point of this nested struct is that consumers cannot get one
+    /// without the other: if `ShieldContent.glucose` is `nil`, there is
+    /// no reading at all — render the no-data state on every surface
+    /// (orange tint + warning triangle, never a raw value with no
+    /// time-ago label). Nested under `ShieldContent` to distinguish from
+    /// `UnifiedDataReader.GlucoseReading`, which is the per-source raw
+    /// reading; this one is the resolved, display-formatted view.
+    struct Glucose: Sendable, Equatable {
+        /// Glucose value in mmol/L — always. Surfaces that show a
+        /// different display unit format from `formatted` (which already
+        /// respects `ShieldContent.glucoseUnit`); they should not re-do
+        /// the math on `mmol` themselves.
+        public let mmol: Double
+        /// Time the sample was observed by the writer (HealthKit,
+        /// Nightscout, or demo). What the "X min ago" label is computed
+        /// against.
+        public let sampleDate: Date
+        /// Minutes between `sampleDate` and the `now` passed to
+        /// `ShieldContent.init`. Pre-computed so widget timelines that
+        /// produce multiple entries don't all recompute it at render
+        /// time.
+        public let agoMinutes: Int
+        /// Already formatted for the active display unit (e.g. `"6.4"`
+        /// for mmol/L, `"115"` for mg/dL). No unit label — surfaces tack
+        /// the unit on themselves using `ShieldContent.glucoseUnitLabel`
+        /// so they can position it (e.g. on the same line, on a second
+        /// line, in a smaller font).
+        public let formatted: String
+    }
+
+    /// A carb entry paired indivisibly with its timestamp. Mirrors
+    /// `Glucose`'s atomic contract — `ShieldContent.carbs == nil` means
+    /// render the no-data state, full stop.
+    struct Carbs: Sendable, Equatable {
+        public let grams: Int
+        public let sampleDate: Date
+        public let agoMinutes: Int
     }
 }
 

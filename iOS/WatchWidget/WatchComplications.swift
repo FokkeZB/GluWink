@@ -20,18 +20,18 @@ enum WatchMetricType {
 private func metricHasData(_ entry: WatchEntry) -> Bool {
     switch entry.metric {
     case .glucose:
-        return entry.content.glucoseValue > 0
+        return entry.content.glucose != nil
     case .carbs:
-        return entry.content.carbGrams != nil
+        return entry.content.carbs != nil
     }
 }
 
 private func metricValue(_ entry: WatchEntry) -> String {
     switch entry.metric {
     case .glucose:
-        return entry.content.glucoseValue > 0 ? entry.content.formattedGlucose : "--"
+        return entry.content.glucose?.formatted ?? "--"
     case .carbs:
-        return entry.content.carbGrams.map(String.init) ?? "--"
+        return entry.content.carbs.map { String($0.grams) } ?? "--"
     }
 }
 
@@ -48,8 +48,8 @@ private func metricAttentionLevel(_ entry: WatchEntry) -> AttentionLevel {
     entry.content.attentionLevel(forGlucose: entry.metric == .glucose)
 }
 
-private func relativeAgoText(from date: Date?, hasData: Bool) -> Text {
-    guard hasData, let date else { return Text(String(localized: "watch.widget.noData")) }
+private func relativeAgoText(from date: Date?) -> Text {
+    guard let date else { return Text(String(localized: "watch.widget.noData")) }
     return Text(date, style: .relative)
 }
 
@@ -118,15 +118,17 @@ struct WatchRectangularEntryView: View {
 
     var body: some View {
         let content = entry.content
+        let glucoseText = content.glucose?.formatted ?? "--"
+        let carbsText = content.carbs.map { String($0.grams) } ?? "--"
 
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 4) {
                 Image(systemName: content.glucoseNeedsAttention ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
                     .font(.caption.bold())
-                Text("\(content.formattedGlucose) \(content.glucoseUnit.shortLabel)")
+                Text("\(glucoseText) \(content.glucoseUnit.shortLabel)")
                     .font(.system(.headline, design: .rounded).bold())
                 Spacer(minLength: 4)
-                relativeAgoText(from: entry.glucoseDate, hasData: content.glucoseValue > 0)
+                relativeAgoText(from: content.glucose?.sampleDate)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -134,10 +136,10 @@ struct WatchRectangularEntryView: View {
             HStack(spacing: 4) {
                 Image(systemName: content.carbsNeedsAttention ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
                     .font(.caption.bold())
-                Text("\(content.carbGrams.map(String.init) ?? "--") g")
+                Text("\(carbsText) g")
                     .font(.system(.headline, design: .rounded).bold())
                 Spacer(minLength: 4)
-                relativeAgoText(from: entry.carbDate, hasData: content.carbGrams != nil)
+                relativeAgoText(from: content.carbs?.sampleDate)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }

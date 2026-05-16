@@ -22,15 +22,15 @@ struct WatchContentView: View {
     }
 
     private func glucoseValueText(for content: ShieldContent) -> String {
-        "\(content.glucoseValue > 0 ? content.formattedGlucose : "--") \(content.glucoseUnitLabel)"
+        "\(content.glucose?.formatted ?? "--") \(content.glucoseUnitLabel)"
     }
 
     private func carbsValueText(for content: ShieldContent) -> String {
-        "\(content.carbGrams.map(String.init) ?? "--") g"
+        "\(content.carbs.map { String($0.grams) } ?? "--") g"
     }
 
-    private func relativeTimeText(from date: Date?, hasData: Bool) -> Text {
-        guard hasData, let date else { return Text("--") }
+    private func relativeTimeText(from date: Date?) -> Text {
+        guard let date else { return Text("--") }
         return Text(date, style: .relative)
     }
 
@@ -42,7 +42,7 @@ struct WatchContentView: View {
                 Text(glucoseValueText(for: current))
                     .font(valueFont)
                     .foregroundStyle(.white)
-                relativeTimeText(from: WatchDataManager.glucoseFetchedAt, hasData: current.glucoseValue > 0)
+                relativeTimeText(from: current.glucose?.sampleDate)
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.85))
             }
@@ -51,7 +51,7 @@ struct WatchContentView: View {
                 Text(carbsValueText(for: current))
                     .font(valueFont)
                     .foregroundStyle(.white.opacity(0.95))
-                relativeTimeText(from: WatchDataManager.lastCarbEntryAt, hasData: current.carbGrams != nil)
+                relativeTimeText(from: current.carbs?.sampleDate)
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.85))
             }
