@@ -165,11 +165,11 @@ private func widgetValueWithUnit(
 }
 
 private func widgetGlucoseValue(_ c: ShieldContent) -> String {
-    c.glucoseValue > 0 ? c.formattedGlucose : "--"
+    c.glucose?.formatted ?? "--"
 }
 
 private func widgetCarbsValue(_ c: ShieldContent) -> String {
-    c.carbGrams.map { "\($0)" } ?? "--"
+    c.carbs.map { "\($0.grams)" } ?? "--"
 }
 
 // MARK: - Small tile
@@ -192,7 +192,7 @@ public struct SmallWidgetTile: View {
             )
             widgetRelativeAgoText(
                 from: content.glucoseDate,
-                hasData: c.glucoseValue > 0,
+                hasData: c.glucose != nil,
                 relativeTo: content.referenceDate
             )
                 .font(.caption)
@@ -208,7 +208,7 @@ public struct SmallWidgetTile: View {
             )
             widgetRelativeAgoText(
                 from: content.carbDate,
-                hasData: c.carbGrams != nil,
+                hasData: c.carbs != nil,
                 relativeTo: content.referenceDate
             )
                 .font(.caption)
@@ -241,7 +241,7 @@ public struct MediumWidgetTile: View {
                 )
                 widgetStackedTime(
                     from: content.glucoseDate,
-                    hasData: c.glucoseValue > 0,
+                    hasData: c.glucose != nil,
                     relativeTo: content.referenceDate
                 )
                     .font(.subheadline)
@@ -259,7 +259,7 @@ public struct MediumWidgetTile: View {
                 )
                 widgetStackedTime(
                     from: content.carbDate,
-                    hasData: c.carbGrams != nil,
+                    hasData: c.carbs != nil,
                     relativeTo: content.referenceDate
                 )
                     .font(.subheadline)
@@ -335,7 +335,7 @@ public struct AccessoryRectangularTile: View {
                 .lineLimit(1)
                 widgetRelativeAgoText(
                     from: content.glucoseDate,
-                    hasData: c.glucoseValue > 0,
+                    hasData: c.glucose != nil,
                     relativeTo: content.referenceDate
                 )
                     .font(.caption2)
@@ -356,7 +356,7 @@ public struct AccessoryRectangularTile: View {
                 .lineLimit(1)
                 widgetRelativeAgoText(
                     from: content.carbDate,
-                    hasData: c.carbGrams != nil,
+                    hasData: c.carbs != nil,
                     relativeTo: content.referenceDate
                 )
                     .font(.caption2)
@@ -385,7 +385,7 @@ public struct AccessoryInlineTile: View {
         // is what the user glances for. Carbs always carry the "g" suffix
         // because the bare number reads as ambiguous.
         let text: String = forGlucose
-            ? (c.glucoseValue > 0 ? c.formattedGlucose : "--")
+            ? (c.glucose?.formatted ?? "--")
             : "\(widgetCarbsValue(c))g"
         Label(text, systemImage: icon)
     }
@@ -412,7 +412,7 @@ public struct LargeWidgetTile: View {
                 )
                 widgetStackedTime(
                     from: content.glucoseDate,
-                    hasData: c.glucoseValue > 0,
+                    hasData: c.glucose != nil,
                     relativeTo: content.referenceDate
                 )
                     .font(.body)
@@ -431,7 +431,7 @@ public struct LargeWidgetTile: View {
                 )
                 widgetStackedTime(
                     from: content.carbDate,
-                    hasData: c.carbGrams != nil,
+                    hasData: c.carbs != nil,
                     relativeTo: content.referenceDate
                 )
                     .font(.body)

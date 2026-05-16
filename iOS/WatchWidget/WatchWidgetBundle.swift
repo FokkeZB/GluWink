@@ -5,6 +5,7 @@ import WidgetKit
 struct WatchStatusWidgetBundle: WidgetBundle {
     var body: some Widget {
         WatchRectangularWidget()
-        WatchMetricWidget()
+        WatchGlucoseWidget()
+        WatchCarbsWidget()
     }
 }

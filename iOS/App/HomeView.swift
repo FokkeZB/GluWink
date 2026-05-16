@@ -382,9 +382,9 @@ struct HomeView: View {
                     .font(.subheadline.weight(.semibold))
                 Text("•")
                     .foregroundStyle(.tertiary)
-                relativeTimeText(from: glucoseDate, hasData: content.glucoseValue > 0, fallback: strings.glucoseNoData)
+                relativeTimeText(from: glucoseDate, hasData: content.glucose != nil, fallback: strings.glucoseNoData)
                     .font(.subheadline)
-                if content.glucoseValue > 0, glucoseDate != nil {
+                if content.glucose != nil, glucoseDate != nil {
                     Text("•")
                         .foregroundStyle(.tertiary)
                     absoluteTimeText(from: glucoseDate, hasData: true)
@@ -399,9 +399,9 @@ struct HomeView: View {
                     .font(.subheadline.weight(.semibold))
                 Text("•")
                     .foregroundStyle(.tertiary)
-                relativeTimeText(from: carbDate, hasData: content.carbGrams != nil, fallback: strings.carbsNoData)
+                relativeTimeText(from: carbDate, hasData: content.carbs != nil, fallback: strings.carbsNoData)
                     .font(.subheadline)
-                if content.carbGrams != nil, carbDate != nil {
+                if content.carbs != nil, carbDate != nil {
                     Text("•")
                         .foregroundStyle(.tertiary)
                     absoluteTimeText(from: carbDate, hasData: true)
@@ -440,11 +440,11 @@ struct HomeView: View {
     }
 
     private func glucoseValueText(for content: ShieldContent) -> String {
-        "\(content.glucoseValue > 0 ? content.formattedGlucose : "--") \(content.glucoseUnitLabel)"
+        "\(content.glucose?.formatted ?? "--") \(content.glucoseUnitLabel)"
     }
 
     private func carbValueText(for content: ShieldContent) -> String {
-        "\(content.carbGrams.map(String.init) ?? "--") g"
+        "\(content.carbs.map { String($0.grams) } ?? "--") g"
     }
 
     private func relativeTimeText(from date: Date?, hasData: Bool, fallback: String) -> Text {

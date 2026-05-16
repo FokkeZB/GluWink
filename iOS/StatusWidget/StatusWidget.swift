@@ -1,27 +1,21 @@
-import AppIntents
 import SharedKit
 import SwiftUI
 import WidgetKit
 
-// MARK: - Configuration Intent
+// MARK: - Metric type
 
-enum MetricType: String, AppEnum {
+/// Which metric a Lock Screen tile renders. Shipped as a plain enum
+/// (not `AppEnum`) because each metric has its own `Widget` with a
+/// `StaticConfiguration` — there is no in-place picker. We deliberately
+/// avoided `AppIntentConfiguration` here to mirror the watch split (see
+/// `WatchMetricType` in WatchComplications.swift) and to give the user
+/// a one-step gallery flow: pick "Glucose" or "Carbs" directly, no
+/// two-step "pick the metric widget, then configure it" detour. Same
+/// pattern that also sidesteps the `CHSError 1101` archiving bug we
+/// saw on watch accessory families with `AppIntentConfiguration`.
+enum MetricType {
     case glucose
     case carbs
-
-    static var typeDisplayRepresentation = TypeDisplayRepresentation(name: LocalizedStringResource("widget.intent.metricType", defaultValue: "Metric"))
-    static var caseDisplayRepresentations: [MetricType: DisplayRepresentation] = [
-        .glucose: DisplayRepresentation(title: LocalizedStringResource("widget.intent.glucose", defaultValue: "Glucose")),
-        .carbs: DisplayRepresentation(title: LocalizedStringResource("widget.intent.carbs", defaultValue: "Carbs")),
-    ]
-}
-
-struct StatusWidgetIntent: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource = "Status"
-    static var description = IntentDescription(LocalizedStringResource("widget.intent.description", defaultValue: "Shows glucose or carb status."))
-
-    @Parameter(title: LocalizedStringResource("widget.intent.metricType", defaultValue: "Metric"), default: .glucose)
-    var metric: MetricType
 }
 
 // MARK: - Shared entry builder
@@ -134,25 +128,34 @@ struct StatusTimelineProvider: TimelineProvider {
     }
 }
 
-// MARK: - Configurable provider (metric picker)
+// MARK: - Per-metric static provider
 
-struct StatusIntentTimelineProvider: AppIntentTimelineProvider {
+/// One provider instance per metric — the metric is fixed at the widget
+/// declaration site rather than picked through an intent. Mirrors
+/// `WatchMetricTimelineProvider` on the watch side.
+struct StatusMetricTimelineProvider: TimelineProvider {
+    let metric: MetricType
+
     func placeholder(in _: Context) -> StatusEntry {
-        EntryBuilder.makeEntry(now: Date(), metric: .glucose)
+        EntryBuilder.makeEntry(now: Date(), metric: metric)
     }
 
-    func snapshot(for configuration: StatusWidgetIntent, in _: Context) async -> StatusEntry {
-        await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
-        return EntryBuilder.makeEntry(now: Date(), metric: configuration.metric)
-    }
-
-    func timeline(for configuration: StatusWidgetIntent, in _: Context) async -> Timeline<StatusEntry> {
-        await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
-        let now = Date()
-        let entries = TimelinePolicy.entries(from: now) { date in
-            EntryBuilder.makeEntry(now: date, metric: configuration.metric)
+    func getSnapshot(in _: Context, completion: @escaping (StatusEntry) -> Void) {
+        Task {
+            await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
+            completion(EntryBuilder.makeEntry(now: Date(), metric: metric))
         }
-        return Timeline(entries: entries, policy: .atEnd)
+    }
+
+    func getTimeline(in _: Context, completion: @escaping (Timeline<StatusEntry>) -> Void) {
+        Task {
+            await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
+            let now = Date()
+            let entries = TimelinePolicy.entries(from: now) { date in
+                EntryBuilder.makeEntry(now: date, metric: metric)
+            }
+            completion(Timeline(entries: entries, policy: .atEnd))
+        }
     }
 }
 
@@ -174,17 +177,38 @@ struct StatusWidget: Widget {
     }
 }
 
-// MARK: - Metric widget (circular + inline Lock Screen — configurable glucose or carbs)
+// MARK: - Metric widgets (circular + inline Lock Screen — one per metric)
+//
+// One `StaticConfiguration` widget per metric instead of a single
+// `AppIntentConfiguration` with a picker. Same rationale as the watch
+// split: cleaner gallery UX ("Glucose" / "Carbs" pickable directly,
+// no two-step configure detour) and forward-only — we don't ship an
+// intent we'd then have to migrate away from later.
 
-struct StatusMetricWidget: Widget {
-    let kind: String = "StatusMetricWidget"
+struct StatusGlucoseWidget: Widget {
+    let kind: String = "StatusGlucoseWidget"
 
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(kind: kind, intent: StatusWidgetIntent.self, provider: StatusIntentTimelineProvider()) { entry in
+        StaticConfiguration(kind: kind, provider: StatusMetricTimelineProvider(metric: .glucose)) { entry in
             StatusMetricEntryView(entry: entry)
         }
-        .configurationDisplayName(String(localized: "widget.metricTitle"))
-        .description(String(localized: "widget.metricDescription"))
+        .configurationDisplayName(String(localized: "widget.glucoseTitle"))
+        .description(String(localized: "widget.glucoseDescription"))
+        .supportedFamilies([
+            .accessoryCircular, .accessoryInline,
+        ])
+    }
+}
+
+struct StatusCarbsWidget: Widget {
+    let kind: String = "StatusCarbsWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: StatusMetricTimelineProvider(metric: .carbs)) { entry in
+            StatusMetricEntryView(entry: entry)
+        }
+        .configurationDisplayName(String(localized: "widget.carbsTitle"))
+        .description(String(localized: "widget.carbsDescription"))
         .supportedFamilies([
             .accessoryCircular, .accessoryInline,
         ])
