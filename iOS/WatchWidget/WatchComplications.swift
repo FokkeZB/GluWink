@@ -48,6 +48,30 @@ private func metricAttentionLevel(_ entry: WatchEntry) -> AttentionLevel {
     entry.content.attentionLevel(forGlucose: entry.metric == .glucose)
 }
 
+/// Minutes-since-sample for the metric this widget is rendering. `nil`
+/// when there is no reading (no source has delivered yet, or the source
+/// is disabled). Pre-computed in `ShieldContent.init` against the entry's
+/// `now`, so the timeline producing 1-minute-spaced entries gives us a
+/// fresh value per render without wall-clock drift.
+private func metricAgoMinutes(_ entry: WatchEntry) -> Int? {
+    switch entry.metric {
+    case .glucose: return entry.content.glucose?.agoMinutes
+    case .carbs: return entry.content.carbs?.agoMinutes
+    }
+}
+
+/// Compact "X ago" string for the corner complication slot, which has
+/// room for ~3 characters max. We deliberately drop the localised "ago"
+/// / "geleden" suffix used elsewhere — the corner context implies it,
+/// and the suffix would push the string past what fits in a curved
+/// corner. Hours collapse to whole units (`"1h"`, `"2h"`) for the same
+/// reason; the more precise `"1h 30m"` form lives on the rectangular
+/// tile where there's space for it.
+private func shortAgoText(_ minutes: Int) -> String {
+    if minutes < 60 { return "\(minutes)m" }
+    return "\(minutes / 60)h"
+}
+
 private func relativeAgoText(from date: Date?) -> Text {
     guard let date else { return Text(String(localized: "watch.widget.noData")) }
     return Text(date, style: .relative)
@@ -195,23 +219,31 @@ struct WatchAccessoryCircularView: View {
 struct WatchAccessoryCornerView: View {
     let entry: WatchEntry
 
-    private var metricSymbol: String {
-        switch entry.metric {
-        case .glucose: return "drop.fill"
-        case .carbs: return "fork.knife"
-        }
-    }
-
     var body: some View {
-        let hasData = metricHasData(entry)
         let tint = metricAttentionLevel(entry).tint
 
-        Image(systemName: hasData ? metricSymbol : "exclamationmark.triangle.fill")
-            .foregroundStyle(tint)
-            .widgetLabel {
-                Text(hasData
-                    ? "\(metricValue(entry)) \(metricUnit(entry))"
-                    : String(localized: "watch.widget.noData"))
+        // Corner content is the "X ago" timestamp (or a warning triangle
+        // when there is no reading at all). The metric-identifying icon
+        // (drop / fork) used to live here, but the value itself is
+        // already in the bezel `widgetLabel` — duplicating "this is
+        // glucose" in the corner just spent the slot's tightest pixels
+        // on metadata the user could already infer from the number. The
+        // age of the sample is far more useful at a glance: a fresh
+        // reading vs. a 45-minute-old one is information you can't get
+        // anywhere else on the watch face.
+        Group {
+            if let mins = metricAgoMinutes(entry) {
+                Text(shortAgoText(mins))
+                    .font(.system(.body, design: .rounded).bold())
+            } else {
+                Image(systemName: "exclamationmark.triangle.fill")
             }
+        }
+        .foregroundStyle(tint)
+        .widgetLabel {
+            Text(metricHasData(entry)
+                ? "\(metricValue(entry)) \(metricUnit(entry))"
+                : String(localized: "watch.widget.noData"))
+        }
     }
 }
