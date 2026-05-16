@@ -1,10 +1,7 @@
 "watch.widget.rectangularTitle" = "Status";
 "watch.widget.rectangularDescription" = "Show glucose and carbs together.";
-"watch.widget.metricTitle" = "Single Metric";
-"watch.widget.metricDescription" = "Show glucose or carbs.";
+"watch.widget.glucoseTitle" = "Glucose";
+"watch.widget.glucoseDescription" = "Show the latest glucose reading.";
+"watch.widget.carbsTitle" = "Carbs";
+"watch.widget.carbsDescription" = "Show the latest carb entry.";
 "watch.widget.noData" = "No data";
-
-"watch.widget.intent.metricType" = "Metric";
-"watch.widget.intent.glucose" = "Glucose";
-"watch.widget.intent.carbs" = "Carbs";
-"watch.widget.intent.description" = "Choose which metric to show.";

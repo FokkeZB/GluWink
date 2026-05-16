@@ -96,41 +96,27 @@ struct WatchRectangularTimelineProvider: TimelineProvider {
     }
 }
 
-struct WatchMetricTimelineProvider: AppIntentTimelineProvider {
-    func recommendations() -> [AppIntentRecommendation<WatchMetricIntent>] {
-        [
-            AppIntentRecommendation(
-                intent: {
-                    let intent = WatchMetricIntent()
-                    intent.metric = .glucose
-                    return intent
-                }(),
-                description: String(localized: "watch.widget.intent.glucose")
-            ),
-            AppIntentRecommendation(
-                intent: {
-                    let intent = WatchMetricIntent()
-                    intent.metric = .carbs
-                    return intent
-                }(),
-                description: String(localized: "watch.widget.intent.carbs")
-            ),
-        ]
-    }
+/// Drives one of the metric complications (`WatchGlucoseWidget` /
+/// `WatchCarbsWidget`). One provider per metric — `StaticConfiguration`
+/// means no per-instance picker, the metric is baked in at widget
+/// declaration time. See `WatchMetricType` for the rationale behind
+/// avoiding `AppIntentConfiguration` on circular/corner families.
+struct WatchMetricTimelineProvider: TimelineProvider {
+    let metric: WatchMetricType
 
     func placeholder(in _: Context) -> WatchEntry {
-        WatchEntryBuilder.makeEntry(now: Date(), metric: .glucose)
+        WatchEntryBuilder.makeEntry(now: Date(), metric: metric)
     }
 
-    func snapshot(for configuration: WatchMetricIntent, in _: Context) async -> WatchEntry {
-        WatchEntryBuilder.makeEntry(now: Date(), metric: configuration.metric)
+    func getSnapshot(in _: Context, completion: @escaping (WatchEntry) -> Void) {
+        completion(WatchEntryBuilder.makeEntry(now: Date(), metric: metric))
     }
 
-    func timeline(for configuration: WatchMetricIntent, in _: Context) async -> Timeline<WatchEntry> {
+    func getTimeline(in _: Context, completion: @escaping (Timeline<WatchEntry>) -> Void) {
         let now = Date()
         let entries = WatchTimelinePolicy.entries(from: now) { date in
-            WatchEntryBuilder.makeEntry(now: date, metric: configuration.metric)
+            WatchEntryBuilder.makeEntry(now: date, metric: metric)
         }
-        return Timeline(entries: entries, policy: .atEnd)
+        completion(Timeline(entries: entries, policy: .atEnd))
     }
 }

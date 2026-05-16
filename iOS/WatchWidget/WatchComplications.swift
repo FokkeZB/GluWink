@@ -1,33 +1,29 @@
-import AppIntents
 import SharedKit
 import SwiftUI
 import WidgetKit
 
-enum WatchMetricType: String, AppEnum {
+/// Which metric a complication renders. Shipped as a plain enum (not
+/// `AppEnum`) because each metric has its own `Widget` with a
+/// `StaticConfiguration` — there is no in-place picker. We deliberately
+/// avoided `AppIntentConfiguration` here after `WidgetMetricWidget` +
+/// `accessoryCircular`/`accessoryCorner` reliably produced `CHSError
+/// 1101 "Returned view collection was either nil or empty"` on
+/// watchOS 26 (see https://github.com/FokkeZB/GluWink/pull/119 thread).
+/// Splitting into one widget per metric is also clearer in the gallery:
+/// the user picks "Glucose" or "Carbs" directly, no two-step "pick the
+/// metric widget, then configure it" flow.
+enum WatchMetricType {
     case glucose
     case carbs
-
-    static var typeDisplayRepresentation = TypeDisplayRepresentation(
-        name: LocalizedStringResource("watch.widget.intent.metricType", defaultValue: "Metric")
-    )
-
-    static var caseDisplayRepresentations: [WatchMetricType: DisplayRepresentation] = [
-        .glucose: DisplayRepresentation(title: LocalizedStringResource("watch.widget.intent.glucose", defaultValue: "Glucose")),
-        .carbs: DisplayRepresentation(title: LocalizedStringResource("watch.widget.intent.carbs", defaultValue: "Carbs")),
-    ]
 }
 
-struct WatchMetricIntent: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource = "GluWink"
-    static var description = IntentDescription(
-        LocalizedStringResource("watch.widget.intent.description", defaultValue: "Choose which metric to show.")
-    )
-
-    @Parameter(
-        title: LocalizedStringResource("watch.widget.intent.metricType", defaultValue: "Metric"),
-        default: .glucose
-    )
-    var metric: WatchMetricType
+private func metricHasData(_ entry: WatchEntry) -> Bool {
+    switch entry.metric {
+    case .glucose:
+        return entry.content.glucoseValue > 0
+    case .carbs:
+        return entry.content.carbGrams != nil
+    }
 }
 
 private func metricValue(_ entry: WatchEntry) -> String {
@@ -77,15 +73,28 @@ struct WatchRectangularWidget: Widget {
     }
 }
 
-struct WatchMetricWidget: Widget {
-    let kind = "WatchMetricWidget"
+struct WatchGlucoseWidget: Widget {
+    let kind = "WatchGlucoseWidget"
 
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(kind: kind, intent: WatchMetricIntent.self, provider: WatchMetricTimelineProvider()) { entry in
+        StaticConfiguration(kind: kind, provider: WatchMetricTimelineProvider(metric: .glucose)) { entry in
             WatchMetricEntryView(entry: entry)
         }
-        .configurationDisplayName(String(localized: "watch.widget.metricTitle"))
-        .description(String(localized: "watch.widget.metricDescription"))
+        .configurationDisplayName(String(localized: "watch.widget.glucoseTitle"))
+        .description(String(localized: "watch.widget.glucoseDescription"))
+        .supportedFamilies([.accessoryCircular, .accessoryCorner])
+    }
+}
+
+struct WatchCarbsWidget: Widget {
+    let kind = "WatchCarbsWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: WatchMetricTimelineProvider(metric: .carbs)) { entry in
+            WatchMetricEntryView(entry: entry)
+        }
+        .configurationDisplayName(String(localized: "watch.widget.carbsTitle"))
+        .description(String(localized: "watch.widget.carbsDescription"))
         .supportedFamilies([.accessoryCircular, .accessoryCorner])
     }
 }
@@ -143,37 +152,49 @@ struct WatchAccessoryCircularView: View {
     let entry: WatchEntry
 
     var body: some View {
-        ZStack {
-            Circle()
-                .fill(metricAttentionLevel(entry).tint)
-            VStack(spacing: -3) {
-                Text(metricValue(entry))
-                    .font(.system(.title3, design: .rounded).bold())
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(1)
-                Text(metricUnit(entry))
-                    .font(.system(.caption2, design: .rounded))
-                    .fontWeight(.semibold)
+        Group {
+            if metricHasData(entry) {
+                VStack(spacing: -3) {
+                    Text(metricValue(entry))
+                        .font(.system(.title3, design: .rounded).bold())
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+                    Text(metricUnit(entry))
+                        .font(.system(.caption2, design: .rounded))
+                        .fontWeight(.semibold)
+                }
+            } else {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.title2.bold())
             }
-            .foregroundStyle(.white)
         }
-        .containerBackground(.clear, for: .widget)
+        .foregroundStyle(.white)
+        .containerBackground(for: .widget) {
+            metricAttentionLevel(entry).tint
+        }
     }
 }
 
 struct WatchAccessoryCornerView: View {
     let entry: WatchEntry
 
-    private var statusColor: Color {
-        metricAttentionLevel(entry).tint
+    private var metricSymbol: String {
+        switch entry.metric {
+        case .glucose: return "drop.fill"
+        case .carbs: return "fork.knife"
+        }
     }
 
     var body: some View {
-        EmptyView()
+        let hasData = metricHasData(entry)
+        let tint = metricAttentionLevel(entry).tint
+
+        Image(systemName: hasData ? metricSymbol : "exclamationmark.triangle.fill")
+            .foregroundStyle(tint)
             .widgetLabel {
-                Text("\(metricValue(entry)) \(metricUnit(entry))")
-                    .foregroundStyle(statusColor)
-                    .widgetCurvesContent()
+                Text(hasData
+                    ? "\(metricValue(entry)) \(metricUnit(entry))"
+                    : String(localized: "watch.widget.noData"))
             }
     }
 }
