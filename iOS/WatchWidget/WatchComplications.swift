@@ -154,26 +154,41 @@ struct WatchAccessoryCircularView: View {
     let entry: WatchEntry
 
     var body: some View {
-        Group {
-            if metricHasData(entry) {
-                VStack(spacing: -3) {
-                    Text(metricValue(entry))
-                        .font(.system(.title3, design: .rounded).bold())
-                        .minimumScaleFactor(0.5)
-                        .lineLimit(1)
-                    Text(metricUnit(entry))
-                        .font(.system(.caption2, design: .rounded))
-                        .fontWeight(.semibold)
+        ZStack {
+            // Filled `Circle()` inside the widget body, not via
+            // `containerBackground`, so the coloured disk is part of the
+            // widget's own content. Several watch faces (Chronograph Pro
+            // observed in testing — see https://github.com/FokkeZB/GluWink/pull/119
+            // thread) draw their own chrome around the subdial slot and
+            // don't surface the widget's container backdrop, leaving the
+            // tile looking flat black. Filling a literal circle sidesteps
+            // that entirely: the brand tint always shows up regardless of
+            // what the face does with the slot.
+            Circle().fill(metricAttentionLevel(entry).tint)
+
+            Group {
+                if metricHasData(entry) {
+                    VStack(spacing: -3) {
+                        Text(metricValue(entry))
+                            .font(.system(.title3, design: .rounded).bold())
+                            .minimumScaleFactor(0.5)
+                            .lineLimit(1)
+                        Text(metricUnit(entry))
+                            .font(.system(.caption2, design: .rounded))
+                            .fontWeight(.semibold)
+                    }
+                } else {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.title2.bold())
                 }
-            } else {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.title2.bold())
             }
+            .foregroundStyle(.white)
         }
-        .foregroundStyle(.white)
-        .containerBackground(for: .widget) {
-            metricAttentionLevel(entry).tint
-        }
+        // WidgetKit still requires a `containerBackground` declaration on
+        // every entry view. We set it `.clear` because the visible
+        // colouring is owned by the `Circle()` above; without this, the
+        // widget refuses to render in `accessoryCircular` on watchOS.
+        .containerBackground(.clear, for: .widget)
     }
 }
 
