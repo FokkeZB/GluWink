@@ -25,20 +25,13 @@ enum WatchDataManager {
 
     static func content(now: Date = Date()) -> ShieldContent {
         let bridgeContext = SimulatorWatchBridge.loadContext()
-        let useBridgeMockData = bridgeContext?["mockModeEnabled"] as? Bool ?? false
 
-        let glucose = useBridgeMockData
-            ? (bridgeContext?["currentGlucose"] as? Double ?? 0)
-            : (defaults?.double(forKey: "currentGlucose") ?? 0)
-        let glucoseFetchedAt = useBridgeMockData
-            ? (bridgeContext?["glucoseFetchedAt"] as? String).flatMap { ISO8601DateFormatter().date(from: $0) }
-            : defaults?.string(forKey: "glucoseFetchedAt").flatMap { ISO8601DateFormatter().date(from: $0) }
-        let lastCarbGrams = useBridgeMockData
-            ? (bridgeContext?["lastCarbGrams"] as? Double ?? 0)
-            : (defaults?.double(forKey: "lastCarbGrams") ?? 0)
-        let lastCarbEntryAt = useBridgeMockData
-            ? (bridgeContext?["lastCarbEntryAt"] as? String).flatMap { ISO8601DateFormatter().date(from: $0) }
-            : defaults?.string(forKey: "lastCarbEntryAt").flatMap { ISO8601DateFormatter().date(from: $0) }
+        let glucose = bridgeMockDouble(forKey: "currentGlucose", bridge: bridgeContext)
+            ?? (defaults?.double(forKey: "currentGlucose") ?? 0)
+        let glucoseFetchedAt = bridgeOrDefaultsDate(forKey: "glucoseFetchedAt", bridge: bridgeContext)
+        let lastCarbGrams = bridgeMockDouble(forKey: "lastCarbGrams", bridge: bridgeContext)
+            ?? (defaults?.double(forKey: "lastCarbGrams") ?? 0)
+        let lastCarbEntryAt = bridgeOrDefaultsDate(forKey: "lastCarbEntryAt", bridge: bridgeContext)
 
         let unit: GlucoseUnit = (bridgeContext?["glucoseUnit"] as? String)
             .flatMap { GlucoseUnit(rawValue: $0) }
@@ -78,13 +71,41 @@ enum WatchDataManager {
     }
 
     static var glucoseFetchedAt: Date? {
-        guard let iso = defaults?.string(forKey: "glucoseFetchedAt") else { return nil }
-        return ISO8601DateFormatter().date(from: iso)
+        bridgeOrDefaultsDate(forKey: "glucoseFetchedAt", bridge: SimulatorWatchBridge.loadContext())
     }
 
     static var lastCarbEntryAt: Date? {
-        guard let iso = defaults?.string(forKey: "lastCarbEntryAt") else { return nil }
+        bridgeOrDefaultsDate(forKey: "lastCarbEntryAt", bridge: SimulatorWatchBridge.loadContext())
+    }
+
+    /// Resolve an ISO-8601 date using the same precedence as `content(now:)`:
+    /// when the simulator bridge has mock-mode data, the bridge fully shadows
+    /// defaults (a missing key returns `nil`, not a stale defaults value);
+    /// otherwise read from the watch-local App Group `defaults`. On hardware
+    /// `SimulatorWatchBridge.loadContext()` returns `nil`, so this degenerates
+    /// to the defaults-only path with no behaviour change.
+    ///
+    /// Used by both `content()` and the static `glucoseFetchedAt` /
+    /// `lastCarbEntryAt` getters so widget `WatchEntry` dates and watch app
+    /// "Xm ago" labels stay consistent with `ShieldContent.glucoseAgoMinutes`
+    /// — without this, the static getters returned `nil` in mock-mode
+    /// simulator runs because the watch sim has no provisioned App Group.
+    private static func bridgeOrDefaultsDate(forKey key: String, bridge: [String: Any]?) -> Date? {
+        if (bridge?["mockModeEnabled"] as? Bool) == true {
+            guard let iso = bridge?[key] as? String else { return nil }
+            return ISO8601DateFormatter().date(from: iso)
+        }
+        guard let iso = defaults?.string(forKey: key) else { return nil }
         return ISO8601DateFormatter().date(from: iso)
+    }
+
+    /// Sibling of `bridgeOrDefaultsDate` for numeric mock-mode values. Mock
+    /// mode also shadows defaults — a missing key returns `0` (not the stale
+    /// defaults value) — and a `nil` return means "bridge isn't supplying mock
+    /// data, fall through to defaults" so callers stay symmetric.
+    private static func bridgeMockDouble(forKey key: String, bridge: [String: Any]?) -> Double? {
+        guard (bridge?["mockModeEnabled"] as? Bool) == true else { return nil }
+        return (bridge?[key] as? Double) ?? 0
     }
 
     /// Persist a glucose sample. "Save if newer" — both HealthKit and
