@@ -1,6 +1,10 @@
 XCODE_PROJECT := iOS/App.xcodeproj
 SCHEME := App
-DEVICE_ID = $(shell xcrun devicectl list devices 2>/dev/null | grep -m1 'connected' | awk '{for(i=1;i<=NF;i++) if($$i ~ /^[0-9A-F].*-/) {print $$i; exit}}')
+# `devicectl list devices` reports state as `available (paired)` / `unavailable`
+# on Xcode 16+; the older `connected` keyword is gone. Filter on `iPhone` AND
+# `available` so we ignore paired Apple Watches and offline iPhones, then pick
+# the first UUID-shaped field on the matching line.
+DEVICE_ID = $(shell xcrun devicectl list devices 2>/dev/null | awk '/iPhone/ && /available/ {for(i=1;i<=NF;i++) if($$i ~ /^[0-9A-F].*-/) {print $$i; exit}}')
 DERIVED_DATA := $(HOME)/Library/Developer/Xcode/DerivedData
 # Lazy assignment (`=`) so APP_PATH is re-evaluated at recipe time — this matters
 # for `make deploy: build install`, otherwise APP_PATH is resolved before `build`
