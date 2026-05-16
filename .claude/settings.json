@@ -84,7 +84,10 @@
       "Bash(wc:*)",
       "Bash(awk:*)",
       "Bash(sort:*)",
-      "Bash(uniq:*)"
+      "Bash(uniq:*)",
+      "Bash(grep:*)",
+      "Bash(strings:*)",
+      "Bash(nm:*)"
     ],
     "deny": [
       "Bash(gh pr merge:*)",
