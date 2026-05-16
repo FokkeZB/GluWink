@@ -114,9 +114,10 @@ Hoogtepunten in 1.0:
 • Widgets voor beginscherm, toegangsscherm en StandBy.
 • Apple Watch-app en complicaties.
 • Wachtwoord-beveiligde instellingen voor ouders en accountability-partners.
+• Een ingebouwde iMessage stickerpack met de GluWink-mascotte.
 • Volledig vertaald naar Nederlands en Engels.
 ```
-*(~620 / 4000)*
+*(~685 / 4000)*
 
 ## Screenshot captions
 
