@@ -30,7 +30,16 @@ struct WatchContentView: View {
     }
 
     private func relativeTimeText(from date: Date?) -> Text {
-        guard let date else { return Text("--") }
+        // No-data row deliberately reads as "No data" / "Geen data" — not
+        // the bare "--" placeholder we use for the metric value above. The
+        // metric line ("-- mmol/L") still communicates "value missing"
+        // adequately because the unit is right there; the relative-time
+        // line has no such anchor, so "--" alone reads as a layout glitch.
+        // Spelling it out matches the rectangular widget tile, which has
+        // shown the same "No data" string on missing-sample rows since
+        // PR #119's atomic-types refactor (`ShieldContent.glucose == nil`
+        // → render the no-data state on every surface, full stop).
+        guard let date else { return Text(String(localized: "watch.app.noData")) }
         return Text(date, style: .relative)
     }
 
