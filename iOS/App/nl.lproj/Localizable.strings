@@ -163,6 +163,31 @@
 "settings.nightscoutNoGlucoseYet" = "Nog geen gegevens";
 "settings.nightscoutNoCarbsYet" = "Nog geen gegevens";
 
+/* EasyView */
+"settings.easyView" = "EasyView (Medtrum)";
+"settings.easyViewEnabled" = "EasyView inschakelen";
+"settings.easyViewFooter" = "Haal glucose- en koolhydraatgegevens op van de EasyView-clouddienst (Medtrum). Werkt voor patiënten én verzorgers die een patiënt volgen. Zijn meerdere bronnen actief, dan wint de nieuwste waarde.";
+"settings.easyViewRequiresCredentials" = "Vul hierboven eerst een EasyView-URL, gebruikersnaam en wachtwoord in voordat je dit kunt inschakelen.";
+"settings.easyViewVerifying" = "Verbinding controleren…";
+"settings.easyViewConfigHeader" = "Inloggegevens";
+"settings.easyViewConfigFooter" = "Vul de basis-URL van je EasyView-site in (bijv. https://jouw-easyview-server.com), je gebruikersnaam en je wachtwoord.";
+"settings.easyViewURLPlaceholder" = "https://jouw-easyview-server.com";
+"settings.easyViewUsernamePlaceholder" = "Gebruikersnaam of e-mailadres";
+"settings.easyViewPasswordPlaceholder" = "Wachtwoord";
+"settings.easyViewTest" = "Verbinding testen";
+"settings.easyViewTestSuccess" = "Verbonden";
+"settings.easyViewTestGlucose %@" = "Laatste glucose: %@";
+"settings.easyViewStatusHeader" = "Status";
+"settings.easyViewLatestHeader" = "Laatste gegevens";
+"settings.easyViewLatestGlucose" = "Glucose";
+"settings.easyViewLatestCarbs" = "Koolhydraten";
+"settings.easyViewNoGlucoseYet" = "Nog geen gegevens";
+"settings.easyViewNoCarbsYet" = "Nog geen gegevens";
+
+/* Configuratielijst — EasyView */
+"setup.checklist.connectEasyView" = "EasyView koppelen";
+"setup.checklist.connectEasyView.subtitle" = "Voor Medtrum-CGM-systemen die de EasyView-cloud gebruiken.";
+
 /* Inchecken */
 "checkin.disarmButton" = "Klaar";
 "checkin.disarmCountdown %lld" = "Wacht (%llds)";

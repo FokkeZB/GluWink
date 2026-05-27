@@ -163,6 +163,31 @@
 "settings.nightscoutNoGlucoseYet" = "No data yet";
 "settings.nightscoutNoCarbsYet" = "No data yet";
 
+/* EasyView */
+"settings.easyView" = "EasyView (Medtrum)";
+"settings.easyViewEnabled" = "Enable EasyView";
+"settings.easyViewFooter" = "Fetch glucose and carb data from the EasyView cloud service (Medtrum). Works for both patients and caregivers monitoring a patient. When multiple sources are enabled, the most recent data wins.";
+"settings.easyViewRequiresCredentials" = "Provide your EasyView URL, username, and password above before enabling.";
+"settings.easyViewVerifying" = "Verifying connection…";
+"settings.easyViewConfigHeader" = "Credentials";
+"settings.easyViewConfigFooter" = "Enter the base URL of your EasyView site (e.g. https://your-easyview-server.com), your account username, and your password.";
+"settings.easyViewURLPlaceholder" = "https://your-easyview-server.com";
+"settings.easyViewUsernamePlaceholder" = "Username or email";
+"settings.easyViewPasswordPlaceholder" = "Password";
+"settings.easyViewTest" = "Test Connection";
+"settings.easyViewTestSuccess" = "Connected";
+"settings.easyViewTestGlucose %@" = "Latest glucose: %@";
+"settings.easyViewStatusHeader" = "Status";
+"settings.easyViewLatestHeader" = "Latest data";
+"settings.easyViewLatestGlucose" = "Glucose";
+"settings.easyViewLatestCarbs" = "Carbs";
+"settings.easyViewNoGlucoseYet" = "No data yet";
+"settings.easyViewNoCarbsYet" = "No data yet";
+
+/* Setup Checklist — EasyView */
+"setup.checklist.connectEasyView" = "Connect EasyView";
+"setup.checklist.connectEasyView.subtitle" = "For Medtrum CGM systems using the EasyView cloud.";
+
 /* Check-In Flow */
 "checkin.disarmButton" = "All Done";
 "checkin.disarmCountdown %lld" = "Wait (%llds)";
