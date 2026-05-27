@@ -24,7 +24,7 @@ public struct EasyViewClient: Sendable {
     // MARK: - Constants
 
     /// The single known EasyView cloud endpoint.
-    public static let baseURL = URL(string: "https://easyview.medtrum.eu/v3/")!
+    public static let baseURL = URL(string: "https://easyview.medtrum.eu/")!
 
     // MARK: - Error
 
