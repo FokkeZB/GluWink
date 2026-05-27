@@ -112,6 +112,7 @@ struct StatusTimelineProvider: TimelineProvider {
     func getSnapshot(in _: Context, completion: @escaping (StatusEntry) -> Void) {
         Task {
             await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
+            await WidgetEasyViewRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
             completion(EntryBuilder.makeEntry(now: Date(), metric: .glucose))
         }
     }
@@ -119,6 +120,7 @@ struct StatusTimelineProvider: TimelineProvider {
     func getTimeline(in _: Context, completion: @escaping (Timeline<StatusEntry>) -> Void) {
         Task {
             await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
+            await WidgetEasyViewRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
             let now = Date()
             let entries = TimelinePolicy.entries(from: now) { date in
                 EntryBuilder.makeEntry(now: date, metric: .glucose)
@@ -143,6 +145,7 @@ struct StatusMetricTimelineProvider: TimelineProvider {
     func getSnapshot(in _: Context, completion: @escaping (StatusEntry) -> Void) {
         Task {
             await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
+            await WidgetEasyViewRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
             completion(EntryBuilder.makeEntry(now: Date(), metric: metric))
         }
     }
@@ -150,6 +153,7 @@ struct StatusMetricTimelineProvider: TimelineProvider {
     func getTimeline(in _: Context, completion: @escaping (Timeline<StatusEntry>) -> Void) {
         Task {
             await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
+            await WidgetEasyViewRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
             let now = Date()
             let entries = TimelinePolicy.entries(from: now) { date in
                 EntryBuilder.makeEntry(now: date, metric: metric)

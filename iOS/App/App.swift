@@ -47,6 +47,19 @@ struct MainApp: App {
                 NightscoutManager.shared.handleBackgroundRefresh(refreshTask)
             }
         }
+
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: EasyViewManager.backgroundTaskIdentifier,
+            using: nil
+        ) { task in
+            guard let refreshTask = task as? BGAppRefreshTask else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+            Task { @MainActor in
+                EasyViewManager.shared.handleBackgroundRefresh(refreshTask)
+            }
+        }
     }
 
     var body: some Scene {
@@ -89,6 +102,13 @@ struct MainApp: App {
                         NightscoutManager.shared.startPolling()
                         await NightscoutManager.shared.fetchAll()
                         NightscoutManager.shared.scheduleBackgroundRefresh()
+                    }
+
+                    // EasyView: only poll when the user has enabled the integration.
+                    if data.easyViewEnabled {
+                        EasyViewManager.shared.startPolling()
+                        await EasyViewManager.shared.fetchAll()
+                        EasyViewManager.shared.scheduleBackgroundRefresh()
                     }
 
                     // Shielding requires at least one live data source to
@@ -134,6 +154,9 @@ struct MainApp: App {
                             if SharedDataManager.shared.nightscoutEnabled {
                                 await NightscoutManager.shared.fetchAll()
                             }
+                            if SharedDataManager.shared.easyViewEnabled {
+                                await EasyViewManager.shared.fetchAll()
+                            }
                             // Always reconcile on foreground — staleness and
                             // carb-grace transitions cross thresholds on
                             // wall-clock time alone, with no fetch event to
@@ -144,6 +167,9 @@ struct MainApp: App {
                     } else if scenePhase == .background {
                         if SharedDataManager.shared.nightscoutEnabled {
                             NightscoutManager.shared.scheduleBackgroundRefresh()
+                        }
+                        if SharedDataManager.shared.easyViewEnabled {
+                            EasyViewManager.shared.scheduleBackgroundRefresh()
                         }
                     }
                 }
@@ -180,6 +206,7 @@ struct MainApp: App {
 
         SharedDataManager.shared.wipeAllForFreshInstall()
         KeychainManager.shared.removePassphrase()
+        KeychainManager.shared.easyViewPassword = nil
         ShieldManager.shared.removeShields()
         ActivityScheduler.shared.stopMonitoring()
 

@@ -48,6 +48,10 @@ struct CompanionWatchApp: App {
                     WatchNightscoutManager.shared.startPolling()
                     await WatchNightscoutManager.shared.fetchAll()
                     WatchNightscoutManager.shared.scheduleBackgroundRefresh()
+
+                    WatchEasyViewManager.shared.startPolling()
+                    await WatchEasyViewManager.shared.fetchAll()
+                    WatchEasyViewManager.shared.scheduleBackgroundRefresh()
                 }
                 .onChange(of: scenePhase) {
                     #if targetEnvironment(simulator)
@@ -58,9 +62,11 @@ struct CompanionWatchApp: App {
                             await WatchHealthKitManager.shared.fetchLatestGlucose()
                             await WatchHealthKitManager.shared.fetchLatestCarbs()
                             await WatchNightscoutManager.shared.fetchAll()
+                            await WatchEasyViewManager.shared.fetchAll()
                         }
                     } else if scenePhase == .background {
                         WatchNightscoutManager.shared.scheduleBackgroundRefresh()
+                        WatchEasyViewManager.shared.scheduleBackgroundRefresh()
                     }
                 }
         }
@@ -68,6 +74,13 @@ struct CompanionWatchApp: App {
             await WatchNightscoutManager.shared.fetchAll()
             await MainActor.run {
                 WatchNightscoutManager.shared.scheduleBackgroundRefresh()
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        }
+        .backgroundTask(.appRefresh("easyview")) {
+            await WatchEasyViewManager.shared.fetchAll()
+            await MainActor.run {
+                WatchEasyViewManager.shared.scheduleBackgroundRefresh()
                 WidgetCenter.shared.reloadAllTimelines()
             }
         }

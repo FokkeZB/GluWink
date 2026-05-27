@@ -48,6 +48,7 @@ final class WatchConnectivityReceiver: NSObject, WCSessionDelegate {
                 await WatchHealthKitManager.shared.fetchLatestCarbs()
                 await MainActor.run {
                     WatchNightscoutManager.shared.configurationDidChange()
+                    WatchEasyViewManager.shared.configurationDidChange()
                 }
             }
         }

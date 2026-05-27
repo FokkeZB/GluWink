@@ -123,6 +123,28 @@ enum WatchDataManager {
         defaults?.set(date.ISO8601Format(), forKey: "lastCarbEntryAt")
     }
 
+    // MARK: - EasyView config (synced from phone)
+
+    static var easyViewEnabled: Bool {
+        defaults?.bool(forKey: "easyViewEnabled") ?? false
+    }
+
+    static var easyViewBaseURL: String? {
+        guard let value = defaults?.string(forKey: "easyViewBaseURL"),
+              !value.isEmpty else { return nil }
+        return value
+    }
+
+    static var easyViewSession: String? {
+        guard let value = defaults?.string(forKey: "easyViewSession"),
+              !value.isEmpty else { return nil }
+        return value
+    }
+
+    static var easyViewPatientUID: Int? {
+        defaults?.object(forKey: "easyViewPatientUID") as? Int
+    }
+
     // MARK: - Nightscout config (synced from phone)
 
     static var nightscoutEnabled: Bool {
@@ -174,6 +196,27 @@ enum WatchDataManager {
             defaults?.set(token, forKey: "nightscoutToken")
         } else {
             defaults?.removeObject(forKey: "nightscoutToken")
+        }
+
+        let easyViewEnabled = context["easyViewEnabled"] as? Bool ?? false
+        defaults?.set(easyViewEnabled, forKey: "easyViewEnabled")
+
+        if let url = context["easyViewBaseURL"] as? String, !url.isEmpty {
+            defaults?.set(url, forKey: "easyViewBaseURL")
+        } else {
+            defaults?.removeObject(forKey: "easyViewBaseURL")
+        }
+
+        if let session = context["easyViewSession"] as? String, !session.isEmpty {
+            defaults?.set(session, forKey: "easyViewSession")
+        } else {
+            defaults?.removeObject(forKey: "easyViewSession")
+        }
+
+        if let uid = context["easyViewPatientUID"] as? Int {
+            defaults?.set(uid, forKey: "easyViewPatientUID")
+        } else {
+            defaults?.removeObject(forKey: "easyViewPatientUID")
         }
 
         let isMockModeEnabled = context["mockModeEnabled"] as? Bool ?? false
