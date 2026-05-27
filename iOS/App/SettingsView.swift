@@ -28,6 +28,7 @@ struct SettingsView: View {
     @State private var glucoseUnit: GlucoseUnit
     @State private var nightscoutEnabled: Bool
     @State private var healthKitEnabled: Bool
+    @State private var easyViewEnabled: Bool
 
     init() {
         let data = SharedDataManager.shared
@@ -37,6 +38,7 @@ struct SettingsView: View {
         _glucoseUnit = State(initialValue: data.glucoseUnit)
         _nightscoutEnabled = State(initialValue: data.nightscoutEnabled)
         _healthKitEnabled = State(initialValue: data.healthKitEnabled)
+        _easyViewEnabled = State(initialValue: data.easyViewEnabled)
     }
 
     var body: some View {
@@ -148,6 +150,19 @@ struct SettingsView: View {
                     }
 
                     NavigationLink {
+                        EasyViewSettingsView()
+                    } label: {
+                        HStack {
+                            Label(String(localized: "settings.easyView"), systemImage: "waveform.path.ecg")
+                            Spacer()
+                            Text(easyViewEnabled
+                                ? String(localized: "settings.statusOn")
+                                : String(localized: "settings.statusOff"))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    NavigationLink {
                         MockDataSettingsView()
                     } label: {
                         HStack {
@@ -180,6 +195,7 @@ struct SettingsView: View {
                 demoEnabled = data.isMockModeEnabled
                 nightscoutEnabled = data.nightscoutEnabled
                 healthKitEnabled = data.healthKitEnabled
+                easyViewEnabled = data.easyViewEnabled
             }
             .navigationTitle(String(localized: "settings.title"))
             .navigationBarTitleDisplayMode(.inline)
@@ -1107,6 +1123,267 @@ struct NightscoutSettingsView: View {
         // Kick HK so users running HK-as-fallback see their data
         // immediately instead of waiting for the next observer fire.
         Task { await HealthKitManager.shared.refreshIfAuthorized() }
+        WatchSessionManager.shared.sendLatestContext()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+}
+
+// MARK: - EasyView
+
+struct EasyViewSettingsView: View {
+    @State private var enabled: Bool
+    @State private var username: String
+    @State private var password: String
+    @State private var lastError: String?
+    @State private var latestGlucose: GlucoseReading?
+    @State private var latestCarbs: CarbsReading?
+    @State private var isTesting = false
+    @State private var testResult: TestResult?
+
+    enum TestResult: Equatable {
+        case success(mmol: Double)
+        case failure(String)
+    }
+
+    init() {
+        let data = SharedDataManager.shared
+        _enabled = State(initialValue: data.easyViewEnabled)
+        _username = State(initialValue: data.easyViewUsername ?? "")
+        _password = State(initialValue: KeychainManager.shared.easyViewPassword ?? "")
+        _lastError = State(initialValue: data.easyViewLastError)
+        _latestGlucose = State(initialValue: data.glucoseReading(source: .easyView))
+        _latestCarbs = State(initialValue: data.carbsReading(source: .easyView))
+    }
+
+    private var hasCredentials: Bool {
+        !username.trimmingCharacters(in: .whitespaces).isEmpty
+            && !password.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    var body: some View {
+        List {
+            Section {
+                HStack {
+                    Toggle(String(localized: "settings.easyViewEnabled"), isOn: Binding(
+                        get: { enabled && hasCredentials },
+                        set: { newValue in
+                            if newValue {
+                                Task { await enableWithVerification() }
+                            } else {
+                                disable()
+                            }
+                        }
+                    ))
+                    .disabled(!hasCredentials || isTesting)
+                    if isTesting {
+                        ProgressView()
+                    }
+                }
+            } footer: {
+                if !hasCredentials {
+                    Text("settings.easyViewRequiresCredentials", tableName: "Localizable")
+                } else if isTesting {
+                    Text("settings.easyViewVerifying", tableName: "Localizable")
+                } else {
+                    Text("settings.easyViewFooter", tableName: "Localizable")
+                }
+            }
+            .onChange(of: hasCredentials) { _, newValue in
+                if !newValue, enabled {
+                    disable()
+                }
+            }
+
+            Section {
+                TextField(
+                    String(localized: "settings.easyViewUsernamePlaceholder"),
+                    text: $username
+                )
+                .textContentType(.emailAddress)
+                .keyboardType(.emailAddress)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+
+                SecureField(
+                    String(localized: "settings.easyViewPasswordPlaceholder"),
+                    text: $password
+                )
+                .textContentType(.password)
+            } header: {
+                Text("settings.easyViewConfigHeader", tableName: "Localizable")
+            } footer: {
+                Text("settings.easyViewConfigFooter", tableName: "Localizable")
+            }
+
+            Section {
+                Button {
+                    Task { await runConnectionTest() }
+                } label: {
+                    HStack {
+                        Label(String(localized: "settings.easyViewTest"), systemImage: "network")
+                        Spacer()
+                        if isTesting {
+                            ProgressView()
+                        }
+                    }
+                }
+                .disabled(isTesting || !hasCredentials)
+
+                if let testResult {
+                    switch testResult {
+                    case let .success(mmol):
+                        VStack(alignment: .leading, spacing: 2) {
+                            Label(String(localized: "settings.easyViewTestSuccess"), systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(BrandTint.green)
+                            let unit = SharedDataManager.shared.glucoseUnit
+                            Text(String(localized: "settings.easyViewTestGlucose \(unit.formattedWithUnit(mmol))"))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    case let .failure(message):
+                        Label(message, systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(BrandTint.red)
+                    }
+                }
+            }
+
+            Section {
+                latestSampleRow(
+                    label: String(localized: "settings.easyViewLatestGlucose"),
+                    value: latestGlucose.map { SharedDataManager.shared.glucoseUnit.formattedWithUnit($0.mmol) },
+                    at: latestGlucose?.sampleAt,
+                    emptyMessage: String(localized: "settings.easyViewNoGlucoseYet")
+                )
+                latestSampleRow(
+                    label: String(localized: "settings.easyViewLatestCarbs"),
+                    value: latestCarbs.map { "\(Int($0.grams)) g" },
+                    at: latestCarbs?.sampleAt,
+                    emptyMessage: String(localized: "settings.easyViewNoCarbsYet")
+                )
+            } header: {
+                Text("settings.easyViewLatestHeader", tableName: "Localizable")
+            }
+
+            if let lastError {
+                Section {
+                    Label(lastError, systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(BrandTint.orange)
+                        .font(.caption)
+                } header: {
+                    Text("settings.easyViewStatusHeader", tableName: "Localizable")
+                }
+            }
+        }
+        .navigationTitle(String(localized: "settings.easyView"))
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            while !Task.isCancelled {
+                refreshStatusFields()
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+            }
+        }
+        .onDisappear {
+            persistFields()
+        }
+    }
+
+    private func refreshStatusFields() {
+        let data = SharedDataManager.shared
+        lastError = data.easyViewLastError
+        latestGlucose = data.glucoseReading(source: .easyView)
+        latestCarbs = data.carbsReading(source: .easyView)
+    }
+
+    @ViewBuilder
+    private func latestSampleRow(label: String, value: String?, at: Date?, emptyMessage: String) -> some View {
+        if let value, let at {
+            HStack(alignment: .firstTextBaseline) {
+                Text(label)
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(value)
+                        .monospacedDigit()
+                    Text(at, style: .relative)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } else {
+            HStack {
+                Text(label)
+                Spacer()
+                Text(emptyMessage)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func persistFields() {
+        let data = SharedDataManager.shared
+        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        let usernameChanged = data.easyViewUsername != (trimmedUsername.isEmpty ? nil : trimmedUsername)
+        let passwordChanged = KeychainManager.shared.easyViewPassword != (trimmedPassword.isEmpty ? nil : trimmedPassword)
+        data.easyViewUsername = trimmedUsername.isEmpty ? nil : trimmedUsername
+        KeychainManager.shared.easyViewPassword = trimmedPassword.isEmpty ? nil : trimmedPassword
+        data.flush()
+        if usernameChanged || passwordChanged {
+            EasyViewManager.shared.configurationDidChange()
+            WatchSessionManager.shared.sendLatestContext()
+        }
+    }
+
+    private func runConnectionTest() async {
+        _ = await verifyConnection()
+    }
+
+    private func verifyConnection() async -> Bool {
+        persistFields()
+        isTesting = true
+        testResult = nil
+        defer { isTesting = false }
+
+        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        do {
+            let result = try await EasyViewManager.shared.testConnection(
+                username: trimmedUsername,
+                password: trimmedPassword
+            )
+            let mmol = result.glucose?.mmol ?? 0
+            testResult = .success(mmol: mmol)
+            return true
+        } catch {
+            testResult = .failure(error.localizedDescription)
+            return false
+        }
+    }
+
+    private func enableWithVerification() async {
+        guard await verifyConnection() else { return }
+        enabled = true
+        SharedDataManager.shared.easyViewEnabled = true
+        SharedDataManager.shared.flush()
+        EasyViewManager.shared.startPolling()
+        await EasyViewManager.shared.fetchAll()
+        WatchSessionManager.shared.sendLatestContext()
+        refreshStatusFields()
+    }
+
+    private func disable() {
+        enabled = false
+        let data = SharedDataManager.shared
+        data.easyViewEnabled = false
+        data.flush()
+        EasyViewManager.shared.configurationDidChange()
+        data.handleSourceDisabled(.easyView)
+        latestGlucose = nil
+        latestCarbs = nil
+        ShieldManager.shared.disableIfNoDataSource()
+        Task {
+            await HealthKitManager.shared.refreshIfAuthorized()
+            if data.nightscoutEnabled { await NightscoutManager.shared.fetchAll() }
+        }
         WatchSessionManager.shared.sendLatestContext()
         WidgetCenter.shared.reloadAllTimelines()
     }

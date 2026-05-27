@@ -65,6 +65,10 @@ final class SharedDataManager {
         saveGlucose(source: .nightscout, mmol: mmol, at: date, force: force)
     }
 
+    func saveEasyViewGlucose(mmol: Double, at date: Date, force: Bool = false) {
+        saveGlucose(source: .easyView, mmol: mmol, at: date, force: force)
+    }
+
     func saveDemoGlucose(mmol: Double, at date: Date, force: Bool = true) {
         saveGlucose(source: .demo, mmol: mmol, at: date, force: force)
     }
@@ -75,6 +79,10 @@ final class SharedDataManager {
 
     func saveNightscoutCarbs(grams: Double, at date: Date, force: Bool = false) {
         saveCarbs(source: .nightscout, grams: grams, at: date, force: force)
+    }
+
+    func saveEasyViewCarbs(grams: Double, at date: Date, force: Bool = false) {
+        saveCarbs(source: .easyView, grams: grams, at: date, force: force)
     }
 
     func saveDemoCarbs(grams: Double, at date: Date, force: Bool = true) {
@@ -90,6 +98,7 @@ final class SharedDataManager {
     ///   masquerading as real data.
     func clearHealthKitData() { clearSource(.healthKit) }
     func clearNightscoutData() { clearSource(.nightscout) }
+    func clearEasyViewData() { clearSource(.easyView) }
     func clearDemoData() { clearSource(.demo) }
 
     /// Targeted per-metric clears — used by the Demo Settings panel
@@ -224,7 +233,7 @@ final class SharedDataManager {
     /// per-source toggles in place this is now a simple `OR` of the
     /// three enabled flags — no recency heuristic needed.
     var hasAnyDataSource: Bool {
-        healthKitEnabled || nightscoutEnabled || isMockModeEnabled
+        healthKitEnabled || nightscoutEnabled || easyViewEnabled || isMockModeEnabled
     }
 
     /// Call after a data-source toggle flips off. Clears the disabled
@@ -448,8 +457,11 @@ final class SharedDataManager {
             DataSourceKeys.mockModeEnabled,
             DataSourceKeys.nightscoutEnabled,
             DataSourceKeys.healthKitEnabled,
+            DataSourceKeys.easyViewEnabled,
             "nightscoutBaseURL", "nightscoutToken",
             "nightscoutLastFetchedAt", "nightscoutLastError",
+            "easyViewUsername", "easyViewSession",
+            "easyViewPatientUID", "easyViewLastFetchedAt", "easyViewLastError",
             "setupTipsHidden",
         ]
         for key in settingsKeys {
@@ -520,6 +532,81 @@ final class SharedDataManager {
                 defaults?.set(error, forKey: "nightscoutLastError")
             } else {
                 defaults?.removeObject(forKey: "nightscoutLastError")
+            }
+        }
+    }
+
+    // MARK: - EasyView
+
+    var easyViewEnabled: Bool {
+        get { defaults?.bool(forKey: DataSourceKeys.easyViewEnabled) ?? false }
+        set { defaults?.set(newValue, forKey: DataSourceKeys.easyViewEnabled) }
+    }
+
+    var easyViewUsername: String? {
+        get {
+            guard let value = defaults?.string(forKey: "easyViewUsername"),
+                  !value.isEmpty else { return nil }
+            return value
+        }
+        set {
+            if let value = newValue, !value.isEmpty {
+                defaults?.set(value, forKey: "easyViewUsername")
+            } else {
+                defaults?.removeObject(forKey: "easyViewUsername")
+            }
+        }
+    }
+
+    /// Cookie string `"userid=N; session=…"`. Stored in App Group so the
+    /// widget and watch can poll without needing a shared Keychain group.
+    var easyViewSession: String? {
+        get {
+            guard let value = defaults?.string(forKey: "easyViewSession"),
+                  !value.isEmpty else { return nil }
+            return value
+        }
+        set {
+            if let value = newValue, !value.isEmpty {
+                defaults?.set(value, forKey: "easyViewSession")
+            } else {
+                defaults?.removeObject(forKey: "easyViewSession")
+            }
+        }
+    }
+
+    var easyViewPatientUID: Int? {
+        get { defaults?.object(forKey: "easyViewPatientUID") as? Int }
+        set {
+            if let uid = newValue {
+                defaults?.set(uid, forKey: "easyViewPatientUID")
+            } else {
+                defaults?.removeObject(forKey: "easyViewPatientUID")
+            }
+        }
+    }
+
+    var easyViewLastFetchedAt: Date? {
+        get {
+            guard let iso = defaults?.string(forKey: "easyViewLastFetchedAt") else { return nil }
+            return ISO8601DateFormatter().date(from: iso)
+        }
+        set {
+            if let date = newValue {
+                defaults?.set(date.ISO8601Format(), forKey: "easyViewLastFetchedAt")
+            } else {
+                defaults?.removeObject(forKey: "easyViewLastFetchedAt")
+            }
+        }
+    }
+
+    var easyViewLastError: String? {
+        get { defaults?.string(forKey: "easyViewLastError") }
+        set {
+            if let error = newValue {
+                defaults?.set(error, forKey: "easyViewLastError")
+            } else {
+                defaults?.removeObject(forKey: "easyViewLastError")
             }
         }
     }

@@ -10,6 +10,7 @@ import Foundation
 public enum DataSource: String, Sendable, CaseIterable {
     case healthKit
     case nightscout
+    case easyView
     case demo
 }
 
@@ -34,8 +35,14 @@ public enum DataSourceKeys {
     public static let demoCarbs = "demoCarbs"
     public static let demoCarbsSampleAt = "demoCarbsSampleAt"
 
+    public static let easyViewGlucose = "easyViewGlucose"
+    public static let easyViewGlucoseSampleAt = "easyViewGlucoseSampleAt"
+    public static let easyViewCarbs = "easyViewCarbs"
+    public static let easyViewCarbsSampleAt = "easyViewCarbsSampleAt"
+
     public static let healthKitEnabled = "healthKitEnabled"
     public static let nightscoutEnabled = "nightscoutEnabled"
+    public static let easyViewEnabled = "easyViewEnabled"
     public static let mockModeEnabled = "mockModeEnabled"
 }
 
@@ -106,6 +113,10 @@ public enum UnifiedDataReader {
            let reading = glucoseReading(source: .nightscout, from: defaults) {
             candidates.append(reading)
         }
+        if defaults.bool(forKey: DataSourceKeys.easyViewEnabled),
+           let reading = glucoseReading(source: .easyView, from: defaults) {
+            candidates.append(reading)
+        }
         return candidates.max(by: { $0.sampleAt < $1.sampleAt })
     }
 
@@ -125,6 +136,10 @@ public enum UnifiedDataReader {
         }
         if defaults.bool(forKey: DataSourceKeys.nightscoutEnabled),
            let reading = carbsReading(source: .nightscout, from: defaults) {
+            candidates.append(reading)
+        }
+        if defaults.bool(forKey: DataSourceKeys.easyViewEnabled),
+           let reading = carbsReading(source: .easyView, from: defaults) {
             candidates.append(reading)
         }
         return candidates.max(by: { $0.sampleAt < $1.sampleAt })
@@ -151,6 +166,7 @@ public enum UnifiedDataReader {
         switch source {
         case .healthKit: return DataSourceKeys.healthKitGlucose
         case .nightscout: return DataSourceKeys.nightscoutGlucose
+        case .easyView: return DataSourceKeys.easyViewGlucose
         case .demo: return DataSourceKeys.demoGlucose
         }
     }
@@ -159,6 +175,7 @@ public enum UnifiedDataReader {
         switch source {
         case .healthKit: return DataSourceKeys.healthKitGlucoseSampleAt
         case .nightscout: return DataSourceKeys.nightscoutGlucoseSampleAt
+        case .easyView: return DataSourceKeys.easyViewGlucoseSampleAt
         case .demo: return DataSourceKeys.demoGlucoseSampleAt
         }
     }
@@ -167,6 +184,7 @@ public enum UnifiedDataReader {
         switch source {
         case .healthKit: return DataSourceKeys.healthKitCarbs
         case .nightscout: return DataSourceKeys.nightscoutCarbs
+        case .easyView: return DataSourceKeys.easyViewCarbs
         case .demo: return DataSourceKeys.demoCarbs
         }
     }
@@ -175,6 +193,7 @@ public enum UnifiedDataReader {
         switch source {
         case .healthKit: return DataSourceKeys.healthKitCarbsSampleAt
         case .nightscout: return DataSourceKeys.nightscoutCarbsSampleAt
+        case .easyView: return DataSourceKeys.easyViewCarbsSampleAt
         case .demo: return DataSourceKeys.demoCarbsSampleAt
         }
     }

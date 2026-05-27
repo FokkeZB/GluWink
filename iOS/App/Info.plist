@@ -7,6 +7,7 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>$(BUNDLE_PREFIX).nightscout.refresh</string>
+		<string>$(BUNDLE_PREFIX).easyview.refresh</string>
 	</array>
 	<key>BundlePrefix</key>
 	<string>$(BUNDLE_PREFIX)</string>

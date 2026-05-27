@@ -47,7 +47,55 @@ final class KeychainManager {
         }
     }
 
-    // MARK: - Private
+    // MARK: - EasyView password
+
+    /// The user's EasyView login password. Stored in Keychain so it never
+    /// leaves the main app. The session cookie is stored in the App Group
+    /// (accessible to widget + watch) and re-acquired from this password on
+    /// expiry.
+    var easyViewPassword: String? {
+        get { readString(account: "easyview-password") }
+        set { writeOrDelete(string: newValue, account: "easyview-password") }
+    }
+
+    // MARK: - Private helpers
+
+    private func readString(account: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private func writeOrDelete(string: String?, account: String) {
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+        ]
+        SecItemDelete(deleteQuery as CFDictionary)
+        guard let string, !string.isEmpty, let data = string.data(using: .utf8) else { return }
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+        ]
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
+        if status != errSecSuccess {
+            logger.error("Keychain write failed for '\(account)': \(status)")
+        }
+    }
+
+    // MARK: - Passphrase private
 
     private static func hash(_ passphrase: String, salt: Data) -> Data {
         let input = salt + Data(passphrase.utf8)

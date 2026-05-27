@@ -82,6 +82,10 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
         if let url = data.nightscoutBaseURL { context["nightscoutBaseURL"] = url }
         if let token = data.nightscoutToken { context["nightscoutToken"] = token }
 
+        context["easyViewEnabled"] = data.easyViewEnabled
+        if let session = data.easyViewSession { context["easyViewSession"] = session }
+        if let uid = data.easyViewPatientUID { context["easyViewPatientUID"] = uid }
+
         if data.isMockModeEnabled {
             if let glucoseReading = data.currentGlucoseReading {
                 context["currentGlucose"] = glucoseReading.mmol
