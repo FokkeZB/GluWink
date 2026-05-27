@@ -4,7 +4,7 @@ import os
 import SharedKit
 import WidgetKit
 
-/// Coordinates EasyView (Medtrum) polling on iOS. Mirrors `NightscoutManager` in shape:
+/// Coordinates EasyView polling on iOS. Mirrors `NightscoutManager` in shape:
 /// a singleton that keeps the App Group keys up to date via `SharedDataManager`,
 /// reloads widgets, and refreshes shields/app icon.
 ///

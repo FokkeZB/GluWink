@@ -1,6 +1,6 @@
 import Foundation
 
-/// Shared HTTP client for the EasyView REST API (Medtrum cloud companion).
+/// Shared HTTP client for the EasyView REST API.
 ///
 /// EasyView uses cookie-based session auth: callers must first call the static
 /// `login` method to obtain a session cookie string, then pass it to the
