@@ -167,11 +167,10 @@
 "settings.easyView" = "EasyView";
 "settings.easyViewEnabled" = "EasyView inschakelen";
 "settings.easyViewFooter" = "Haal glucose- en koolhydraatgegevens op van de EasyView-clouddienst. Werkt voor patiënten én verzorgers die een patiënt volgen. Zijn meerdere bronnen actief, dan wint de nieuwste waarde.";
-"settings.easyViewRequiresCredentials" = "Vul hierboven eerst een EasyView-URL, gebruikersnaam en wachtwoord in voordat je dit kunt inschakelen.";
+"settings.easyViewRequiresCredentials" = "Vul hierboven eerst een gebruikersnaam en wachtwoord in voordat je dit kunt inschakelen.";
 "settings.easyViewVerifying" = "Verbinding controleren…";
 "settings.easyViewConfigHeader" = "Inloggegevens";
-"settings.easyViewConfigFooter" = "Vul de basis-URL van je EasyView-site in (bijv. https://jouw-easyview-server.com), je gebruikersnaam en je wachtwoord.";
-"settings.easyViewURLPlaceholder" = "https://jouw-easyview-server.com";
+"settings.easyViewConfigFooter" = "Vul je EasyView-gebruikersnaam en wachtwoord in.";
 "settings.easyViewUsernamePlaceholder" = "Gebruikersnaam of e-mailadres";
 "settings.easyViewPasswordPlaceholder" = "Wachtwoord";
 "settings.easyViewTest" = "Verbinding testen";

@@ -167,11 +167,10 @@
 "settings.easyView" = "EasyView";
 "settings.easyViewEnabled" = "Enable EasyView";
 "settings.easyViewFooter" = "Fetch glucose and carb data from the EasyView cloud service. Works for both patients and caregivers monitoring a patient. When multiple sources are enabled, the most recent data wins.";
-"settings.easyViewRequiresCredentials" = "Provide your EasyView URL, username, and password above before enabling.";
+"settings.easyViewRequiresCredentials" = "Provide your EasyView username and password above before enabling.";
 "settings.easyViewVerifying" = "Verifying connection…";
 "settings.easyViewConfigHeader" = "Credentials";
-"settings.easyViewConfigFooter" = "Enter the base URL of your EasyView site (e.g. https://your-easyview-server.com), your account username, and your password.";
-"settings.easyViewURLPlaceholder" = "https://your-easyview-server.com";
+"settings.easyViewConfigFooter" = "Enter your EasyView account username and password.";
 "settings.easyViewUsernamePlaceholder" = "Username or email";
 "settings.easyViewPasswordPlaceholder" = "Password";
 "settings.easyViewTest" = "Test Connection";

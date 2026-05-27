@@ -1132,7 +1132,6 @@ struct NightscoutSettingsView: View {
 
 struct EasyViewSettingsView: View {
     @State private var enabled: Bool
-    @State private var baseURL: String
     @State private var username: String
     @State private var password: String
     @State private var lastError: String?
@@ -1149,7 +1148,6 @@ struct EasyViewSettingsView: View {
     init() {
         let data = SharedDataManager.shared
         _enabled = State(initialValue: data.easyViewEnabled)
-        _baseURL = State(initialValue: data.easyViewBaseURL ?? "")
         _username = State(initialValue: data.easyViewUsername ?? "")
         _password = State(initialValue: KeychainManager.shared.easyViewPassword ?? "")
         _lastError = State(initialValue: data.easyViewLastError)
@@ -1158,8 +1156,7 @@ struct EasyViewSettingsView: View {
     }
 
     private var hasCredentials: Bool {
-        !baseURL.trimmingCharacters(in: .whitespaces).isEmpty
-            && !username.trimmingCharacters(in: .whitespaces).isEmpty
+        !username.trimmingCharacters(in: .whitespaces).isEmpty
             && !password.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
@@ -1198,15 +1195,6 @@ struct EasyViewSettingsView: View {
             }
 
             Section {
-                TextField(
-                    String(localized: "settings.easyViewURLPlaceholder"),
-                    text: $baseURL
-                )
-                .textContentType(.URL)
-                .keyboardType(.URL)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-
                 TextField(
                     String(localized: "settings.easyViewUsernamePlaceholder"),
                     text: $username
@@ -1332,17 +1320,14 @@ struct EasyViewSettingsView: View {
 
     private func persistFields() {
         let data = SharedDataManager.shared
-        let trimmedURL = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
-        let urlChanged = data.easyViewBaseURL != (trimmedURL.isEmpty ? nil : trimmedURL)
         let usernameChanged = data.easyViewUsername != (trimmedUsername.isEmpty ? nil : trimmedUsername)
         let passwordChanged = KeychainManager.shared.easyViewPassword != (trimmedPassword.isEmpty ? nil : trimmedPassword)
-        data.easyViewBaseURL = trimmedURL.isEmpty ? nil : trimmedURL
         data.easyViewUsername = trimmedUsername.isEmpty ? nil : trimmedUsername
         KeychainManager.shared.easyViewPassword = trimmedPassword.isEmpty ? nil : trimmedPassword
         data.flush()
-        if urlChanged || usernameChanged || passwordChanged {
+        if usernameChanged || passwordChanged {
             EasyViewManager.shared.configurationDidChange()
             WatchSessionManager.shared.sendLatestContext()
         }
@@ -1358,12 +1343,10 @@ struct EasyViewSettingsView: View {
         testResult = nil
         defer { isTesting = false }
 
-        let trimmedURL = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
             let result = try await EasyViewManager.shared.testConnection(
-                baseURL: trimmedURL,
                 username: trimmedUsername,
                 password: trimmedPassword
             )

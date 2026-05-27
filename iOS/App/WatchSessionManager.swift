@@ -83,7 +83,6 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
         if let token = data.nightscoutToken { context["nightscoutToken"] = token }
 
         context["easyViewEnabled"] = data.easyViewEnabled
-        if let url = data.easyViewBaseURL { context["easyViewBaseURL"] = url }
         if let session = data.easyViewSession { context["easyViewSession"] = session }
         if let uid = data.easyViewPatientUID { context["easyViewPatientUID"] = uid }
 

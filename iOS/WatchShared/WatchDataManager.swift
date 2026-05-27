@@ -129,12 +129,6 @@ enum WatchDataManager {
         defaults?.bool(forKey: "easyViewEnabled") ?? false
     }
 
-    static var easyViewBaseURL: String? {
-        guard let value = defaults?.string(forKey: "easyViewBaseURL"),
-              !value.isEmpty else { return nil }
-        return value
-    }
-
     static var easyViewSession: String? {
         guard let value = defaults?.string(forKey: "easyViewSession"),
               !value.isEmpty else { return nil }
@@ -200,12 +194,6 @@ enum WatchDataManager {
 
         let easyViewEnabled = context["easyViewEnabled"] as? Bool ?? false
         defaults?.set(easyViewEnabled, forKey: "easyViewEnabled")
-
-        if let url = context["easyViewBaseURL"] as? String, !url.isEmpty {
-            defaults?.set(url, forKey: "easyViewBaseURL")
-        } else {
-            defaults?.removeObject(forKey: "easyViewBaseURL")
-        }
 
         if let session = context["easyViewSession"] as? String, !session.isEmpty {
             defaults?.set(session, forKey: "easyViewSession")

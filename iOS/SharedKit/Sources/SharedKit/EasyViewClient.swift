@@ -21,10 +21,14 @@ import Foundation
 ///   pick one. The chosen patient's `uid` becomes `patientUID`.
 public struct EasyViewClient: Sendable {
 
+    // MARK: - Constants
+
+    /// The single known EasyView cloud endpoint.
+    public static let baseURL = URL(string: "https://easyview.medtrum.eu/v3/")!
+
     // MARK: - Error
 
     public enum ClientError: Error, LocalizedError, Sendable {
-        case invalidBaseURL
         case invalidResponse
         case http(status: Int)
         case sessionExpired
@@ -32,7 +36,6 @@ public struct EasyViewClient: Sendable {
 
         public var errorDescription: String? {
             switch self {
-            case .invalidBaseURL: return "Invalid EasyView URL"
             case .invalidResponse: return "Invalid response from EasyView"
             case let .http(status): return "HTTP \(status)"
             case .sessionExpired: return "Session expired (re-login required)"
@@ -77,7 +80,6 @@ public struct EasyViewClient: Sendable {
 
     // MARK: - Instance state
 
-    public let baseURL: URL
     /// Cookie string sent with every authenticated request.
     /// Format: `"userid=<N>; session=<signed-token>"`.
     public let sessionCookie: String
@@ -87,28 +89,13 @@ public struct EasyViewClient: Sendable {
     // MARK: - Init
 
     public init(
-        baseURL: URL,
         sessionCookie: String,
         urlSession: URLSession = .shared,
         requestTimeout: TimeInterval = 15
     ) {
-        self.baseURL = baseURL
         self.sessionCookie = sessionCookie
         self.urlSession = urlSession
         self.requestTimeout = requestTimeout
-    }
-
-    public init?(
-        baseURLString: String,
-        sessionCookie: String,
-        urlSession: URLSession = .shared,
-        requestTimeout: TimeInterval = 15
-    ) {
-        let trimmed = baseURLString.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard var components = URLComponents(string: trimmed) else { return nil }
-        if components.scheme == nil { components.scheme = "https" }
-        guard let url = components.url, url.host?.isEmpty == false else { return nil }
-        self.init(baseURL: url, sessionCookie: sessionCookie, urlSession: urlSession, requestTimeout: requestTimeout)
     }
 
     // MARK: - Login (static — no session needed)
@@ -120,26 +107,16 @@ public struct EasyViewClient: Sendable {
     /// Throws `ClientError.sessionExpired` on 401, other `ClientError` cases on
     /// network or parse failures.
     public static func login(
-        baseURLString: String,
         username: String,
         password: String,
         urlSession: URLSession = .shared,
         requestTimeout: TimeInterval = 15
     ) async throws -> LoginResult {
-        let trimmed = baseURLString.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard var components = URLComponents(string: trimmed) else { throw ClientError.invalidBaseURL }
-        if components.scheme == nil { components.scheme = "https" }
-        guard let baseURL = components.url, baseURL.host?.isEmpty == false else {
-            throw ClientError.invalidBaseURL
-        }
-
-        guard var urlComponents = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else {
-            throw ClientError.invalidBaseURL
-        }
+        var urlComponents = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
         var basePath = urlComponents.path
         if basePath.hasSuffix("/") { basePath.removeLast() }
         urlComponents.path = basePath + "/api/v2.0/login"
-        guard let url = urlComponents.url else { throw ClientError.invalidBaseURL }
+        let url = urlComponents.url!
 
         let body = try JSONSerialization.data(withJSONObject: [
             "user_name": username,
@@ -206,7 +183,7 @@ public struct EasyViewClient: Sendable {
     /// Returns an empty array (rather than throwing) when the endpoint returns
     /// `error: 14` (patient account — callers should use `loginResult.uid`).
     public func fetchConnections() async throws -> [Connection] {
-        let request = try makeRequest(path: "/api/v2.1/monitor/connections", query: [
+        let request = makeRequest(path: "/api/v2.1/monitor/connections", query: [
             URLQueryItem(name: "per_page", value: "9999"),
         ])
         do {
@@ -283,7 +260,7 @@ public struct EasyViewClient: Sendable {
         let start = now - windowHours * 3600
         let param = encodeEventsParam(start: start, end: now)
 
-        let request = try makeRequest(path: "/api/v2.0/events/\(patientUID)", query: [
+        let request = makeRequest(path: "/api/v2.0/events/\(patientUID)", query: [
             URLQueryItem(name: "param", value: param),
             URLQueryItem(name: "per_page", value: "9999"),
             URLQueryItem(name: "page", value: "1"),
@@ -309,17 +286,14 @@ public struct EasyViewClient: Sendable {
 
     // MARK: - Private: request plumbing
 
-    private func makeRequest(path: String, query: [URLQueryItem]) throws -> URLRequest {
-        guard var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else {
-            throw ClientError.invalidBaseURL
-        }
+    private func makeRequest(path: String, query: [URLQueryItem]) -> URLRequest {
+        var components = URLComponents(url: Self.baseURL, resolvingAgainstBaseURL: false)!
         var basePath = components.path
         if basePath.hasSuffix("/") { basePath.removeLast() }
         components.path = basePath + path
         components.queryItems = query.isEmpty ? nil : query
 
-        guard let url = components.url else { throw ClientError.invalidBaseURL }
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: components.url!)
         request.httpMethod = "GET"
         request.timeoutInterval = requestTimeout
         request.setValue("application/json, text/plain, */*", forHTTPHeaderField: "Accept")

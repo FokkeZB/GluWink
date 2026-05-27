@@ -29,21 +29,18 @@ final class EasyViewManager {
     // MARK: - Config
 
     /// Build a client from current user configuration. Returns nil when
-    /// EasyView is disabled, missing required fields, or there is no session.
+    /// EasyView is disabled or there is no session cookie yet.
     private func currentClient() -> EasyViewClient? {
         let data = SharedDataManager.shared
         guard data.easyViewEnabled,
-              let urlString = data.easyViewBaseURL,
-              let session = data.easyViewSession,
-              let client = EasyViewClient(baseURLString: urlString, sessionCookie: session)
+              let session = data.easyViewSession
         else { return nil }
-        return client
+        return EasyViewClient(sessionCookie: session)
     }
 
     var isConfigured: Bool {
         let data = SharedDataManager.shared
-        guard let urlString = data.easyViewBaseURL, !urlString.isEmpty,
-              let username = data.easyViewUsername, !username.isEmpty,
+        guard let username = data.easyViewUsername, !username.isEmpty,
               KeychainManager.shared.easyViewPassword?.isEmpty == false
         else { return false }
         return true
@@ -151,8 +148,7 @@ final class EasyViewManager {
     @discardableResult
     func reLogin() async -> Bool {
         let data = SharedDataManager.shared
-        guard let urlString = data.easyViewBaseURL,
-              let username = data.easyViewUsername,
+        guard let username = data.easyViewUsername,
               let password = KeychainManager.shared.easyViewPassword
         else {
             logger.error("EasyView re-login failed — missing credentials")
@@ -161,7 +157,6 @@ final class EasyViewManager {
         }
         do {
             let result = try await EasyViewClient.login(
-                baseURLString: urlString,
                 username: username,
                 password: password
             )
@@ -186,19 +181,15 @@ final class EasyViewManager {
     /// Login + fetch one glucose sample. Used by the Settings UI to verify credentials.
     /// On success also writes the session + patientUID to the App Group.
     func testConnection(
-        baseURL: String,
         username: String,
         password: String
     ) async throws -> TestResult {
         let loginResult = try await EasyViewClient.login(
-            baseURLString: baseURL,
             username: username,
             password: password
         )
 
-        guard let client = EasyViewClient(baseURLString: baseURL, sessionCookie: loginResult.sessionCookie) else {
-            throw EasyViewClient.ClientError.invalidBaseURL
-        }
+        let client = EasyViewClient(sessionCookie: loginResult.sessionCookie)
 
         // For monitor accounts, fetch connections and use the first one
         // (the Settings view will offer a picker if more are found).

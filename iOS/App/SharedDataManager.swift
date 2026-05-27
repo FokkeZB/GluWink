@@ -460,7 +460,7 @@ final class SharedDataManager {
             DataSourceKeys.easyViewEnabled,
             "nightscoutBaseURL", "nightscoutToken",
             "nightscoutLastFetchedAt", "nightscoutLastError",
-            "easyViewBaseURL", "easyViewUsername", "easyViewSession",
+            "easyViewUsername", "easyViewSession",
             "easyViewPatientUID", "easyViewLastFetchedAt", "easyViewLastError",
             "setupTipsHidden",
         ]
@@ -541,21 +541,6 @@ final class SharedDataManager {
     var easyViewEnabled: Bool {
         get { defaults?.bool(forKey: DataSourceKeys.easyViewEnabled) ?? false }
         set { defaults?.set(newValue, forKey: DataSourceKeys.easyViewEnabled) }
-    }
-
-    var easyViewBaseURL: String? {
-        get {
-            guard let value = defaults?.string(forKey: "easyViewBaseURL"),
-                  !value.isEmpty else { return nil }
-            return value
-        }
-        set {
-            if let value = newValue, !value.isEmpty {
-                defaults?.set(value, forKey: "easyViewBaseURL")
-            } else {
-                defaults?.removeObject(forKey: "easyViewBaseURL")
-            }
-        }
     }
 
     var easyViewUsername: String? {

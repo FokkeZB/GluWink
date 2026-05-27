@@ -30,9 +30,7 @@ public enum WidgetEasyViewRefresh {
         guard defaults.bool(forKey: DataSourceKeys.easyViewEnabled) else { return }
         guard !defaults.bool(forKey: DataSourceKeys.mockModeEnabled) else { return }
 
-        guard let urlString = defaults.string(forKey: "easyViewBaseURL"),
-              !urlString.isEmpty,
-              let sessionCookie = defaults.string(forKey: "easyViewSession"),
+        guard let sessionCookie = defaults.string(forKey: "easyViewSession"),
               !sessionCookie.isEmpty,
               let patientUID = defaults.object(forKey: "easyViewPatientUID") as? Int
         else { return }
@@ -49,12 +47,11 @@ public enum WidgetEasyViewRefresh {
         config.waitsForConnectivity = false
         let session = URLSession(configuration: config)
 
-        guard let client = EasyViewClient(
-            baseURLString: urlString,
+        let client = EasyViewClient(
             sessionCookie: sessionCookie,
             urlSession: session,
             requestTimeout: requestTimeout
-        ) else { return }
+        )
 
         async let glucoseTask: EasyViewClient.GlucoseSample? = {
             do {

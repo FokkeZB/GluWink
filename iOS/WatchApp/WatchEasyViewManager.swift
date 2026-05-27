@@ -33,11 +33,9 @@ final class WatchEasyViewManager {
 
     private func currentClient() -> EasyViewClient? {
         guard WatchDataManager.easyViewEnabled,
-              let urlString = WatchDataManager.easyViewBaseURL,
-              let session = WatchDataManager.easyViewSession,
-              let client = EasyViewClient(baseURLString: urlString, sessionCookie: session)
+              let session = WatchDataManager.easyViewSession
         else { return nil }
-        return client
+        return EasyViewClient(sessionCookie: session)
     }
 
     var isConfigured: Bool { currentClient() != nil }
