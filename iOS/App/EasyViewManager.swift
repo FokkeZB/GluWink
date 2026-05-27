@@ -191,17 +191,17 @@ final class EasyViewManager {
 
         let client = EasyViewClient(sessionCookie: loginResult.sessionCookie)
 
-        // For monitor accounts, fetch connections and use the first one
-        // (the Settings view will offer a picker if more are found).
+        // Resolve the patient UID. For patient accounts use the login uid
+        // directly. For monitor accounts try fetchConnections; fall back to
+        // the login uid if that call fails or returns nothing (e.g. the
+        // account has dual roles, or the endpoint is temporarily unreachable).
         let patientUID: Int
         if loginResult.isPatient {
             patientUID = loginResult.uid
         } else {
-            let connections = try await client.fetchConnections()
-            guard let first = connections.first else {
-                throw EasyViewClient.ClientError.decoding("No monitored patients found")
-            }
-            patientUID = first.uid
+            let connections = (try? await client.fetchConnections()) ?? []
+            patientUID = connections.first?.uid ?? loginResult.uid
+            logger.info("EasyView monitor account: resolved patientUID=\(patientUID) via \(connections.isEmpty ? "login uid fallback" : "connections")")
         }
 
         let glucose = try await client.fetchLatestGlucose(patientUID: patientUID)
