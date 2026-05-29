@@ -99,7 +99,7 @@
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
-			dstSubfolderSpec = 13;
+			dstSubfolderSpec = 16;
 			files = (
 				BB7A7205A7344FBE1F0EDD28 /* WatchApp.app in Embed Watch Content */,
 			);

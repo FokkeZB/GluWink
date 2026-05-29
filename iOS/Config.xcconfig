@@ -16,6 +16,8 @@ INFOPLIST_KEY_CFBundleDisplayName = GluWink
 
 // HealthKit permission dialog text (contains the app name)
 INFOPLIST_KEY_NSHealthShareUsageDescription = GluWink reads your glucose and carb data to check your diabetes status.
+// Required by App Store Connect even though the app only reads HealthKit data.
+INFOPLIST_KEY_NSHealthUpdateUsageDescription = GluWink does not write health data.
 
 // Glucose thresholds in mmol/L
 HIGH_GLUCOSE_THRESHOLD = 14.0

@@ -7,6 +7,11 @@
 default_platform(:ios)
 opt_out_usage
 
+# Xcode 26's new altool has a bug where it cannot determine the platform from
+# the IPA's Info.plist. Force the legacy altool path until Apple ships a fix.
+# https://github.com/fastlane/fastlane/issues/29739
+ENV["DELIVER_ALTOOL_ADDITIONAL_UPLOAD_PARAMETERS"] = "--use-old-altool"
+
 API_KEY_PATH     = "../../private/asc-api-key.json"     # repo-root /private/, from iOS/fastlane/
 REVIEW_INFO_PATH = "../../private/asc-review-info.json" # ditto — App Review Contact Info + demo + notes
 SYNC_SCRIPT      = File.expand_path("scripts/sync_metadata.rb", __dir__)

@@ -158,6 +158,25 @@ What to trust instead:
 
 If visual verification is genuinely necessary and the owner isn't in the loop for this round, compare hashes against the last committed version (`git show HEAD:<path> | shasum` vs `shasum <path>`) and trust the cryptographic delta. When the owner is available (our usual mode), defer visual sign-off to them — they see the real pixels in the IDE, not a cached render. This matters most for the App Store screenshot flow, where "does this image say what I think it says" is the whole point of the diff.
 
+## Fastlane / App Store Upload
+
+### altool "Cannot determine the 'platform'" on Xcode 26 / macOS 26
+
+`make appstore-beta` (and any lane that calls `upload_to_testflight`) may fail during the upload step with:
+
+```
+[altool.BE70485C0] Cannot determine the 'platform' from the info.plist. (19)
+[altool.101086D60] ExitFailure (31)
+```
+
+This is a known compatibility issue between fastlane's use of the `altool` binary bundled inside `Xcode.app/Contents/SharedFrameworks/ContentDelivery.framework` and Xcode 26 / macOS 26. The archive and IPA export succeed — only the upload step fails.
+
+**Workarounds (in order of preference):**
+1. **Apple Transporter app** (Mac App Store, free) — drag the IPA from `iOS/build/App.ipa` into Transporter and click Deliver. Completely bypasses altool.
+2. **Xcode Organizer** — open **Xcode → Window → Organizer**, select the archive that `make appstore-beta` just produced (saved to `~/Library/Developer/Xcode/Archives/<date>/`), and use **Distribute App → App Store Connect → Upload**.
+
+`bundle update fastlane` does not fix this — the bug is in Xcode 26's `altool` binary inside `ContentDelivery.framework`, not in fastlane itself.
+
 ## Naming
 
 ### Bundle identifiers kept as nl.fokkezb.*

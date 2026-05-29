@@ -20,6 +20,8 @@
 	<string>$(LOW_GLUCOSE_THRESHOLD)</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>$(INFOPLIST_KEY_NSHealthShareUsageDescription)</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>$(INFOPLIST_KEY_NSHealthUpdateUsageDescription)</string>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>nl.fokkezb.GluWink</string>
 </dict>
