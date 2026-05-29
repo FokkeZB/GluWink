@@ -193,6 +193,8 @@ The Markdown files in this folder are the source of truth. They get converted to
 | `make appstore-push` | Sync, then push to App Store Connect. Updates the **editable** version (most recent draft / "Prepare for Submission"). Does **not** submit for review. |
 | `make appstore-pull` | Download Apple's current copy into `iOS/fastlane/metadata/` — handy for diffing or bootstrapping a new locale. Read-only; never overwrite the Markdown from this. |
 | `make appstore-beta` | Archive a Release build and upload to TestFlight. Auto-bumps the build number from ASC. See "Releasing a TestFlight build" below. |
+| `make release VERSION=x.y.z` | Bump version, build, push metadata, upload binary to ASC. Dry-run path — no submission. See "Shipping a release" below. |
+| `make release VERSION=x.y.z SUBMIT=1` | Same as above, plus runs precheck and submits for review with phased release enabled. |
 
 What gets pushed (per locale, from each `<locale>.md`):
 
@@ -271,6 +273,67 @@ Running it again picks a new build number automatically — the lane is safe to 
 
 ---
 
+## Shipping a release
+
+`make release VERSION=x.y.z` takes the current `main` checkout all the way to a staged App Store version — version bump, binary upload, metadata push — in one command. Add `SUBMIT=1` to also submit for review.
+
+### What it does
+
+1. Verifies the working tree is clean and the current branch is `main` (or a `release/*` branch). Fails fast if either check fails.
+2. Bumps `MARKETING_VERSION` to the given version and auto-increments `CURRENT_PROJECT_VERSION` to one above the highest build number currently in App Store Connect (same strategy as `make appstore-beta`, so beta and release builds never collide).
+3. Commits both changes with message `chore: bump to v<version> (<build>)`.
+4. Creates the new App Store version in ASC if it doesn't exist yet. Errors if a different editable version is already open — resolve it in App Store Connect first.
+5. Archives and exports a Release `.ipa` using Xcode-managed signing (`-allowProvisioningUpdates`), same build config as `make appstore-beta`.
+6. Pushes text metadata and screenshots against the new version (equivalent to running `make appstore-push` first — regenerates from `AppStore/*.md` and delivers to ASC).
+7. Uploads the binary and attaches it to the new version. `phased_release: true` is always on so any accidental submission rolls out gradually rather than all at once.
+8. If `SUBMIT=1` was passed: runs `precheck` to validate the listing, then submits for review with phased release enabled. If not passed: leaves everything staged in ASC so you can review before clicking Submit yourself.
+9. Tags the version-bump commit `v<version>` and pushes the branch + tag to `origin`.
+
+### Prerequisites
+
+Same as `make appstore-beta` — see "Releasing a TestFlight build → Prerequisites" above. Additionally:
+
+- `private/asc-review-info.json` should be complete (first name, last name, phone, email). The lane warns and skips the contact-info upload if the file is absent, but ASC will reject submission for review until the info is set (either via the file or directly in App Store Connect).
+- Run `make appstore-screenshots` first if screenshots need refreshing — `make release` pushes whatever is currently in `iOS/fastlane/screenshots/`.
+
+### Running it
+
+**Dry run** — stages everything in ASC; you review the version, build, and metadata before clicking Submit:
+
+```sh
+make release VERSION=1.2.0
+```
+
+**Submit for review** — stages everything and triggers App Review:
+
+```sh
+make release VERSION=1.2.0 SUBMIT=1
+```
+
+First run takes 5–10 minutes (clean archive + binary upload + metadata push). The lane is safe to re-run as often as needed: if the version-bump commit and tag already exist, `ensure_git_status_clean` will catch the uncommitted changes and abort before any side effects occur.
+
+### Precheck
+
+`precheck` runs automatically when `SUBMIT=1` is passed (`run_precheck_before_submit: true`). It validates the listing metadata before upload and will abort the lane on any failures, so a bad description or a forbidden keyword never makes it to App Review. `precheck_include_in_app_purchases` is `false` (set in `Deliverfile`) — GluWink has no in-app purchases.
+
+Precheck does **not** run on dry-run invocations (`make release VERSION=x.y.z` without `SUBMIT=1`) — the lane completes quickly so you can review metadata in ASC before committing to the full check.
+
+### After a dry run
+
+1. Open [App Store Connect](https://appstoreconnect.apple.com) and verify the version, metadata, screenshots, and attached build.
+2. When satisfied, run `make release VERSION=<same version> SUBMIT=1`.
+   - The lane will error on `ensure_git_status_clean` because the version-bump commit is already present, or on `ensure_app_store_version!` because the version already exists. **This is the intended signal that setup is done.** Submit directly in App Store Connect instead, or use `bundle exec fastlane deliver submit_for_review:true` from the `iOS/` directory.
+
+### When it fails
+
+- **"Working directory is not clean"** — commit or stash local changes before running.
+- **"Not on main branch"** — run from `main` or a `release/*` branch.
+- **"An editable App Store version X.Y.Z already exists"** — submit or delete the existing version in App Store Connect before creating a new one.
+- **Binary upload / provisioning errors** — same as `make appstore-beta`; see "When it fails" in the TestFlight section above.
+- **Precheck failure** — fix the flagged metadata in `AppStore/<locale>.md`, run `make appstore-sync` to validate locally, then re-run `make release VERSION=... SUBMIT=1`.
+
+---
+
 ## Submission checklist
 
 Before tapping **Submit for Review**:
@@ -283,6 +346,6 @@ Before tapping **Submit for Review**:
 - [ ] Age rating questionnaire completed (4+, mild medical info).
 - [ ] Sign-in info / demo account section: explicitly say "no account required" and point the reviewer at Demo mode.
 - [ ] Reviewer notes: mention that Screen Time + Family Controls require a real device and that the reviewer can use Demo mode in Settings → Data Sources to populate glucose without a CGM.
-- [ ] Build uploaded (run `make appstore-beta`) and selected for the version.
+- [ ] Build uploaded and selected for the version — `make release VERSION=x.y.z` does this; `make appstore-beta` uploads to TestFlight only.
 - [ ] Pricing set to Free.
 - [ ] Availability set to all territories where the listing is localized (at minimum: US, NL, BE).

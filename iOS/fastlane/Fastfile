@@ -148,6 +148,143 @@ platform :ios do
     end
   end
 
+  desc "Archive, push metadata, and optionally submit to App Store."
+  desc "Args: version: (required, e.g. 1.2.0), submit: (optional, default false)."
+  desc "Dry-run path: omit submit: to stage everything in ASC and review before clicking Submit."
+  lane :release do |options|
+    version = options[:version].to_s.strip
+    UI.user_error!("version: is required, e.g. fastlane release version:1.2.0") if version.empty?
+
+    do_submit = options[:submit].to_s == "true"
+    api_key_path = require_api_key!
+
+    # 1. Preconditions: clean working tree, on main or a release/* branch.
+    ensure_git_status_clean
+    ensure_git_branch(branch: /^(main|release\/.+)$/)
+
+    # 2. Bump MARKETING_VERSION and CURRENT_PROJECT_VERSION, commit the bump
+    #    before archiving so the binary and the tag share the same git SHA.
+    increment_version_number(
+      version_number: version,
+      xcodeproj: "App.xcodeproj",
+    )
+
+    next_build_number = latest_testflight_build_number(
+      api_key_path: api_key_path,
+      initial_build_number: 0,
+    ) + 1
+    UI.message("Next build number: #{next_build_number}")
+
+    increment_build_number(
+      build_number: next_build_number,
+      xcodeproj: "App.xcodeproj",
+    )
+
+    commit_version_bump(
+      message: "chore: bump to v#{version} (#{next_build_number})",
+      xcodeproj: "App.xcodeproj",
+      force: true,
+    )
+
+    # 3. Create the App Store version in ASC if it doesn't exist yet.
+    ensure_app_store_version!(api_key_path, version)
+
+    # 4. Archive and export the .ipa (same config as beta, no xcargs version
+    #    override — versions are now committed in the xcodeproj).
+    build_app(
+      project: "App.xcodeproj",
+      scheme: "App",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "build",
+      output_name: "App.ipa",
+      clean: true,
+      xcargs: "-allowProvisioningUpdates",
+    )
+
+    # 5. Push text metadata + screenshots against the new ASC version.
+    #    Reuses the existing push_metadata lane (sync from Markdown,
+    #    bootstrap review-detail record, deliver with skip_binary_upload).
+    push_metadata
+
+    # 6. Upload the binary and attach it to the version; optionally submit.
+    #    skip_binary_upload: false overrides the Deliverfile default.
+    #    phased_release: true is always on so accidental submits roll out slowly.
+    #    precheck runs only when we actually submit so dry-runs stay fast.
+    review_info = load_review_info
+    deliver_options = {
+      api_key_path: api_key_path,
+      app_version: version,
+      force: true,
+      skip_metadata: true,
+      skip_screenshots: true,
+      skip_binary_upload: false,
+      submit_for_review: do_submit,
+      phased_release: true,
+      automatic_release: false,
+      run_precheck_before_submit: do_submit,
+      precheck_include_in_app_purchases: false,
+    }
+    deliver_options[:app_review_information] = review_info if review_info
+    deliver(**deliver_options)
+
+    # 7. Tag the version-bump commit and push branch + tag together.
+    add_git_tag(tag: "v#{version}")
+    push_to_git_remote(tags: true)
+
+    if do_submit
+      UI.success("v#{version} (#{next_build_number}) submitted for review with phased release.")
+    else
+      UI.success(
+        "v#{version} (#{next_build_number}) staged in App Store Connect. " \
+        "Review metadata and the attached build at https://appstoreconnect.apple.com, " \
+        "then run `make release VERSION=#{version} SUBMIT=1` to submit for review.",
+      )
+    end
+  end
+
+  # Create a new App Store version in ASC for the given version string if one
+  # doesn't already exist. Errors if a different editable version is open so
+  # the owner can decide whether to delete or submit it before proceeding.
+  def ensure_app_store_version!(api_key_path, version)
+    require "spaceship"
+    require "json"
+
+    key = JSON.parse(File.read(api_key_path))
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
+      key_id: key["key_id"],
+      issuer_id: key["issuer_id"],
+      key: key["key"],
+    )
+
+    app = Spaceship::ConnectAPI::App.find("nl.fokkezb.GluWink")
+    UI.user_error!("App nl.fokkezb.GluWink not found in App Store Connect") unless app
+
+    edit_version = app.get_edit_app_store_version
+
+    if edit_version
+      if edit_version.version_string == version
+        UI.message("App Store version #{version} already exists — skipping creation.")
+        return
+      end
+
+      UI.user_error!(
+        "An editable App Store version #{edit_version.version_string} already exists in ASC. " \
+        "Submit or delete it in App Store Connect before creating #{version}.",
+      )
+    end
+
+    UI.message("Creating App Store version #{version} in ASC…")
+    Spaceship::ConnectAPI::AppStoreVersion.create(
+      app_id: app.id,
+      attributes: {
+        "versionString" => version,
+        "platform" => "IOS",
+      },
+    )
+    UI.success("Created App Store version #{version}.")
+  end
+
   desc "Build a Release archive and upload it to TestFlight."
   desc "Uses Xcode-managed signing (-allowProvisioningUpdates) and auto-bumps"
   desc "CURRENT_PROJECT_VERSION from the latest TestFlight build so successive"
