@@ -96,7 +96,7 @@ venv-clean:
 
 # --- App Store listing (fastlane deliver) ---
 
-.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta watchface-prepare watchface-capture docs-sync-screenshots docs-bootstrap docs-serve docs-clean docs-build docs-publish-check docs-audit docs-check docs-og-images
+.PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta release watchface-prepare watchface-capture docs-sync-screenshots docs-bootstrap docs-serve docs-clean docs-build docs-publish-check docs-audit docs-check docs-og-images
 
 ## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile)
 appstore-bootstrap:
@@ -259,3 +259,13 @@ docs-og-images:
 ## See AppStore/README.md → "Releasing a TestFlight build".
 appstore-beta:
 	cd iOS && $(RUN_RUBY) bundle exec fastlane beta
+
+## Bump version, push metadata, upload binary to App Store Connect, and
+## optionally submit for review. VERSION is required. Pass SUBMIT=1 to
+## submit for review; omit it to stage everything in ASC first (dry run).
+## Requires private/asc-api-key.json and being signed into Xcode with
+## the development team. See AppStore/README.md → "Shipping a release".
+## Usage: make release VERSION=1.2.0 [SUBMIT=1]
+release:
+	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required (e.g. make release VERSION=1.2.0)" >&2; exit 1; fi
+	cd iOS && $(RUN_RUBY) bundle exec fastlane release version:$(VERSION) submit:$(if $(SUBMIT),true,false)
