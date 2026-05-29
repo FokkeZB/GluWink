@@ -4,7 +4,7 @@ corners.
 
 Run from the repo root:
 
-    python3 iOS/Stickers/scripts/process-assets.py
+    python3 scripts/stickers/generate-sticker-assets.py
 
 This is idempotent — re-running it after the master `icons/iOS.png` changes
 (or after adding new stickers under `iOS/Stickers/Stickers.xcassets/Sticker
