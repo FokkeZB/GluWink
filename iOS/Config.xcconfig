@@ -33,3 +33,7 @@ GLUCOSE_STALE_MINUTES = 30
 // Before this hour+minute, missing carb entries are not flagged
 CARB_GRACE_HOUR = 9
 CARB_GRACE_MINUTE = 30
+
+// The app only uses encryption within Apple's OS (URLSession TLS, Keychain,
+// CryptoKit). No custom or proprietary encryption is implemented.
+INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO
