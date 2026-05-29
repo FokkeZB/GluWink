@@ -207,9 +207,52 @@ public struct EasyViewClient: Sendable {
 
     // MARK: - Glucose
 
-    /// Fetch the most recent BG event from the last `windowHours` hours.
-    /// Returns nil when there are no events in the window.
+    /// Fetch the most recent CGM sensor glucose reading from the last `windowHours` hours.
+    /// Prefers the `/v3/api/v2.1/chart/{uid}/data/ds` endpoint which returns continuous
+    /// sensor readings (CGM data), falling back to manually-entered BG events if no
+    /// sensor data is available in the window.
+    /// Returns nil when there are no readings in the window.
     public func fetchLatestGlucose(patientUID: Int, windowHours: Double = 3) async throws -> GlucoseSample? {
+        if let sensor = try await fetchLatestSensorGlucose(patientUID: patientUID, windowHours: windowHours) {
+            return sensor
+        }
+        return try await fetchLatestGlucoseFromEvents(patientUID: patientUID, windowHours: windowHours)
+    }
+
+    /// Fetch the most recent CGM sensor reading from the `ds` (day summary) chart endpoint.
+    /// Each reading is `[timestamp, mmol/L, trend, raw_mgdl, status]`.
+    /// Returns nil when there are no sensor readings in the window.
+    private func fetchLatestSensorGlucose(patientUID: Int, windowHours: Double) async throws -> GlucoseSample? {
+        let now = Date().timeIntervalSince1970
+        let start = now - windowHours * 3600
+        let param = encodeDsParam(start: start, end: now)
+
+        let request = makeRequest(path: "/v3/api/v2.1/chart/\(patientUID)/data/ds", query: [
+            URLQueryItem(name: "param", value: param),
+        ])
+        let data = try await perform(request)
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let dataObj = json["data"] as? [String: Any],
+              let sensorGlucose = dataObj["sensor_glucose"] as? [[[Any]]]
+        else { return nil }
+
+        // sensorGlucose is [[day0readings], [day1readings], …]; flatten across all day buckets
+        // (the window can span a day boundary) and pick the most recent.
+        let allReadings = sensorGlucose.flatMap { $0 }
+        let sorted = allReadings.sorted { a, b in
+            (a[0] as? Double ?? 0) > (b[0] as? Double ?? 0)
+        }
+
+        guard let latest = sorted.first,
+              let ts = latest[0] as? Double,
+              let mmol = latest[1] as? Double
+        else { return nil }
+
+        return GlucoseSample(mmol: mmol, date: Date(timeIntervalSince1970: ts))
+    }
+
+    /// Fetch the most recent manually-entered BG event from the events endpoint.
+    private func fetchLatestGlucoseFromEvents(patientUID: Int, windowHours: Double) async throws -> GlucoseSample? {
         let items = try await fetchEvents(patientUID: patientUID, windowHours: windowHours)
         let bgEvents = items.filter { event in
             guard event.count > 2 else { return false }
@@ -232,7 +275,7 @@ public struct EasyViewClient: Sendable {
 
     /// Fetch the most recent CARB event from the last `windowHours` hours.
     /// Returns nil when there are no carb events in the window.
-    public func fetchLatestCarbs(patientUID: Int, windowHours: Double = 4) async throws -> CarbEntry? {
+    public func fetchLatestCarbs(patientUID: Int, windowHours: Double = 12) async throws -> CarbEntry? {
         let items = try await fetchEvents(patientUID: patientUID, windowHours: windowHours)
         let carbEvents = items.filter { event in
             guard event.count > 2 else { return false }
@@ -279,6 +322,18 @@ public struct EasyViewClient: Sendable {
             "order": [["time", "desc"]],
             "st": Int(start),
             "et": Int(end),
+        ]
+        let jsonData = (try? JSONSerialization.data(withJSONObject: obj, options: [.sortedKeys])) ?? Data()
+        return jsonData.base64EncodedString()
+    }
+
+    /// Encode the base64 JSON `param` expected by the `ds` (day summary) chart endpoint.
+    private func encodeDsParam(start: Double, end: Double) -> String {
+        let tzHours = TimeZone.current.secondsFromGMT() / 3600
+        let obj: [String: Any] = [
+            "gu": "mmol/L",
+            "ts": [[Int(start), Int(end)]],
+            "tz": tzHours,
         ]
         let jsonData = (try? JSONSerialization.data(withJSONObject: obj, options: [.sortedKeys])) ?? Data()
         return jsonData.base64EncodedString()
