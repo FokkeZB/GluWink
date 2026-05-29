@@ -100,20 +100,20 @@ venv-clean:
 
 ## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile)
 appstore-bootstrap:
-	cd iOS && bundle config set --local path 'vendor/bundle' && bundle install
+	cd iOS && $(RUN_RUBY) bundle config set --local path 'vendor/bundle' && $(RUN_RUBY) bundle install
 
 ## Regenerate iOS/fastlane/metadata/ from AppStore/<locale>.md
 appstore-sync:
-	cd iOS && bundle exec fastlane sync_metadata
+	cd iOS && $(RUN_RUBY) bundle exec fastlane sync_metadata
 
 ## Push App Store listing copy to App Store Connect (regenerates first).
 ## Requires private/asc-api-key.json — see AppStore/README.md.
 appstore-push:
-	cd iOS && bundle exec fastlane push_metadata
+	cd iOS && $(RUN_RUBY) bundle exec fastlane push_metadata
 
 ## Download current App Store metadata into iOS/fastlane/metadata/ (snapshot only)
 appstore-pull:
-	cd iOS && bundle exec fastlane pull_metadata
+	cd iOS && $(RUN_RUBY) bundle exec fastlane pull_metadata
 
 ## Regenerate the App Store screenshot deck (every scene × every locale).
 ## Writes PNGs into iOS/fastlane/screenshots/<locale>/ (flat — no device-size
@@ -258,4 +258,4 @@ docs-og-images:
 ## signed into Xcode with the development team.
 ## See AppStore/README.md → "Releasing a TestFlight build".
 appstore-beta:
-	cd iOS && bundle exec fastlane beta
+	cd iOS && $(RUN_RUBY) bundle exec fastlane beta
