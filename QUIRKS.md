@@ -160,22 +160,23 @@ If visual verification is genuinely necessary and the owner isn't in the loop fo
 
 ## Fastlane / App Store Upload
 
-### altool "Cannot determine the 'platform'" on Xcode 26 / macOS 26
+### altool upload failures on Xcode 26 / macOS 26
 
-`make appstore-beta` (and any lane that calls `upload_to_testflight`) may fail during the upload step with:
+Fastlane's default uploader uses `altool` from inside `ContentDelivery.framework`. On Xcode 26 it has two separate bugs:
 
-```
-[altool.BE70485C0] Cannot determine the 'platform' from the info.plist. (19)
-[altool.101086D60] ExitFailure (31)
-```
+- **New altool path** fails with `Cannot determine the 'platform' from the info.plist. (19)`.
+- **`--use-old-altool` path** connects but then hangs silently for 20+ minutes on the upload.
 
-This is a known compatibility issue between fastlane's use of the `altool` binary bundled inside `Xcode.app/Contents/SharedFrameworks/ContentDelivery.framework` and Xcode 26 / macOS 26. The archive and IPA export succeed — only the upload step fails.
+**Fix (already applied to `Fastfile`):** `DELIVER_ALTOOL_ADDITIONAL_UPLOAD_PARAMETERS = "--use-old-altool"` routes through altool's legacy upload code path, which still works on Xcode 26. **The upload takes ~20 minutes. Do not interrupt it** — if you `Ctrl-C`, the underlying `altool` process keeps running as an orphan and the upload completes anyway (which is why builds appear in ASC even after an "aborted" run).
 
-**Workarounds (in order of preference):**
-1. **Apple Transporter app** (Mac App Store, free) — drag the IPA from `iOS/build/App.ipa` into Transporter and click Deliver. Completely bypasses altool.
-2. **Xcode Organizer** — open **Xcode → Window → Organizer**, select the archive that `make appstore-beta` just produced (saved to `~/Library/Developer/Xcode/Archives/<date>/`), and use **Distribute App → App Store Connect → Upload**.
+Other approaches tried and why they don't work on Xcode 26:
+- **Default altool path** — fails with `Cannot determine the 'platform' from the info.plist. (19)`.
+- **`FASTLANE_ITUNES_TRANSPORTER_PATH` → Xcode `usr/bin/iTMSTransporter`** — that binary is a Java wrapper; Xcode 26 doesn't bundle a JVM, so it fails immediately with "No such file or directory".
+- **`FASTLANE_ITUNES_TRANSPORTER_USE_SHELL_SCRIPT=1`** — fastlane looks for the old `ContentDelivery.framework` shell script transporter, which Xcode 26 has removed or restructured; fails with "Could not find transporter".
 
-`bundle update fastlane` does not fix this — the bug is in Xcode 26's `altool` binary inside `ContentDelivery.framework`, not in fastlane itself.
+If the `--use-old-altool` approach ever stops working, the manual fallback is **Xcode Organizer** — open **Xcode → Window → Organizer**, select the archive (saved to `~/Library/Developer/Xcode/Archives/<date>/`), and use **Distribute App → App Store Connect → Upload**.
+
+`bundle update fastlane` does not fix either bug — they are in Xcode 26's bundled binaries, not in fastlane itself.
 
 ## Naming
 

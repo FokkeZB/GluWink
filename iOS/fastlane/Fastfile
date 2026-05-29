@@ -7,8 +7,11 @@
 default_platform(:ios)
 opt_out_usage
 
-# Xcode 26's new altool has a bug where it cannot determine the platform from
-# the IPA's Info.plist. Force the legacy altool path until Apple ships a fix.
+# Xcode 26 has broken the default altool upload path ("Cannot determine the
+# 'platform' from the info.plist"). --use-old-altool routes through the legacy
+# code path that still works, but is slow (~20 min). Do NOT interrupt the
+# script — the upload completes even if it looks hung; interrupting spawns an
+# orphan altool process that uploads in the background anyway.
 # https://github.com/fastlane/fastlane/issues/29739
 ENV["DELIVER_ALTOOL_ADDITIONAL_UPLOAD_PARAMETERS"] = "--use-old-altool"
 
