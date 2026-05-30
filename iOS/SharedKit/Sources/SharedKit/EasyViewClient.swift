@@ -205,24 +205,30 @@ public struct EasyViewClient: Sendable {
         }
     }
 
-    // MARK: - Glucose
+    // MARK: - Combined latest reading
 
-    /// Fetch the most recent CGM sensor glucose reading from the last `windowHours` hours.
-    /// Prefers the `/v3/api/v2.1/chart/{uid}/data/ds` endpoint which returns continuous
-    /// sensor readings (CGM data), falling back to manually-entered BG events if no
-    /// sensor data is available in the window.
-    /// Returns nil when there are no readings in the window.
-    public func fetchLatestGlucose(patientUID: Int, windowHours: Double = 3) async throws -> GlucoseSample? {
-        if let sensor = try await fetchLatestSensorGlucose(patientUID: patientUID, windowHours: windowHours) {
-            return sensor
-        }
-        return try await fetchLatestGlucoseFromEvents(patientUID: patientUID, windowHours: windowHours)
+    /// The latest glucose + carb entry resolved from a single `ds` chart request.
+    public struct LatestReading: Sendable {
+        public let glucose: GlucoseSample?
+        public let carbs: CarbEntry?
     }
 
-    /// Fetch the most recent CGM sensor reading from the `ds` (day summary) chart endpoint.
-    /// Each reading is `[timestamp, mmol/L, trend, raw_mgdl, status]`.
-    /// Returns nil when there are no sensor readings in the window.
-    private func fetchLatestSensorGlucose(patientUID: Int, windowHours: Double) async throws -> GlucoseSample? {
+    /// Fetch the most recent glucose and carb entry in a single round-trip.
+    ///
+    /// The `ds` (day summary) chart response carries both `sensor_glucose` and
+    /// `carb_event`, so one request covers both metrics. Carbs come purely from
+    /// `carb_event`, which already unifies bolus-wizard and manually-entered
+    /// carbs. When the window holds no CGM sensor reading, glucose falls back to
+    /// the most recent manually-entered BG event (one extra request).
+    ///
+    /// - Parameter windowHours: how far back to look for both metrics. The
+    ///   default (6h) is the trade-off between payload size — the `ds` response
+    ///   is dominated by 5-minute CGM `sensor_glucose` points — and capturing a
+    ///   not-too-recent carb on first fetch / after a cache clear (it comfortably
+    ///   covers the default 4h carb grace window). Once a carb is captured it is
+    ///   persisted and survives later empty windows, so this only bounds the
+    ///   initial capture, not retention.
+    public func fetchLatest(patientUID: Int, windowHours: Double = 6) async throws -> LatestReading {
         let now = Date().timeIntervalSince1970
         let start = now - windowHours * 3600
         let param = encodeDsParam(start: start, end: now)
@@ -231,24 +237,49 @@ public struct EasyViewClient: Sendable {
             URLQueryItem(name: "param", value: param),
         ])
         let data = try await perform(request)
-        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let dataObj = json["data"] as? [String: Any],
-              let sensorGlucose = dataObj["sensor_glucose"] as? [[[Any]]]
-        else { return nil }
+        let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+        let dataObj = json?["data"] as? [String: Any]
 
-        // sensorGlucose is [[day0readings], [day1readings], …]; flatten across all day buckets
-        // (the window can span a day boundary) and pick the most recent.
-        let allReadings = sensorGlucose.flatMap { $0 }
-        let sorted = allReadings.sorted { a, b in
-            (a[0] as? Double ?? 0) > (b[0] as? Double ?? 0)
+        let carbs = Self.parseLatestCarb(from: dataObj)
+        if let glucose = Self.parseLatestSensorGlucose(from: dataObj) {
+            return LatestReading(glucose: glucose, carbs: carbs)
         }
 
-        guard let latest = sorted.first,
+        // No CGM sensor reading in the window — fall back to manual BG events.
+        let fallback = try await fetchLatestGlucoseFromEvents(patientUID: patientUID, windowHours: windowHours)
+        return LatestReading(glucose: fallback, carbs: carbs)
+    }
+
+    // MARK: - Parsing (ds chart payload)
+
+    /// Pick the most recent sensor glucose reading from a `ds` `data` object.
+    /// `sensor_glucose` is `[[ [ts, mmol, …] … ]]` — per-day buckets of readings;
+    /// flatten across buckets (the window can span a day boundary) and take the latest.
+    private static func parseLatestSensorGlucose(from dataObj: [String: Any]?) -> GlucoseSample? {
+        guard let sensorGlucose = dataObj?["sensor_glucose"] as? [[[Any]]] else { return nil }
+        let latest = sensorGlucose
+            .flatMap { $0 }
+            .max { ($0.first as? Double ?? 0) < ($1.first as? Double ?? 0) }
+        guard let latest, latest.count >= 2,
               let ts = latest[0] as? Double,
               let mmol = latest[1] as? Double
         else { return nil }
-
         return GlucoseSample(mmol: mmol, date: Date(timeIntervalSince1970: ts))
+    }
+
+    /// Pick the most recent carb entry from a `ds` `data` object.
+    /// `carb_event` is `[[ [ts, grams] … ]]` — per-day buckets unifying
+    /// bolus-wizard and manually-entered carbs.
+    private static func parseLatestCarb(from dataObj: [String: Any]?) -> CarbEntry? {
+        guard let carbEvent = dataObj?["carb_event"] as? [[[Any]]] else { return nil }
+        let latest = carbEvent
+            .flatMap { $0 }
+            .max { ($0.first as? Double ?? 0) < ($1.first as? Double ?? 0) }
+        guard let latest, latest.count >= 2,
+              let ts = latest[0] as? Double,
+              let grams = latest[1] as? Double
+        else { return nil }
+        return CarbEntry(grams: grams, date: Date(timeIntervalSince1970: ts))
     }
 
     /// Fetch the most recent manually-entered BG event from the events endpoint.
@@ -271,29 +302,6 @@ public struct EasyViewClient: Sendable {
         return GlucoseSample(mmol: mgdl / 18.018, date: Date(timeIntervalSince1970: ts))
     }
 
-    // MARK: - Carbs
-
-    /// Fetch the most recent CARB event from the last `windowHours` hours.
-    /// Returns nil when there are no carb events in the window.
-    public func fetchLatestCarbs(patientUID: Int, windowHours: Double = 12) async throws -> CarbEntry? {
-        let items = try await fetchEvents(patientUID: patientUID, windowHours: windowHours)
-        let carbEvents = items.filter { event in
-            guard event.count > 2 else { return false }
-            return (event[2] as? String) == "CARB"
-        }
-        .sorted { a, b in
-            (a[1] as? Double ?? 0) > (b[1] as? Double ?? 0)
-        }
-
-        guard let latest = carbEvents.first,
-              let ts = latest[1] as? Double,
-              let dataDict = latest[3] as? [String: Any],
-              let grams = dataDict["value"] as? Double
-        else { return nil }
-
-        return CarbEntry(grams: grams, date: Date(timeIntervalSince1970: ts))
-    }
-
     // MARK: - Private: events
 
     /// Fetch raw events for `patientUID` over the last `windowHours` hours.
@@ -303,7 +311,7 @@ public struct EasyViewClient: Sendable {
         let start = now - windowHours * 3600
         let param = encodeEventsParam(start: start, end: now)
 
-        let request = makeRequest(path: "/api/v2.0/events/\(patientUID)", query: [
+        let request = makeRequest(path: "/v3/api/v2.0/events/\(patientUID)", query: [
             URLQueryItem(name: "param", value: param),
             URLQueryItem(name: "per_page", value: "9999"),
             URLQueryItem(name: "page", value: "1"),

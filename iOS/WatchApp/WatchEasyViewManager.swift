@@ -83,25 +83,20 @@ final class WatchEasyViewManager {
         }
 
         do {
-            if let sample = try await client.fetchLatestGlucose(patientUID: patientUID) {
+            // One `ds` request returns both glucose and carbs.
+            let latest = try await client.fetchLatest(patientUID: patientUID)
+            if let sample = latest.glucose {
                 WatchDataManager.storeGlucose(mmol: sample.mmol, at: sample.date)
                 logger.info("Watch EasyView glucose: \(String(format: "%.1f", sample.mmol)) mmol/L")
             }
-        } catch EasyViewClient.ClientError.sessionExpired {
-            logger.warning("Watch EasyView session expired — phone will refresh on next foreground")
-        } catch {
-            logger.error("Watch EasyView glucose fetch failed: \(error.localizedDescription)")
-        }
-
-        do {
-            if let entry = try await client.fetchLatestCarbs(patientUID: patientUID) {
+            if let entry = latest.carbs {
                 WatchDataManager.storeCarbs(grams: entry.grams, at: entry.date)
                 logger.info("Watch EasyView carbs: \(String(format: "%.0f", entry.grams))g")
             }
         } catch EasyViewClient.ClientError.sessionExpired {
-            // Already logged above.
+            logger.warning("Watch EasyView session expired — phone will refresh on next foreground")
         } catch {
-            logger.error("Watch EasyView carbs fetch failed: \(error.localizedDescription)")
+            logger.error("Watch EasyView fetch failed: \(error.localizedDescription)")
         }
 
         WidgetCenter.shared.reloadAllTimelines()
