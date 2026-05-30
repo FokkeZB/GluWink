@@ -109,12 +109,10 @@ final class EasyViewManager {
         }
 
         do {
-            // Fetch glucose and carbs concurrently.
-            async let glucoseTask = client.fetchLatestGlucose(patientUID: patientUID)
-            async let carbsTask = client.fetchLatestCarbs(patientUID: patientUID)
-
-            let glucose = try await glucoseTask
-            let carbs = try await carbsTask
+            // One `ds` request returns both glucose and carbs.
+            let latest = try await client.fetchLatest(patientUID: patientUID)
+            let glucose = latest.glucose
+            let carbs = latest.carbs
 
             if let glucose {
                 data.saveEasyViewGlucose(mmol: glucose.mmol, at: glucose.date)
@@ -204,7 +202,7 @@ final class EasyViewManager {
             logger.info("EasyView monitor account: resolved patientUID=\(patientUID) via \(connections.isEmpty ? "login uid fallback" : "connections")")
         }
 
-        let glucose = try await client.fetchLatestGlucose(patientUID: patientUID)
+        let latest = try await client.fetchLatest(patientUID: patientUID)
 
         // Persist on success.
         let data = SharedDataManager.shared
@@ -212,7 +210,7 @@ final class EasyViewManager {
         data.easyViewPatientUID = patientUID
         data.flush()
 
-        return TestResult(glucose: glucose, carbs: nil)
+        return TestResult(glucose: latest.glucose, carbs: latest.carbs)
     }
 
     // MARK: - Background refresh

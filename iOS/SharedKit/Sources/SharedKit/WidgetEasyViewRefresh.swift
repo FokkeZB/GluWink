@@ -53,31 +53,22 @@ public enum WidgetEasyViewRefresh {
             requestTimeout: requestTimeout
         )
 
-        async let glucoseTask: EasyViewClient.GlucoseSample? = {
-            do {
-                return try await client.fetchLatestGlucose(patientUID: patientUID)
-            } catch EasyViewClient.ClientError.sessionExpired {
-                logger.warning("Widget EasyView session expired — serving stale cached values")
-                return nil
-            } catch {
-                logger.error("Widget EasyView glucose fetch failed: \(error.localizedDescription, privacy: .public)")
-                return nil
-            }
-        }()
-
-        async let carbsTask: EasyViewClient.CarbEntry? = {
-            do {
-                return try await client.fetchLatestCarbs(patientUID: patientUID)
-            } catch EasyViewClient.ClientError.sessionExpired {
-                return nil
-            } catch {
-                logger.error("Widget EasyView carbs fetch failed: \(error.localizedDescription, privacy: .public)")
-                return nil
-            }
-        }()
-
-        let glucose = await glucoseTask
-        let carbs = await carbsTask
+        // One `ds` request returns both glucose and carbs.
+        let glucose: EasyViewClient.GlucoseSample?
+        let carbs: EasyViewClient.CarbEntry?
+        do {
+            let latest = try await client.fetchLatest(patientUID: patientUID)
+            glucose = latest.glucose
+            carbs = latest.carbs
+        } catch EasyViewClient.ClientError.sessionExpired {
+            logger.warning("Widget EasyView session expired — serving stale cached values")
+            glucose = nil
+            carbs = nil
+        } catch {
+            logger.error("Widget EasyView fetch failed: \(error.localizedDescription, privacy: .public)")
+            glucose = nil
+            carbs = nil
+        }
 
         if let glucose {
             saveIfNewer(
