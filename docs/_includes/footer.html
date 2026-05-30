@@ -9,5 +9,8 @@
       {%- endfor -%}
     </ul>
     <p class="site-footer__copy">{{ data.footer.copyright }}</p>
+    {%- if data.footer.trademarks -%}
+    <p class="site-footer__trademarks">{{ data.footer.trademarks }}</p>
+    {%- endif -%}
   </div>
 </footer>

@@ -58,7 +58,9 @@ For adults managing their own Type 1:
 
 GluWink reads glucose and carbs from Apple Health. Most CGM apps (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS, and others) already write to Apple Health. If yours does, GluWink is a one-tap connection.
 
-Prefer Nightscout? Connect a Nightscout site instead — handy when a parent is monitoring a child remotely, or when the diabetes system writes to Nightscout but not Apple Health. Both sources can be on at the same time; the most recent reading wins.
+Prefer Nightscout? Connect a Nightscout site instead — handy when a parent is monitoring a child remotely, or when the diabetes system writes to Nightscout but not Apple Health.
+
+On a Medtrum pump or CGM? Connect Medtrum's EasyView cloud directly — for patients and for caregivers following a patient. Any source can be on at once; the most recent reading wins.
 
 Want to try the app first? Demo mode shows realistic glucose and carb data without any sensor.
 
@@ -68,10 +70,8 @@ Want to try the app first? Demo mode shows realistic glucose and carb data witho
 • Three-way signal: green (all clear), orange (check-in needed), red (critical — shield locked until glucose drops). Thresholds are yours to set.
 • Home Screen, Lock Screen, and StandBy widgets in every size, tinted with the same three-color attention signal.
 • Apple Watch app and complications — glucose and carbs at a glance, on every watch face.
-• Optional glucose number on the app icon badge.
 • Configurable thresholds, intervals, and a daily carb grace period (so 6am cereal isn't an emergency).
 • Block apps always, only when attention is needed, or not at all — you decide.
-• A short cooldown after the check-in, so the moment is used to actually do the thing.
 • English and Dutch throughout.
 
 — Honest about what GluWink is not —
@@ -84,14 +84,14 @@ GluWink is open source. Your data stays on your device (with HealthKit) or on th
 
 Type 1 diabetes is relentless. The phone doesn't have to be.
 ```
-*(~3,995 / 4000 — tight; trim an existing bullet before adding a new one)*
+*(~3,972 / 4000 — tight; trim an existing bullet before adding a new one)*
 
 ## Keywords (100)
 
 ```
-diabetes,type 1,t1d,glucose,cgm,dexcom,libre,nightscout,carbs,kids,parents,screen time,shield,health
+diabetes,type 1,glucose,cgm,dexcom,libre,nightscout,carbs,kids,parents,screen time,shield,medtrum
 ```
-*(99 / 100)*
+*(97 / 100)*
 
 Notes:
 - Do **not** repeat words from the app name or category — Apple already indexes those.
@@ -107,7 +107,7 @@ Hello world.
 This is the first public release of GluWink. If you're trying it on your kid's phone, on your own phone, or just to see what it does — thank you. Open an issue or start a discussion on GitHub if anything feels off.
 
 Highlights in 1.0:
-• Apple Health and Nightscout data sources, with optional demo mode.
+• Apple Health, Nightscout, and Medtrum's EasyView data sources, with optional demo mode.
 • Friendly check-in shield with a three-color status — green, orange, red for critical highs.
 • Home Screen, Lock Screen, and StandBy widgets.
 • Apple Watch app and complications.
@@ -131,7 +131,7 @@ Scene order matches the table in `README.md` → Screenshots.
 | 4 | Glucose and carbs on every screen. |
 | 5 | Tune alerts, pick a data source, shape the shield — your call. |
 | 6 | Glucose and carbs on every watch face. |
-| 7 | Apple Health, Nightscout, or demo — pick one. |
+| 7 | Apple Health, Nightscout, EasyView, or demo. |
 
 ### Apple Watch (46mm)
 
