@@ -974,6 +974,7 @@ a:hover, a:focus-visible { text-decoration: underline; text-underline-offset: 3p
 }
 .site-footer__links a { color: var(--fg-soft); }
 .site-footer__copy { margin: 0; color: var(--fg-mute); font-size: 14px; }
+.site-footer__trademarks { margin: 4px 0 0; color: var(--fg-mute); font-size: 12px; line-height: 1.5; max-width: 70ch; }
 
 /* Prose pages (privacy / support) */
 .prose { padding: clamp(40px, 7vw, 80px) 0; }

@@ -34,6 +34,10 @@
 #   capture.sh --device 'iPhone 17 Pro Max'
 #   capture.sh --watch-device 'Apple Watch Series 10 (46mm)'
 #   capture.sh --skip-watch          # iPhone only (e.g. Watch sim unavailable)
+#   capture.sh --device 'iPad Pro 13-inch (M5)' --out-prefix ipad_ --no-captions --skip-watch
+#                                    # iPad pass: prefix keeps filenames from
+#                                    # colliding with the iPhone deck (fastlane
+#                                    # buckets by pixel size, not name)
 #
 # Captions are pulled from AppStore/<locale>.md → "Screenshot captions" →
 # "iPhone" table and baked into each iPhone screenshot by CaptionBanner.swift.
@@ -86,6 +90,12 @@ watch_device="$DEFAULT_WATCH_DEVICE"
 do_build=1
 captions=1
 skip_watch=0
+# Optional filename prefix for the iPhone-path output (e.g. "ipad_"). Lets a
+# second pass on an iPad simulator coexist with the iPhone deck in the same
+# locale folder without clobbering filenames — fastlane buckets by pixel
+# dimensions, not name, so `ipad_05_settings.png` at 2064×2752 lands in the
+# iPad bucket while `05_settings.png` at 1320×2868 stays in the 6.9" bucket.
+out_prefix=""
 # Fail fast on captions longer than this. 80 chars fits comfortably on three
 # lines at the heavy rounded 30pt used by CaptionBanner on a 6.9" screen;
 # anything longer starts shrinking below the minimumScaleFactor and looks
@@ -104,6 +114,7 @@ while [[ $# -gt 0 ]]; do
         --no-build) do_build=0; shift ;;
         --no-captions) captions=0; shift ;;
         --skip-watch) skip_watch=1; shift ;;
+        --out-prefix) out_prefix="$2"; shift 2 ;;
         -h|--help)
             sed -n '3,45p' "$0"
             exit 0
@@ -258,7 +269,7 @@ if [[ ${#iphone_scenes[@]} -gt 0 ]]; then
 
         for entry in "${iphone_scenes[@]}"; do
             IFS=':' read -r num name <<< "$entry"
-            out="$out_dir/${num}_${name}.png"
+            out="$out_dir/${out_prefix}${num}_${name}.png"
 
             caption=""
             if [[ "$captions" -eq 1 ]]; then

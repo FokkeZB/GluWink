@@ -163,7 +163,7 @@ platform :ios do
 
     # 1. Preconditions: clean working tree, on main or a release/* branch.
     ensure_git_status_clean
-    ensure_git_branch(branch: /^(main|release\/.+)$/)
+    ensure_git_branch(branch: '^(main|release/.+)$')
 
     # 2. Bump MARKETING_VERSION and CURRENT_PROJECT_VERSION, commit the bump
     #    before archiving so the binary and the tag share the same git SHA.

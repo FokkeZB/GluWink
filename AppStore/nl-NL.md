@@ -60,7 +60,9 @@ Voor volwassenen met diabetes type 1 die zichzelf managen:
 
 GluWink leest glucose en koolhydraten uit Apple Gezondheid. De meeste CGM-apps (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS en andere) schrijven hier al naartoe. Doet die van jou dat ook, dan is GluWink in één tik verbonden.
 
-Liever Nightscout? Verbind dan een Nightscout-site — handig als een ouder op afstand meekijkt, of als jouw diabetessysteem wel naar Nightscout schrijft maar niet naar Apple Gezondheid. Beide bronnen kunnen tegelijk aanstaan; de meest recente meting wint.
+Liever Nightscout? Verbind dan een Nightscout-site — handig als een ouder op afstand meekijkt, of als jouw diabetessysteem wel naar Nightscout schrijft maar niet naar Apple Gezondheid.
+
+Een Medtrum-pomp of -CGM? Verbind rechtstreeks met EasyView van Medtrum — voor patiënten én verzorgers die een patiënt volgen. Meerdere bronnen kunnen tegelijk aanstaan; de meest recente meting wint.
 
 Eerst even proberen? In de demo-modus zie je realistische glucose- en koolhydratenwaarden zonder sensor.
 
@@ -70,10 +72,8 @@ Eerst even proberen? In de demo-modus zie je realistische glucose- en koolhydrat
 • Drie-kleuren-signaal: groen (alles oké), oranje (check-in nodig), rood (kritiek hoog — schild blijft tot glucose daalt). Drempels stel je zelf in.
 • Widgets voor beginscherm, toegangsscherm en StandBy in alle formaten, met dezelfde drie aandachtskleuren.
 • Apple Watch-app en complicaties — glucose en koolhydraten op elke wijzerplaat.
-• Optionele glucosewaarde als badge op het app-icoon.
 • Instelbare drempels, intervallen en een dagelijkse koolhydraten-coulance (zodat ontbijtgranen om 7 uur 's ochtends geen alarm worden).
 • Apps altijd blokkeren, alleen bij aandacht, of helemaal niet — jij bepaalt.
-• Een korte cooldown na de check-in, zodat dat moment ook echt gebruikt wordt om iets te dóen.
 • Volledig in het Nederlands en Engels.
 
 — Eerlijk over wat GluWink niet is —
@@ -86,14 +86,14 @@ GluWink is open source. Je gegevens blijven op je toestel (via HealthKit) of op 
 
 Diabetes type 1 stopt nooit. Je telefoon hoeft daar niet aan mee te doen.
 ```
-*(~3,950 / 4000 — tight; trim iets voordat je nieuw feature-bullet toevoegt)*
+*(~3,932 / 4000 — tight; trim iets voordat je nieuw feature-bullet toevoegt)*
 
 ## Keywords (100)
 
 ```
-diabetes,type 1,t1d,glucose,cgm,dexcom,libre,nightscout,koolhydraten,kind,ouder,schermtijd,schild
+diabetes,type 1,glucose,cgm,dexcom,libre,nightscout,koolhydraten,ouder,schermtijd,schild,medtrum
 ```
-*(99 / 100)*
+*(96 / 100)*
 
 Opmerkingen:
 - Apple indexeert geen woorden uit de appnaam of categorie — laat die hier weg.
@@ -109,7 +109,7 @@ Hallo wereld.
 Dit is de eerste publieke release van GluWink. Probeer je het op de telefoon van je kind, op je eigen toestel, of gewoon om te zien wat het doet — bedankt. Open een issue of een discussie op GitHub als er iets niet voelt zoals het hoort.
 
 Hoogtepunten in 1.0:
-• Apple Gezondheid en Nightscout als gegevensbron, met optionele demo-modus.
+• Apple Gezondheid, Nightscout en EasyView van Medtrum als gegevensbron, met optionele demo-modus.
 • Vriendelijk check-in-schild met status in drie kleuren — groen, oranje en rood bij een kritieke hoge waarde.
 • Widgets voor beginscherm, toegangsscherm en StandBy.
 • Apple Watch-app en complicaties.
@@ -133,7 +133,7 @@ Scènevolgorde komt overeen met de tabel in `README.md` → Screenshots.
 | 4 | Glucose en koolhydraten op elk scherm. |
 | 5 | Stel alerts in, kies een bron, regel het schild — jouw keuze. |
 | 6 | Glucose en koolhydraten op elke wijzerplaat. |
-| 7 | Apple Gezondheid, Nightscout of demo — kies één. |
+| 7 | Apple Gezondheid, Nightscout, EasyView of demo. |
 
 ### Apple Watch (46mm)
 
