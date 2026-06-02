@@ -478,7 +478,9 @@ struct HomeView: View {
     }
 
     private func carbValueText(for content: ShieldContent) -> String {
-        "\(content.carbs.map { String($0.grams) } ?? "--") g"
+        guard let carbs = content.carbs else { return "--" }
+        if let grams = carbs.grams { return "\(grams) g" }
+        return String(localized: "home.carbsMealOnly")
     }
 
     private func relativeTimeText(from date: Date?, hasData: Bool, fallback: String) -> Text {

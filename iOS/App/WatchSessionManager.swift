@@ -92,7 +92,10 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
                 context["glucoseFetchedAt"] = glucoseReading.sampleAt.ISO8601Format()
             }
             if let carbsReading = data.currentCarbsReading {
-                context["lastCarbGrams"] = carbsReading.grams
+                // grams is Optional — only include the key when a gram count
+                // exists. The watch maps a missing / 0 grams value to nil,
+                // while still honoring lastCarbEntryAt for the grace-period check.
+                if let grams = carbsReading.grams { context["lastCarbGrams"] = grams }
                 context["lastCarbEntryAt"] = carbsReading.sampleAt.ISO8601Format()
             }
         }

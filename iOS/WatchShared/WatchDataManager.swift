@@ -117,9 +117,13 @@ enum WatchDataManager {
         defaults?.set(date.ISO8601Format(), forKey: "glucoseFetchedAt")
     }
 
-    static func storeCarbs(grams: Double, at date: Date, force: Bool = false) {
+    /// Store a carb or meal-acknowledgment sample. Pass `nil` for `grams`
+    /// when the source logged only that a meal occurred (no carb count).
+    /// 0 is stored as the sentinel value so `content(now:)` maps it back to
+    /// `lastCarbGrams: nil` via its existing `> 0` guard.
+    static func storeCarbs(grams: Double?, at date: Date, force: Bool = false) {
         if !force, let existing = lastCarbEntryAt, date <= existing { return }
-        defaults?.set(grams, forKey: "lastCarbGrams")
+        defaults?.set(grams ?? 0.0, forKey: "lastCarbGrams")
         defaults?.set(date.ISO8601Format(), forKey: "lastCarbEntryAt")
     }
 

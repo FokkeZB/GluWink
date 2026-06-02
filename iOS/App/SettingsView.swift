@@ -689,6 +689,9 @@ struct MockDataSettingsView: View {
     @State private var mockGlucose: Double
     @State private var glucoseDate: Date
     @State private var hasCarbData: Bool
+    /// When true, the demo entry is a meal acknowledgment with no gram count
+    /// (simulates an EasyView `auto_mode_event` or similar meal-only marker).
+    @State private var mealOnly: Bool
     @State private var mockCarbGrams: Double
     @State private var carbDate: Date
 
@@ -709,7 +712,8 @@ struct MockDataSettingsView: View {
         _mockGlucose = State(initialValue: u.displayValue(demoGlucose?.mmol ?? 6.4))
         _glucoseDate = State(initialValue: demoGlucose?.sampleAt ?? Date().addingTimeInterval(-5 * 60))
         _hasCarbData = State(initialValue: demoCarbs != nil)
-        _mockCarbGrams = State(initialValue: demoCarbs?.grams ?? 20)
+        _mealOnly = State(initialValue: demoCarbs?.grams == nil)
+        _mockCarbGrams = State(initialValue: demoCarbs?.grams ?? 20.0)
         _carbDate = State(initialValue: demoCarbs?.sampleAt ?? Date().addingTimeInterval(-120 * 60))
     }
 
@@ -723,6 +727,7 @@ struct MockDataSettingsView: View {
                         if newValue && !hasGlucoseData && !hasCarbData {
                             hasGlucoseData = true
                             hasCarbData = true
+                            mealOnly = false
                             mockGlucose = unit.displayValue(6.4)
                             glucoseDate = Date().addingTimeInterval(-5 * 60)
                             mockCarbGrams = 20
@@ -773,9 +778,18 @@ struct MockDataSettingsView: View {
                         }
                     ))
                     if hasCarbData {
-                        HStack {
-                            Slider(value: $mockCarbGrams, in: 0...100, step: 1)
-                            Text("\(Int(mockCarbGrams))g").monospacedDigit()
+                        Toggle(String(localized: "settings.demoMealOnly"), isOn: Binding(
+                            get: { mealOnly },
+                            set: { newValue in
+                                mealOnly = newValue
+                                saveMockData()
+                            }
+                        ))
+                        if !mealOnly {
+                            HStack {
+                                Slider(value: $mockCarbGrams, in: 1...200, step: 1)
+                                Text("\(Int(mockCarbGrams))g").monospacedDigit()
+                            }
                         }
                         DatePicker(
                             String(localized: "settings.demoAt"),
@@ -812,7 +826,7 @@ struct MockDataSettingsView: View {
             }
 
             if hasCarbData {
-                data.saveDemoCarbs(grams: mockCarbGrams, at: carbDate)
+                data.saveDemoCarbs(grams: mealOnly ? nil : mockCarbGrams, at: carbDate)
             } else {
                 data.clearDemoCarbs()
             }
@@ -978,7 +992,7 @@ struct NightscoutSettingsView: View {
                 )
                 latestSampleRow(
                     label: String(localized: "settings.nightscoutLatestCarbs"),
-                    value: latestCarbs.map { "\(Int($0.grams)) g" },
+                    value: latestCarbs.map { $0.grams.map { "\(Int($0)) g" } ?? "·" },
                     at: latestCarbs?.sampleAt,
                     emptyMessage: String(localized: "settings.nightscoutNoCarbsYet")
                 )
@@ -1264,7 +1278,7 @@ struct EasyViewSettingsView: View {
                 )
                 latestSampleRow(
                     label: String(localized: "settings.easyViewLatestCarbs"),
-                    value: latestCarbs.map { "\(Int($0.grams)) g" },
+                    value: latestCarbs.map { $0.grams.map { "\(Int($0)) g" } ?? "·" },
                     at: latestCarbs?.sampleAt,
                     emptyMessage: String(localized: "settings.easyViewNoCarbsYet")
                 )

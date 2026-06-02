@@ -31,7 +31,7 @@ private func metricValue(_ entry: WatchEntry) -> String {
     case .glucose:
         return entry.content.glucose?.formatted ?? "--"
     case .carbs:
-        return entry.content.carbs.map { String($0.grams) } ?? "--"
+        return entry.content.carbs.map { $0.grams.map { String($0) } ?? "·" } ?? "--"
     }
 }
 
@@ -143,7 +143,7 @@ struct WatchRectangularEntryView: View {
     var body: some View {
         let content = entry.content
         let glucoseText = content.glucose?.formatted ?? "--"
-        let carbsText = content.carbs.map { String($0.grams) } ?? "--"
+        let carbsText = content.carbs.map { $0.grams.map { String($0) } ?? "·" } ?? "--"
 
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 4) {

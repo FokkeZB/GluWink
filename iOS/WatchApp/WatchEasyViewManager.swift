@@ -91,7 +91,11 @@ final class WatchEasyViewManager {
             }
             if let entry = latest.carbs {
                 WatchDataManager.storeCarbs(grams: entry.grams, at: entry.date)
-                logger.info("Watch EasyView carbs: \(String(format: "%.0f", entry.grams))g")
+                if let g = entry.grams {
+                    logger.info("Watch EasyView carbs: \(String(format: "%.0f", g))g")
+                } else {
+                    logger.info("Watch EasyView meal event (no gram count) at \(entry.date)")
+                }
             }
         } catch EasyViewClient.ClientError.sessionExpired {
             logger.warning("Watch EasyView session expired — phone will refresh on next foreground")

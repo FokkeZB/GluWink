@@ -39,6 +39,7 @@
 "shield.glucose %@ %@ %@" = "%@ · %@ (%@)";
 "shield.glucoseNoData" = "Geen glucosedata";
 "shield.carbsEntry %d %@ %@" = "%d g · %@ (%@)";
+"shield.carbsMealOnly %@ %@" = "Maaltijd · %@ (%@)";
 "shield.carbsNoData" = "Geen KH-data";
 "shield.agoMinutes %d" = "%dm";
 "shield.agoHoursMinutes %d %d" = "%du %dm";

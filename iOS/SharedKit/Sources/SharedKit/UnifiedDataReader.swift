@@ -68,11 +68,13 @@ public struct GlucoseReading: Sendable, Equatable {
 }
 
 public struct CarbsReading: Sendable, Equatable {
-    public let grams: Double
+    /// Gram count of the carb entry, or `nil` when the source logged a meal
+    /// acknowledgment without a carb amount (e.g. EasyView `auto_mode_event`).
+    public let grams: Double?
     public let sampleAt: Date
     public let source: DataSource
 
-    public init(grams: Double, sampleAt: Date, source: DataSource) {
+    public init(grams: Double?, sampleAt: Date, source: DataSource) {
         self.grams = grams
         self.sampleAt = sampleAt
         self.source = source
@@ -166,9 +168,14 @@ public enum UnifiedDataReader {
 
     public static func carbsReading(source: DataSource, from defaults: UserDefaults?) -> CarbsReading? {
         guard let defaults else { return nil }
+        // The date key is the authoritative sentinel: if it's present an entry
+        // was recorded. The value key holds grams when > 0, or 0 when the
+        // source logged a meal acknowledgment without a carb count (e.g.
+        // EasyView auto_mode_event). In the latter case grams is nil.
+        guard let date = defaults.iso8601(forKey: carbsDateKey(for: source)) else { return nil }
         let value = defaults.double(forKey: carbsValueKey(for: source))
-        guard value > 0, let date = defaults.iso8601(forKey: carbsDateKey(for: source)) else { return nil }
-        return CarbsReading(grams: value, sampleAt: date, source: source)
+        let grams: Double? = value > 0 ? value : nil
+        return CarbsReading(grams: grams, sampleAt: date, source: source)
     }
 
     public static func glucoseValueKey(for source: DataSource) -> String {

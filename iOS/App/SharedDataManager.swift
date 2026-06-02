@@ -81,11 +81,15 @@ final class SharedDataManager {
         saveCarbs(source: .nightscout, grams: grams, at: date, force: force)
     }
 
-    func saveEasyViewCarbs(grams: Double, at date: Date, force: Bool = false) {
+    /// Save an EasyView carb or meal-acknowledgment entry. Pass `nil` for
+    /// `grams` when the source logged only that a meal occurred (no carb count).
+    func saveEasyViewCarbs(grams: Double?, at date: Date, force: Bool = false) {
         saveCarbs(source: .easyView, grams: grams, at: date, force: force)
     }
 
-    func saveDemoCarbs(grams: Double, at date: Date, force: Bool = true) {
+    /// Save a demo carb or meal-acknowledgment entry. Pass `nil` for `grams`
+    /// to simulate a meal marker without a gram count.
+    func saveDemoCarbs(grams: Double?, at date: Date, force: Bool = true) {
         saveCarbs(source: .demo, grams: grams, at: date, force: force)
     }
 
@@ -124,13 +128,16 @@ final class SharedDataManager {
         defaults?.set(date.ISO8601Format(), forKey: dateKey)
     }
 
-    private func saveCarbs(source: DataSource, grams: Double, at date: Date, force: Bool) {
+    private func saveCarbs(source: DataSource, grams: Double?, at date: Date, force: Bool) {
         let valueKey = UnifiedDataReader.carbsValueKey(for: source)
         let dateKey = UnifiedDataReader.carbsDateKey(for: source)
         if !force, let existingIso = defaults?.string(forKey: dateKey),
            let existing = ISO8601DateFormatter().date(from: existingIso),
            date <= existing { return }
-        defaults?.set(grams, forKey: valueKey)
+        // Store 0 as the sentinel for "meal acknowledged, no gram count".
+        // UnifiedDataReader.carbsReading checks the date key for presence and
+        // maps value == 0 back to grams: nil.
+        defaults?.set(grams ?? 0.0, forKey: valueKey)
         defaults?.set(date.ISO8601Format(), forKey: dateKey)
     }
 

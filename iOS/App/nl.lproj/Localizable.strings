@@ -3,6 +3,9 @@
 "setup.passphraseConfirmField" = "Bevestig wachtwoord";
 "setup.passphraseMismatch" = "Wachtwoorden komen niet overeen.";
 
+/* Home - Status */
+"home.carbsMealOnly" = "Maaltijd";
+
 /* Home - Welkom */
 "home.welcome.title %@" = "Welkom bij %@";
 "home.welcome.tagline %@" = "Verander je iPhone en Apple Watch van je grootste afleider in je beste hulpmiddel. Glucose en koolhydraten overal zichtbaar. Apps blokkeren als iets je aandacht vraagt.";
@@ -99,6 +102,7 @@
 "settings.demoHasData" = "Heeft data";
 "settings.demoGlucose" = "Glucose";
 "settings.demoCarbs" = "Koolhydraten";
+"settings.demoMealOnly" = "Geen grammen (alleen maaltijdmelding)";
 "settings.demoAt" = "Op";
 "settings.setPassphrase" = "Wachtwoord Instellen";
 "settings.changePassphrase" = "Wachtwoord Wijzigen";

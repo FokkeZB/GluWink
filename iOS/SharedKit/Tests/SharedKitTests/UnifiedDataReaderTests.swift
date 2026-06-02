@@ -61,7 +61,35 @@ final class UnifiedDataReaderTests: XCTestCase {
 
         let reading = UnifiedDataReader.currentCarbsReading(from: defaults)
         XCTAssertEqual(reading?.source, .demo)
-        XCTAssertEqual(reading?.grams, 30)
+        XCTAssertEqual(reading?.grams, 30.0)
+    }
+
+    // MARK: - Meal-only entries (grams == nil)
+
+    /// A stored date with value == 0 represents a meal-acknowledgment without
+    /// a gram count (e.g. EasyView `auto_mode_event`). The reader must return
+    /// a non-nil `CarbsReading` with `grams: nil`.
+    func testMealOnlyEntryReturnsReadingWithNilGrams() {
+        defaults.set(true, forKey: DataSourceKeys.easyViewEnabled)
+        writeCarbs(source: .easyView, value: 0, minutesAgo: 30)
+
+        let reading = UnifiedDataReader.currentCarbsReading(from: defaults)
+        XCTAssertNotNil(reading, "A stored date with 0g value must still produce a reading")
+        XCTAssertNil(reading?.grams, "0g stored value must map to grams: nil")
+        XCTAssertEqual(reading?.source, .easyView)
+    }
+
+    /// A meal-only entry still participates in the freshness competition.
+    func testMealOnlyEntryWinsWhenFresherThanGramEntry() {
+        defaults.set(true, forKey: DataSourceKeys.easyViewEnabled)
+        defaults.set(true, forKey: DataSourceKeys.nightscoutEnabled)
+
+        writeCarbs(source: .easyView, value: 0, minutesAgo: 30)   // meal-only, recent
+        writeCarbs(source: .nightscout, value: 25, minutesAgo: 60) // gram entry, older
+
+        let reading = UnifiedDataReader.currentCarbsReading(from: defaults)
+        XCTAssertEqual(reading?.source, .easyView)
+        XCTAssertNil(reading?.grams)
     }
 
     func testDemoModeReturnsNilWhenDemoHasNoStoredGlucose() {

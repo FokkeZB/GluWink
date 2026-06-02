@@ -169,7 +169,7 @@ private func widgetGlucoseValue(_ c: ShieldContent) -> String {
 }
 
 private func widgetCarbsValue(_ c: ShieldContent) -> String {
-    c.carbs.map { "\($0.grams)" } ?? "--"
+    c.carbs.map { $0.grams.map { "\($0)" } ?? "·" } ?? "--"
 }
 
 // MARK: - Small tile

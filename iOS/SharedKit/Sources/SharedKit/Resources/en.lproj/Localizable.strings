@@ -39,6 +39,7 @@
 "shield.glucose %@ %@ %@" = "%@ · %@ (%@)";
 "shield.glucoseNoData" = "No glucose data";
 "shield.carbsEntry %d %@ %@" = "%d g · %@ (%@)";
+"shield.carbsMealOnly %@ %@" = "Meal · %@ (%@)";
 "shield.carbsNoData" = "No carb data";
 "shield.agoMinutes %d" = "%dm ago";
 "shield.agoHoursMinutes %d %d" = "%dh %dm ago";

@@ -84,7 +84,7 @@ public enum WidgetEasyViewRefresh {
                 defaults: defaults,
                 valueKey: UnifiedDataReader.carbsValueKey(for: .easyView),
                 dateKey: UnifiedDataReader.carbsDateKey(for: .easyView),
-                value: carbs.grams,
+                value: carbs.grams ?? 0.0,
                 date: carbs.date
             )
         }

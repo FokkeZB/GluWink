@@ -20,6 +20,7 @@ final class ShieldContentAttentionTests: XCTestCase {
         glucose: "%@ · %@ (%@ ago)",
         glucoseNoData: "No glucose data",
         carbsEntry: "%d g · %@ (%@ ago)",
+        carbsMealOnly: "Meal · %@ (%@ ago)",
         carbsNoData: "No carb data",
         agoMinutes: "%dm",
         agoHoursMinutes: "%dh %dm",
@@ -75,6 +76,22 @@ final class ShieldContentAttentionTests: XCTestCase {
     }
 
     // MARK: - Attention (the badge must match these)
+
+    /// A meal acknowledgment without a gram count (lastCarbEntryAt set but
+    /// lastCarbGrams nil) must NOT fire `.noCarbData`. The child told the
+    /// system they ate — GluWink must respect that signal.
+    func testMealOnlyEntryIsNotNoCarbData() {
+        let now = morning
+        let content = make(
+            glucoseFetchedAt: now.addingTimeInterval(-5 * 60),
+            lastCarbGrams: nil,
+            lastCarbEntryAt: now.addingTimeInterval(-30 * 60),
+            now: now
+        )
+        XCTAssertFalse(content.needsAttention, "meal-only entry within grace window must not need attention")
+        XCTAssertNotNil(content.carbs, "carbs must be non-nil when a date is present, even without grams")
+        XCTAssertNil(content.carbs?.grams, "carbs.grams must be nil when no gram count was recorded")
+    }
 
     func testNoCarbDataEverIsAttention() {
         let now = morning
