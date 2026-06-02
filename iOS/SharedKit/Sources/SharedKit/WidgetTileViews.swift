@@ -172,6 +172,12 @@ private func widgetCarbsValue(_ c: ShieldContent) -> String {
     c.carbs.map { $0.grams.map { "\($0)" } ?? "·" } ?? "--"
 }
 
+/// Returns "g" when a gram count is available, empty string for meal-only
+/// entries so the unit label doesn't appear next to the "·" placeholder.
+private func widgetCarbsUnit(_ c: ShieldContent) -> String {
+    c.carbs?.grams != nil ? "g" : ""
+}
+
 // MARK: - Small tile
 
 public struct SmallWidgetTile: View {
@@ -202,7 +208,7 @@ public struct SmallWidgetTile: View {
 
             widgetValueWithUnit(
                 value: widgetCarbsValue(c),
-                unit: "g",
+                unit: widgetCarbsUnit(c),
                 valueFont: .system(.title, design: .rounded).bold(),
                 unitFont: .system(.caption, design: .rounded).weight(.semibold)
             )
@@ -253,7 +259,7 @@ public struct MediumWidgetTile: View {
             VStack(alignment: .leading, spacing: 4) {
                 widgetValueWithUnit(
                     value: widgetCarbsValue(c),
-                    unit: "g",
+                    unit: widgetCarbsUnit(c),
                     valueFont: .system(size: 44, weight: .bold, design: .rounded),
                     unitFont: .system(size: 18, weight: .semibold, design: .rounded)
                 )
@@ -305,7 +311,7 @@ public struct AccessoryCircularTile: View {
                 .font(.system(.title2, design: .rounded).bold())
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
-            Text(forGlucose ? c.glucoseUnit.shortLabel : "g")
+            Text(forGlucose ? c.glucoseUnit.shortLabel : widgetCarbsUnit(c))
                 .font(.system(.caption, design: .rounded))
         }
         .multilineTextAlignment(.center)
@@ -350,7 +356,7 @@ public struct AccessoryRectangularTile: View {
                 HStack(spacing: 2) {
                     Text(widgetCarbsValue(c))
                         .font(.system(.headline, design: .rounded).bold())
-                    Text("g")
+                    Text(widgetCarbsUnit(c))
                         .font(.caption2)
                 }
                 .lineLimit(1)
@@ -386,7 +392,7 @@ public struct AccessoryInlineTile: View {
         // because the bare number reads as ambiguous.
         let text: String = forGlucose
             ? (c.glucose?.formatted ?? "--")
-            : "\(widgetCarbsValue(c))g"
+            : "\(widgetCarbsValue(c))\(widgetCarbsUnit(c))"
         Label(text, systemImage: icon)
     }
 }
