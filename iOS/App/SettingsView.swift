@@ -181,6 +181,14 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    NavigationLink {
+                        MedicalInfoView()
+                    } label: {
+                        Label(String(localized: "settings.medicalInfoRow"), systemImage: "cross.circle")
+                    }
+                }
+
+                Section {
                     Button(role: .destructive) {
                         showResetAlert = true
                     } label: {
@@ -372,7 +380,7 @@ struct AttentionRulesSettingsView: View {
             } header: {
                 Text(String(localized: "settings.glucoseHeader \(unit.label)"))
             } footer: {
-                Text("settings.criticalThresholdFooter", tableName: "Localizable")
+                Text("settings.thresholdsFooter", tableName: "Localizable")
             }
 
             Section {

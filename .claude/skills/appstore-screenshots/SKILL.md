@@ -82,6 +82,8 @@ The script writes to `iOS/fastlane/screenshots/<locale>/<NN>_<scene>.png` (flat 
 ## Workflow
 
 1. **Capture.** Run the script with no args. Use `--no-build` if a fresh `xcodebuild` already happened in this session.
+   - Before running, confirm only the target iPhone simulator is booted: `xcrun simctl list devices booted`. If any other simulator (iPad, Watch, etc.) is listed as `Booted`, shut it down with `xcrun simctl shutdown <UDID>` — `simctl io booted screenshot` captures the wrong device when multiple simulators are booted simultaneously. The capture script boots iPhone and Watch in sequence and always leaves both running after the run; shut down the Watch before a subsequent iPhone-only pass.
+1a. **Sync to the marketing site.** After a successful capture run, always run `make docs-sync-screenshots` to copy the curated subset into `docs/assets/screenshots/`. Do this even if you used `capture.sh` directly instead of `make appstore-screenshots` (which does both steps in one go).
 2. **Review every PNG.** Read each file in the agent client and check:
    - Status bar reads `9:41`, full bars, full battery (charged charging glyph).
    - Glucose / carb numbers match the harness presets (greenShield: 6.4 mmol/L + 25 g; orangeShield: 14.8 mmol/L + 30 g; redShield: 21.2 mmol/L — critical, above the 20.0 default). English locales display as mg/dL, everything else as mmol/L.
@@ -115,6 +117,8 @@ Repeat until the title reads well in marketing context.
 | Symptom | Cause | Fix |
 |---|---|---|
 | `CoreSimulatorService connection became invalid` | simctl can't talk to the host service | Run any `xcrun simctl …` once outside the agent sandbox; opening Xcode also fixes it |
+| Screenshots are iPad-sized (e.g. 2064×2752 instead of 1320×2868) | An iPad or other simulator was booted alongside the iPhone — `simctl io booted` grabbed it | `xcrun simctl list devices booted`, then `xcrun simctl shutdown <UDID>` for any non-iPhone device, then rerun capture with `--no-build` |
+| Marketing site screenshots are stale after a capture run | `docs-sync-screenshots` was not run after the capture | `make docs-sync-screenshots` (or just use `make appstore-screenshots` which does both) |
 | Captures show wrong language | `-AppleLanguages` ignored by some screens | Confirm the locale file exists in the iOS bundle (`iOS/App/<lang>.lproj/`) |
 | `SetupChecklistCard` showing on greenShield / orangeShield / redShield | Build is stale (harness fix not yet compiled) | Drop `--no-build` and rerun |
 | `redShield` shows a "Continue" / check-in button | Glucose preset fell below the critical threshold (e.g. a preset edit, or a lowered threshold) | Confirm `ScreenshotHarness.redShield.glucose` is ≥ `CriticalGlucoseThreshold.default` and rerun |
