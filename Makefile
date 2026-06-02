@@ -121,7 +121,7 @@ appstore-pull:
 ## the curated subset into docs/assets/screenshots/ so the marketing site
 ## stays in lock-step. CI fails (.github/workflows/screenshots-sync-
 ## check.yml) if the two drift.
-appstore-screenshots: _capture-screenshots docs-sync-screenshots
+appstore-screenshots: _capture-screenshots docs-sync-screenshots docs-og-images
 
 _capture-screenshots:
 	bash .claude/skills/appstore-screenshots/scripts/capture.sh
