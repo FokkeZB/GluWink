@@ -6,21 +6,23 @@
 
 <p align="center"><strong>Make your iPhone and Apple Watch a tool for diabetes — not a distraction from it.</strong></p>
 
-GluWink shields the apps on your phone until you've checked in on your glucose. Glucose and carbs everywhere — Home Screen, Lock Screen, StandBy, every Apple Watch face. A friendly green face when things look good, a red one when something needs your attention. Other apps stay blocked until you've done the diabetes thing.
+GluWink shields the apps on your phone until you've checked in on your glucose. Glucose and carbs everywhere — Home Screen, Lock Screen, StandBy, every Apple Watch face. A friendly green face when things look good, orange when something needs your attention, red when glucose is critically high. Other apps stay blocked until you've done the diabetes thing.
 
 It's open source. Your data stays on your device (HealthKit) or on the Nightscout site you control. No accounts, no servers we run, no analytics, no ads.
 
 ## What it does
 
 1. **Glucose and carbs visible everywhere.** Widgets in every size for Home Screen, Lock Screen and StandBy. Complications on every watch face. An optional glucose number on the app icon badge.
-2. **Clear status at a glance.** Green = looks good. Red = needs attention (high/low glucose, stale sensor, missing carb entry). Same simple language across the app, widgets, and watch.
+2. **Clear status at a glance.** Green = all clear. Orange = needs attention (high/low glucose, stale sensor, missing carb entry). Red = critical high — the shield cannot be dismissed until glucose drops. Same simple language across the app, widgets, and watch.
 
    <p>
      <img src="icons/iOS-green.png" alt="Green status icon" width="80" />
      &nbsp;
+     <img src="icons/iOS-orange.png" alt="Orange status icon" width="80" />
+     &nbsp;
      <img src="icons/iOS-red.png" alt="Red status icon" width="80" />
    </p>
-3. **Optional app blocking.** Block other apps at configurable intervals — always, or only when something needs your attention. When blocking is on and the face is red, GluWink locks other apps until you check in. Otherwise, your phone is just your phone.
+3. **Optional app blocking.** Block other apps at configurable intervals — always, or only when something needs your attention. When blocking is on and the face is orange or red, GluWink locks other apps until you check in. Otherwise, your phone is just your phone.
 
 ## Who it's for
 
@@ -32,7 +34,11 @@ It's open source. Your data stays on your device (HealthKit) or on the Nightscou
 
 **Apple Health.** Most CGM apps (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS, and others) already write glucose and carbs to Apple Health. If yours does, GluWink is a one-tap connection.
 
-**Nightscout.** Connect a Nightscout site instead — handy when a parent monitors a child remotely, or when your diabetes system writes to Nightscout but not Apple Health. Both sources can be on at the same time; the most recent reading wins.
+**Nightscout.** Connect a Nightscout site instead — handy when a parent monitors a child remotely, or when your diabetes system writes to Nightscout but not Apple Health.
+
+**EasyView.** For Medtrum CGM users, GluWink can connect directly to the EasyView cloud.
+
+Multiple sources can be on at the same time; the most recent reading wins.
 
 **Demo mode.** Want to try the app without a sensor? Demo mode shows realistic glucose and carb data.
 
@@ -42,14 +48,14 @@ GluWink is **not a medical device.** It does not replace your CGM, your pump, yo
 
 ## Install
 
-GluWink targets the App Store. Until that's published, build it yourself — see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the iOS setup walkthrough.
+GluWink is available on the App Store. You can also build it yourself from source — see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the iOS setup walkthrough.
 
 Requirements:
 
 - macOS with Xcode 15+
 - A physical iPhone (Screen Time APIs don't work in the Simulator)
 - An Apple Developer account (free or paid) for code signing
-- A CGM that writes to Apple Health, **or** a Nightscout site, **or** Demo mode
+- A CGM that writes to Apple Health, **or** a Nightscout site, **or** an EasyView account, **or** Demo mode
 
 ## How it works
 
