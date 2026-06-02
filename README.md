@@ -6,6 +6,8 @@
 
 <p align="center"><strong>Make your iPhone and Apple Watch a tool for diabetes — not a distraction from it.</strong></p>
 
+<p align="center"><a href="https://gluwink.app">gluwink.app</a></p>
+
 GluWink shields the apps on your phone until you've checked in on your glucose. Glucose and carbs everywhere — Home Screen, Lock Screen, StandBy, every Apple Watch face. A friendly green face when things look good, orange when something needs your attention, red when glucose is critically high. Other apps stay blocked until you've done the diabetes thing.
 
 It's open source. Your data stays on your device (HealthKit) or on the Nightscout site you control. No accounts, no servers we run, no analytics, no ads.
