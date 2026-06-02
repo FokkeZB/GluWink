@@ -2,9 +2,16 @@ XCODE_PROJECT := iOS/App.xcodeproj
 SCHEME := App
 # `devicectl list devices` reports state as `available (paired)` / `unavailable`
 # on Xcode 16+; the older `connected` keyword is gone. Filter on `iPhone` AND
-# `available` so we ignore paired Apple Watches and offline iPhones, then pick
-# the first UUID-shaped field on the matching line.
-DEVICE_ID = $(shell xcrun devicectl list devices 2>/dev/null | awk '/iPhone/ && /available/ {for(i=1;i<=NF;i++) if($$i ~ /^[0-9A-F].*-/) {print $$i; exit}}')
+# `available` so we ignore paired Apple Watches and offline iPhones. When
+# multiple iPhones are connected (e.g. a child's test device) prefer
+# "iPhone Fokke" so we never accidentally deploy to the wrong device.
+# Falls back to the first available iPhone if that name isn't found.
+# Override on the command line: make install DEVICE_ID=<uuid>
+DEVICE_ID = $(shell xcrun devicectl list devices 2>/dev/null | awk ' \
+  /iPhone Fokke/ && /available/ { for(i=1;i<=NF;i++) if($$i ~ /^[0-9A-F]{8}-/) { preferred=$$i } } \
+  /iPhone/ && /available/ { for(i=1;i<=NF;i++) if($$i ~ /^[0-9A-F]{8}-/ && !fallback) { fallback=$$i } } \
+  END { print (preferred ? preferred : fallback) } \
+')
 DERIVED_DATA := $(HOME)/Library/Developer/Xcode/DerivedData
 # Lazy assignment (`=`) so APP_PATH is re-evaluated at recipe time — this matters
 # for `make deploy: build install`, otherwise APP_PATH is resolved before `build`
