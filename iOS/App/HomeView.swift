@@ -374,38 +374,56 @@ struct HomeView: View {
 
     @ViewBuilder
     private func statusSummaryView(content: ShieldContent) -> some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: "drop.fill")
-                    .foregroundStyle(.secondary)
-                Text(glucoseValueText(for: content))
-                    .font(.subheadline.weight(.semibold))
-                Text("•")
-                    .foregroundStyle(.tertiary)
-                relativeTimeText(from: glucoseDate, hasData: content.glucose != nil, fallback: strings.glucoseNoData)
-                    .font(.subheadline)
-                if content.glucose != nil, glucoseDate != nil {
-                    Text("•")
-                        .foregroundStyle(.tertiary)
-                    absoluteTimeText(from: glucoseDate, hasData: true)
+        VStack(spacing: 20) {
+            VStack(spacing: 4) {
+                HStack(spacing: 8) {
+                    Image(systemName: "drop.fill")
+                        .foregroundStyle(.secondary)
+                    Text(glucoseValueText(for: content))
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(Color(.label))
+                }
+                HStack(spacing: 6) {
+                    relativeTimeText(from: glucoseDate, hasData: content.glucose != nil, fallback: strings.glucoseNoData)
                         .font(.subheadline)
+                    if content.glucose != nil, glucoseDate != nil {
+                        Text("•")
+                            .foregroundStyle(.tertiary)
+                        absoluteTimeText(from: glucoseDate, hasData: true)
+                            .font(.subheadline)
+                    }
+                    if let source = glucoseSource, content.glucose != nil {
+                        Text("•")
+                            .foregroundStyle(.tertiary)
+                        Text(source.displayName)
+                            .font(.subheadline)
+                    }
                 }
             }
 
-            HStack(spacing: 8) {
-                Image(systemName: "fork.knife")
-                    .foregroundStyle(.secondary)
-                Text(carbValueText(for: content))
-                    .font(.subheadline.weight(.semibold))
-                Text("•")
-                    .foregroundStyle(.tertiary)
-                relativeTimeText(from: carbDate, hasData: content.carbs != nil, fallback: strings.carbsNoData)
-                    .font(.subheadline)
-                if content.carbs != nil, carbDate != nil {
-                    Text("•")
-                        .foregroundStyle(.tertiary)
-                    absoluteTimeText(from: carbDate, hasData: true)
+            VStack(spacing: 4) {
+                HStack(spacing: 8) {
+                    Image(systemName: "fork.knife")
+                        .foregroundStyle(.secondary)
+                    Text(carbValueText(for: content))
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(Color(.label))
+                }
+                HStack(spacing: 6) {
+                    relativeTimeText(from: carbDate, hasData: content.carbs != nil, fallback: strings.carbsNoData)
                         .font(.subheadline)
+                    if content.carbs != nil, carbDate != nil {
+                        Text("•")
+                            .foregroundStyle(.tertiary)
+                        absoluteTimeText(from: carbDate, hasData: true)
+                            .font(.subheadline)
+                    }
+                    if let source = carbsSource, content.carbs != nil {
+                        Text("•")
+                            .foregroundStyle(.tertiary)
+                        Text(source.displayName)
+                            .font(.subheadline)
+                    }
                 }
             }
         }
@@ -436,6 +454,22 @@ struct HomeView: View {
         return hasCarbData ? now.addingTimeInterval(-carbMinutesAgo * 60) : nil
         #else
         return SharedDataManager.shared.currentCarbsReading?.sampleAt
+        #endif
+    }
+
+    private var glucoseSource: DataSource? {
+        #if targetEnvironment(simulator)
+        return nil
+        #else
+        return SharedDataManager.shared.currentGlucoseReading?.source
+        #endif
+    }
+
+    private var carbsSource: DataSource? {
+        #if targetEnvironment(simulator)
+        return nil
+        #else
+        return SharedDataManager.shared.currentCarbsReading?.source
         #endif
     }
 

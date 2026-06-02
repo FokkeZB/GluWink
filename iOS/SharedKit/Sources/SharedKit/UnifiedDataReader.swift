@@ -12,6 +12,15 @@ public enum DataSource: String, Sendable, CaseIterable {
     case nightscout
     case easyView
     case demo
+
+    public var displayName: String {
+        switch self {
+        case .healthKit: String(localized: "dataSource.healthKit", bundle: .module)
+        case .nightscout: String(localized: "dataSource.nightscout", bundle: .module)
+        case .easyView: String(localized: "dataSource.easyView", bundle: .module)
+        case .demo: String(localized: "dataSource.demo", bundle: .module)
+        }
+    }
 }
 
 /// Centralised key strings for everything tied to the per-source data

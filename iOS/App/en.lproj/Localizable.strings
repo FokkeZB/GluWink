@@ -71,6 +71,7 @@
 "settings.highThreshold" = "High";
 "settings.criticalThreshold" = "Critical";
 "settings.criticalThresholdFooter" = "At or above this value, the shield cannot be dismissed — the child must treat the high glucose first. Must be greater than the High threshold.";
+"settings.thresholdsFooter" = "At or above Critical, the shield cannot be dismissed until glucose drops. Default values are starting points — configure them with your diabetes care team. See Medical Information in Settings.";
 "settings.criticalValidationError" = "Critical must be above High. Raise Critical (or lower High) to continue.";
 "settings.lowThreshold" = "Low";
 "settings.dataHeader" = "Data Staleness";
@@ -186,6 +187,19 @@
 /* Setup Checklist — EasyView */
 "setup.checklist.connectEasyView" = "Connect EasyView";
 "setup.checklist.connectEasyView.subtitle" = "For CGM systems using the EasyView cloud.";
+
+/* Medical Information */
+"settings.medicalInfoRow" = "Medical Information";
+"medicalInfo.title" = "Medical Information";
+"medicalInfo.notADeviceHeader" = "Not a Medical Device";
+"medicalInfo.notADevice" = "GluWink is not a medical device and does not provide medical advice. It is a tool that helps keep diabetes management visible and front of mind.";
+"medicalInfo.dataSourcesHeader" = "Where Your Data Comes From";
+"medicalInfo.dataSources" = "Glucose and carb values are read directly from your configured source — Apple Health, Nightscout, or EasyView. GluWink displays what your CGM system reports. It does not generate, interpret, or validate these values.";
+"medicalInfo.thresholdsHeader" = "About Thresholds";
+"medicalInfo.thresholds" = "The High, Low, and Critical glucose thresholds are fully configurable by you. The app ships with starting-point defaults, not clinical targets. Ask your diabetes care team which values are right for you or your child.";
+"medicalInfo.adviceHeader" = "Always Consult Your Care Team";
+"medicalInfo.careTeam" = "Always follow your diabetes care team's advice before making any treatment decision. This app does not replace your endocrinologist, diabetes nurse, or CGM system.";
+"medicalInfo.emergency" = "In an emergency, call emergency services immediately.";
 
 /* Check-In Flow */
 "checkin.disarmButton" = "All Done";
