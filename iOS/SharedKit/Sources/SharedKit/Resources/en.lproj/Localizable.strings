@@ -78,3 +78,6 @@
 "widget.noData" = "No data";
 /* Suffix around a DateComponentsFormatter duration (e.g. "3 min" or "1 hr, 30 min") for the simulator-only screenshot showcase. Production widgets use SwiftUI's auto-updating Text(date, style: .relative) instead. */
 "widget.relative.ago %@" = "%@ ago";
+/* Unit labels for the meal-only carb age displayed in the circular/inline lock screen widget */
+"widget.carbsMeal.minuteUnit" = "min";
+"widget.carbsMeal.hourUnit" = "hour";
