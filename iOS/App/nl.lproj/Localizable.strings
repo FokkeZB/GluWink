@@ -102,7 +102,7 @@
 "settings.demoHasData" = "Heeft data";
 "settings.demoGlucose" = "Glucose";
 "settings.demoCarbs" = "Koolhydraten";
-"settings.demoMealOnly" = "Geen grammen (alleen maaltijdmelding)";
+"settings.demoMealLabel" = "Maaltijdlabel (optioneel)";
 "settings.demoAt" = "Op";
 "settings.setPassphrase" = "Wachtwoord Instellen";
 "settings.changePassphrase" = "Wachtwoord Wijzigen";

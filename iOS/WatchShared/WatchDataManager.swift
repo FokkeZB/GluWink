@@ -32,6 +32,12 @@ enum WatchDataManager {
         let lastCarbGrams = bridgeMockDouble(forKey: "lastCarbGrams", bridge: bridgeContext)
             ?? (defaults?.double(forKey: "lastCarbGrams") ?? 0)
         let lastCarbEntryAt = bridgeOrDefaultsDate(forKey: "lastCarbEntryAt", bridge: bridgeContext)
+        let lastCarbLabel: String? = {
+            if (bridgeContext?["mockModeEnabled"] as? Bool) == true {
+                return bridgeContext?["lastCarbLabel"] as? String
+            }
+            return defaults?.string(forKey: "lastCarbLabel")
+        }()
 
         let unit: GlucoseUnit = (bridgeContext?["glucoseUnit"] as? String)
             .flatMap { GlucoseUnit(rawValue: $0) }
@@ -56,6 +62,7 @@ enum WatchDataManager {
             glucose: glucose,
             glucoseFetchedAt: glucoseFetchedAt,
             lastCarbGrams: lastCarbGrams > 0 ? lastCarbGrams : nil,
+            lastCarbLabel: lastCarbGrams > 0 ? nil : lastCarbLabel,
             lastCarbEntryAt: lastCarbEntryAt,
             highGlucoseThreshold: high,
             lowGlucoseThreshold: low,
@@ -121,10 +128,15 @@ enum WatchDataManager {
     /// when the source logged only that a meal occurred (no carb count).
     /// 0 is stored as the sentinel value so `content(now:)` maps it back to
     /// `lastCarbGrams: nil` via its existing `> 0` guard.
-    static func storeCarbs(grams: Double?, at date: Date, force: Bool = false) {
+    static func storeCarbs(grams: Double?, label: String? = nil, at date: Date, force: Bool = false) {
         if !force, let existing = lastCarbEntryAt, date <= existing { return }
         defaults?.set(grams ?? 0.0, forKey: "lastCarbGrams")
         defaults?.set(date.ISO8601Format(), forKey: "lastCarbEntryAt")
+        if let label {
+            defaults?.set(label, forKey: "lastCarbLabel")
+        } else {
+            defaults?.removeObject(forKey: "lastCarbLabel")
+        }
     }
 
     // MARK: - EasyView config (synced from phone)
@@ -238,11 +250,18 @@ enum WatchDataManager {
             } else {
                 defaults?.removeObject(forKey: "lastCarbEntryAt")
             }
+
+            if let lastCarbLabel = context["lastCarbLabel"] as? String {
+                defaults?.set(lastCarbLabel, forKey: "lastCarbLabel")
+            } else {
+                defaults?.removeObject(forKey: "lastCarbLabel")
+            }
         } else {
             defaults?.removeObject(forKey: "currentGlucose")
             defaults?.removeObject(forKey: "glucoseFetchedAt")
             defaults?.removeObject(forKey: "lastCarbGrams")
             defaults?.removeObject(forKey: "lastCarbEntryAt")
+            defaults?.removeObject(forKey: "lastCarbLabel")
         }
 
         let customChecks = context["customChecks"] as? [String: [String]] ?? [:]

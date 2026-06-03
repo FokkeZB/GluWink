@@ -254,6 +254,8 @@ extension ScreenshotHarness {
             defaults.removeObject(forKey: UnifiedDataReader.carbsValueKey(for: .demo))
             defaults.removeObject(forKey: UnifiedDataReader.carbsDateKey(for: .demo))
         }
+        // Screenshot presets always have gram counts; clear any stale label from a previous demo run.
+        defaults.removeObject(forKey: UnifiedDataReader.carbsLabelKey(for: .demo))
 
         // Reset "data source / shielding configured" flags on every run
         // and re-apply them only where a scene actually wants them. Without

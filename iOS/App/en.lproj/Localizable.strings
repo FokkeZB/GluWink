@@ -102,7 +102,7 @@
 "settings.demoHasData" = "Has data";
 "settings.demoGlucose" = "Glucose";
 "settings.demoCarbs" = "Carbs";
-"settings.demoMealOnly" = "No gram count (meal only)";
+"settings.demoMealLabel" = "Meal label (optional)";
 "settings.demoAt" = "At";
 "settings.setPassphrase" = "Set a Passphrase";
 "settings.changePassphrase" = "Change Passphrase";

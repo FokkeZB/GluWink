@@ -51,7 +51,7 @@ struct WatchContentView: View {
     private func carbsValueText(for content: ShieldContent) -> String {
         guard let carbs = content.carbs else { return "--" }
         if let grams = carbs.grams { return "\(grams) g" }
-        return "·"
+        return carbs.label ?? "·"
     }
 
     private func relativeTimeText(from date: Date?) -> Text {

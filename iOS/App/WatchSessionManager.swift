@@ -96,6 +96,7 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
                 // exists. The watch maps a missing / 0 grams value to nil,
                 // while still honoring lastCarbEntryAt for the grace-period check.
                 if let grams = carbsReading.grams { context["lastCarbGrams"] = grams }
+                if let label = carbsReading.label { context["lastCarbLabel"] = label }
                 context["lastCarbEntryAt"] = carbsReading.sampleAt.ISO8601Format()
             }
         }

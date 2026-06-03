@@ -55,6 +55,7 @@ private enum EntryBuilder {
             glucose: glucoseReading?.mmol ?? 0,
             glucoseFetchedAt: glucoseDate,
             lastCarbGrams: carbsReading?.grams,
+            lastCarbLabel: carbsReading?.label,
             lastCarbEntryAt: carbDate,
             highGlucoseThreshold: ThresholdResolver.highGlucose(defaults: defaults, fallback: fallbackHighGlucose),
             lowGlucoseThreshold: ThresholdResolver.lowGlucose(defaults: defaults, fallback: fallbackLowGlucose),

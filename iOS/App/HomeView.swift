@@ -118,6 +118,7 @@ struct HomeView: View {
             glucose: glucoseReading?.mmol ?? 0,
             glucoseFetchedAt: glucoseReading?.sampleAt,
             lastCarbGrams: carbsReading?.grams,
+            lastCarbLabel: carbsReading?.label,
             lastCarbEntryAt: carbsReading?.sampleAt,
             highGlucoseThreshold: highThreshold,
             lowGlucoseThreshold: lowThreshold,
@@ -480,7 +481,7 @@ struct HomeView: View {
     private func carbValueText(for content: ShieldContent) -> String {
         guard let carbs = content.carbs else { return "--" }
         if let grams = carbs.grams { return "\(grams) g" }
-        return String(localized: "home.carbsMealOnly")
+        return carbs.label ?? String(localized: "home.carbsMealOnly")
     }
 
     private func relativeTimeText(from date: Date?, hasData: Bool, fallback: String) -> Text {
