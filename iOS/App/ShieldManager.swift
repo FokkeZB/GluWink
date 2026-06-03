@@ -184,7 +184,7 @@ final class ShieldManager {
             logger.info("Pending re-arm time already passed — re-arming now")
             defaults?.removeObject(forKey: "rearmShieldsAt")
             defaults?.removeObject(forKey: "shieldDismissedAt")
-            applyShields()
+            reevaluateShields()
             return
         }
 
@@ -194,7 +194,7 @@ final class ShieldManager {
             self.logger.info("Re-arm timer fired — re-arming shields")
             self.defaults?.removeObject(forKey: "rearmShieldsAt")
             self.defaults?.removeObject(forKey: "shieldDismissedAt")
-            self.applyShields()
+            self.reevaluateShields()
         }
     }
 }

@@ -225,7 +225,7 @@ struct SettingsView: View {
                     shieldingEnabled = SharedDataManager.shared.shieldingEnabled
                     demoEnabled = false
                     ShieldManager.shared.reevaluateShields()
-                    ActivityScheduler.shared.startMonitoring()
+                    ActivityScheduler.shared.stopMonitoring()
                     SharedDataManager.shared.refreshAttentionBadge()
                     WidgetCenter.shared.reloadAllTimelines()
                     showResetSuccess = true
