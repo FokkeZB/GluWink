@@ -127,6 +127,7 @@
 "settings.scenario.noGlucoseData" = "No Glucose Data";
 "settings.scenario.noCarbData" = "No Carb Data";
 "settings.addCheck" = "Add Check";
+"settings.restoreScenarioDefaultsConfirm" = "This will restore the built-in defaults for this scenario.";
 "settings.checkPlaceholder" = "Check text";
 "settings.restoreDefaults" = "Restore Defaults";
 "settings.restoreDefaultsConfirm" = "This will discard all custom checks and restore the built-in defaults.";

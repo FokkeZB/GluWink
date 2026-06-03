@@ -127,6 +127,7 @@
 "settings.scenario.noGlucoseData" = "Geen Glucosedata";
 "settings.scenario.noCarbData" = "Geen KH-data";
 "settings.addCheck" = "Check Toevoegen";
+"settings.restoreScenarioDefaultsConfirm" = "De standaardchecks voor dit scenario worden hersteld.";
 "settings.checkPlaceholder" = "Checktekst";
 "settings.restoreDefaults" = "Herstel Standaard";
 "settings.restoreDefaultsConfirm" = "Alle aangepaste checks worden gewist en de standaardwaarden worden hersteld.";

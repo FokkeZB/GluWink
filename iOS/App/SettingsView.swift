@@ -1413,6 +1413,7 @@ struct EasyViewSettingsView: View {
 struct AttentionChecksSettingsView: View {
     @State private var checks: [AttentionScenario: [String]]
     @State private var showRestoreAlert = false
+    @State private var restoreScenario: AttentionScenario?
 
     static let defaultChecks: [AttentionScenario: [String]] = {
         ShieldContent.Strings.fromPackage().scenarioChecks
@@ -1439,7 +1440,15 @@ struct AttentionChecksSettingsView: View {
                         Label(String(localized: "settings.addCheck"), systemImage: "plus.circle")
                     }
                 } header: {
-                    Text(scenarioName(scenario))
+                    HStack {
+                        Text(scenarioName(scenario))
+                        Spacer()
+                        Button(String(localized: "settings.restoreDefaults")) {
+                            restoreScenario = scenario
+                        }
+                        .textCase(nil)
+                        .font(.caption)
+                    }
                 }
             }
         }
@@ -1459,6 +1468,18 @@ struct AttentionChecksSettingsView: View {
             Button(String(localized: "settings.cancel"), role: .cancel) {}
         } message: {
             Text(String(localized: "settings.restoreDefaultsConfirm"))
+        }
+        .alert(
+            String(localized: "settings.restoreDefaults"),
+            isPresented: Binding(get: { restoreScenario != nil }, set: { if !$0 { restoreScenario = nil } })
+        ) {
+            Button(String(localized: "settings.restoreDefaults"), role: .destructive) {
+                if let s = restoreScenario { restore(s) }
+                restoreScenario = nil
+            }
+            Button(String(localized: "settings.cancel"), role: .cancel) { restoreScenario = nil }
+        } message: {
+            Text(String(localized: "settings.restoreScenarioDefaultsConfirm"))
         }
         .onDisappear { saveAll() }
     }
@@ -1508,6 +1529,11 @@ struct AttentionChecksSettingsView: View {
         for scenario in AttentionScenario.allCases {
             save(scenario)
         }
+    }
+
+    private func restore(_ scenario: AttentionScenario) {
+        SharedDataManager.shared.saveCustomChecks(nil, for: scenario)
+        checks[scenario] = Self.defaultChecks[scenario] ?? []
     }
 
     private func restoreDefaults() {
