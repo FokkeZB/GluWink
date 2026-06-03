@@ -79,6 +79,16 @@ final class UnifiedDataReaderTests: XCTestCase {
         XCTAssertEqual(reading?.source, .easyView)
     }
 
+    /// A stored label is returned as part of the CarbsReading when grams is nil.
+    func testMealOnlyEntryReturnsStoredLabel() {
+        defaults.set(true, forKey: DataSourceKeys.easyViewEnabled)
+        writeCarbs(source: .easyView, value: 0, minutesAgo: 30, label: "B'fast")
+
+        let reading = UnifiedDataReader.currentCarbsReading(from: defaults)
+        XCTAssertNil(reading?.grams)
+        XCTAssertEqual(reading?.label, "B'fast")
+    }
+
     /// A meal-only entry still participates in the freshness competition.
     func testMealOnlyEntryWinsWhenFresherThanGramEntry() {
         defaults.set(true, forKey: DataSourceKeys.easyViewEnabled)
@@ -191,9 +201,12 @@ final class UnifiedDataReaderTests: XCTestCase {
         defaults.set(date.ISO8601Format(), forKey: UnifiedDataReader.glucoseDateKey(for: source))
     }
 
-    private func writeCarbs(source: DataSource, value: Double, minutesAgo: Double) {
+    private func writeCarbs(source: DataSource, value: Double, minutesAgo: Double, label: String? = nil) {
         let date = Date().addingTimeInterval(-minutesAgo * 60)
         defaults.set(value, forKey: UnifiedDataReader.carbsValueKey(for: source))
         defaults.set(date.ISO8601Format(), forKey: UnifiedDataReader.carbsDateKey(for: source))
+        if let label {
+            defaults.set(label, forKey: UnifiedDataReader.carbsLabelKey(for: source))
+        }
     }
 }
