@@ -159,8 +159,7 @@
 "settings.nightscoutTokenPlaceholder" = "API-token (optioneel)";
 "settings.nightscoutTest" = "Verbinding testen";
 "settings.nightscoutTestSuccess" = "Verbonden";
-"settings.nightscoutVersion %@" = "Versie: %@";
-"settings.nightscoutUnits %@" = "Server-eenheid: %@";
+
 "settings.nightscoutStatusHeader" = "Status";
 "settings.nightscoutLatestHeader" = "Laatste gegevens";
 "settings.nightscoutLatestGlucose" = "Glucose";
@@ -180,7 +179,7 @@
 "settings.easyViewPasswordPlaceholder" = "Wachtwoord";
 "settings.easyViewTest" = "Verbinding testen";
 "settings.easyViewTestSuccess" = "Verbonden";
-"settings.easyViewTestGlucose %@" = "Laatste glucose: %@";
+
 "settings.easyViewStatusHeader" = "Status";
 "settings.easyViewLatestHeader" = "Laatste gegevens";
 "settings.easyViewLatestGlucose" = "Glucose";

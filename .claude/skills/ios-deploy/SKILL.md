@@ -25,6 +25,13 @@ make deploy
 
 This runs `xcodebuild` then `devicectl` in sequence.
 
+## Sandbox requirement
+
+**Always run `make install` and `make deploy` with `required_permissions: ["all"]`.**
+Both commands write to paths outside the workspace (`~/Library/Developer/`,
+`~/Library/Caches/org.swift.swiftpm/`) that the default sandbox blocks, causing
+spurious "Operation not permitted" failures. Don't try without it first.
+
 ## Troubleshooting
 
 | Symptom | Cause | Fix |

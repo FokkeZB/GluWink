@@ -873,7 +873,7 @@ struct NightscoutSettingsView: View {
     @State private var testResult: TestResult?
 
     enum TestResult: Equatable {
-        case success(version: String?, units: String?)
+        case success
         case failure(String)
     }
 
@@ -967,21 +967,9 @@ struct NightscoutSettingsView: View {
 
                 if let testResult {
                     switch testResult {
-                    case let .success(version, units):
-                        VStack(alignment: .leading, spacing: 2) {
-                            Label(String(localized: "settings.nightscoutTestSuccess"), systemImage: "checkmark.circle.fill")
-                                .foregroundStyle(BrandTint.green)
-                            if let version {
-                                Text(String(localized: "settings.nightscoutVersion \(version)"))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            if let units {
-                                Text(String(localized: "settings.nightscoutUnits \(units)"))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
+                    case .success:
+                        Label(String(localized: "settings.nightscoutTestSuccess"), systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(BrandTint.green)
                     case let .failure(message):
                         Label(message, systemImage: "exclamationmark.triangle.fill")
                             .foregroundStyle(BrandTint.red)
@@ -1089,7 +1077,9 @@ struct NightscoutSettingsView: View {
         _ = await verifyConnection()
     }
 
-    /// Hits `/status` and updates `testResult`. Returns true on success.
+    /// Fetches real glucose + carbs from Nightscout to verify credentials,
+    /// saves results to the App Group, and updates `testResult`.
+    /// Returns true on success.
     private func verifyConnection() async -> Bool {
         persistFields()
         isTesting = true
@@ -1099,18 +1089,12 @@ struct NightscoutSettingsView: View {
         let trimmedURL = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedToken = token.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
-            let status = try await NightscoutManager.shared.testConnection(
+            _ = try await NightscoutManager.shared.testConnection(
                 baseURL: trimmedURL,
                 token: trimmedToken.isEmpty ? nil : trimmedToken
             )
-            testResult = .success(version: status.version, units: status.units)
-
-            // Auto-detect glucose unit from server when user hasn't picked one.
-            if !SharedDataManager.shared.hasGlucoseUnitPreference {
-                if let units = status.units?.lowercased() {
-                    SharedDataManager.shared.glucoseUnit = units.contains("mg") ? .mgdL : .mmolL
-                }
-            }
+            testResult = .success
+            refreshStatusFields()
             return true
         } catch {
             testResult = .failure(error.localizedDescription)
@@ -1172,7 +1156,7 @@ struct EasyViewSettingsView: View {
     @State private var testResult: TestResult?
 
     enum TestResult: Equatable {
-        case success(mmol: Double)
+        case success
         case failure(String)
     }
 
@@ -1262,15 +1246,9 @@ struct EasyViewSettingsView: View {
 
                 if let testResult {
                     switch testResult {
-                    case let .success(mmol):
-                        VStack(alignment: .leading, spacing: 2) {
-                            Label(String(localized: "settings.easyViewTestSuccess"), systemImage: "checkmark.circle.fill")
-                                .foregroundStyle(BrandTint.green)
-                            let unit = SharedDataManager.shared.glucoseUnit
-                            Text(String(localized: "settings.easyViewTestGlucose \(unit.formattedWithUnit(mmol))"))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                    case .success:
+                        Label(String(localized: "settings.easyViewTestSuccess"), systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(BrandTint.green)
                     case let .failure(message):
                         Label(message, systemImage: "exclamationmark.triangle.fill")
                             .foregroundStyle(BrandTint.red)
@@ -1384,8 +1362,15 @@ struct EasyViewSettingsView: View {
                 username: trimmedUsername,
                 password: trimmedPassword
             )
-            let mmol = result.glucose?.mmol ?? 0
-            testResult = .success(mmol: mmol)
+            let data = SharedDataManager.shared
+            if let glucose = result.glucose {
+                data.saveEasyViewGlucose(mmol: glucose.mmol, at: glucose.date)
+            }
+            if let carbs = result.carbs {
+                data.saveEasyViewCarbs(grams: carbs.grams, label: carbs.label, at: carbs.date)
+            }
+            testResult = .success
+            refreshStatusFields()
             return true
         } catch {
             testResult = .failure(error.localizedDescription)

@@ -135,13 +135,30 @@ final class NightscoutManager {
         }
     }
 
-    /// One-shot connection test used by the Settings UI. Returns the server
-    /// status when reachable, throws otherwise.
-    func testConnection(baseURL: String, token: String?) async throws -> NightscoutClient.ServerStatus {
+    struct TestResult {
+        let glucose: NightscoutClient.GlucoseSample?
+        let carbs: NightscoutClient.CarbEntry?
+    }
+
+    /// One-shot connection test used by the Settings UI. Fetches the real
+    /// glucose + carbs endpoints (same ones the app polls) to verify
+    /// credentials, then saves results to the App Group so "Latest data"
+    /// is populated immediately. Returns a `TestResult` on success, throws
+    /// on network / auth failure.
+    func testConnection(baseURL: String, token: String?) async throws -> TestResult {
         guard let client = NightscoutClient(baseURLString: baseURL, token: token) else {
             throw NightscoutClient.ClientError.invalidBaseURL
         }
-        return try await client.fetchStatus()
+        let glucose = try await client.fetchLatestGlucose()
+        let carbs = try await client.fetchLatestCarbs()
+        let data = SharedDataManager.shared
+        if let glucose {
+            data.saveNightscoutGlucose(mmol: glucose.mmol, at: glucose.date)
+        }
+        if let carbs {
+            data.saveNightscoutCarbs(grams: carbs.grams, at: carbs.date)
+        }
+        return TestResult(glucose: glucose, carbs: carbs)
     }
 
     // MARK: - Background refresh
