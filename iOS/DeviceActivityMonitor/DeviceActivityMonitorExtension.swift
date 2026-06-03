@@ -34,8 +34,16 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     }
 
     private func rearmIfNeeded(activity: DeviceActivityName) {
-        if defaults?.object(forKey: "shieldingEnabled") as? Bool == false {
+        guard defaults?.object(forKey: "shieldingEnabled") as? Bool == true else {
             logger.info("Shielding disabled — skipping re-arm")
+            return
+        }
+
+        let hasAnySource = [DataSourceKeys.healthKitEnabled, DataSourceKeys.nightscoutEnabled,
+                            DataSourceKeys.easyViewEnabled, DataSourceKeys.mockModeEnabled]
+            .contains { defaults?.bool(forKey: $0) == true }
+        guard hasAnySource else {
+            logger.info("No data source configured — skipping re-arm")
             return
         }
 
