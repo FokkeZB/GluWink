@@ -1230,7 +1230,7 @@ struct EasyViewSettingsView: View {
                     String(localized: "settings.easyViewUsernamePlaceholder"),
                     text: $username
                 )
-                .textContentType(.emailAddress)
+                .textContentType(.username)
                 .keyboardType(.emailAddress)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)

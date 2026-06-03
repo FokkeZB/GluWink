@@ -175,8 +175,8 @@
 "settings.easyViewRequiresCredentials" = "Vul hierboven eerst een gebruikersnaam en wachtwoord in voordat je dit kunt inschakelen.";
 "settings.easyViewVerifying" = "Verbinding controleren…";
 "settings.easyViewConfigHeader" = "Inloggegevens";
-"settings.easyViewConfigFooter" = "Vul je EasyView-gebruikersnaam en wachtwoord in.";
-"settings.easyViewUsernamePlaceholder" = "Gebruikersnaam of e-mailadres";
+"settings.easyViewConfigFooter" = "Vul je EasyView-e-mailadres en wachtwoord in.";
+"settings.easyViewUsernamePlaceholder" = "E-mailadres";
 "settings.easyViewPasswordPlaceholder" = "Wachtwoord";
 "settings.easyViewTest" = "Verbinding testen";
 "settings.easyViewTestSuccess" = "Verbonden";
