@@ -31,7 +31,9 @@ private func metricValue(_ entry: WatchEntry) -> String {
     case .glucose:
         return entry.content.glucose?.formatted ?? "--"
     case .carbs:
-        return entry.content.carbs.map { String($0.grams) } ?? "--"
+        guard let carbs = entry.content.carbs else { return "--" }
+        if let grams = carbs.grams { return String(grams) }
+        return carbs.label ?? "·"
     }
 }
 
@@ -40,7 +42,7 @@ private func metricUnit(_ entry: WatchEntry) -> String {
     case .glucose:
         return entry.content.glucoseUnit.shortLabel
     case .carbs:
-        return "g"
+        return entry.content.carbs?.grams != nil ? "g" : ""
     }
 }
 
@@ -143,7 +145,12 @@ struct WatchRectangularEntryView: View {
     var body: some View {
         let content = entry.content
         let glucoseText = content.glucose?.formatted ?? "--"
-        let carbsText = content.carbs.map { String($0.grams) } ?? "--"
+        let carbsText: String = {
+            guard let carbs = content.carbs else { return "--" }
+            if let grams = carbs.grams { return String(grams) }
+            return carbs.label ?? "·"
+        }()
+        let carbsUnit = content.carbs?.grams != nil ? "g" : ""
 
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 4) {
@@ -160,7 +167,7 @@ struct WatchRectangularEntryView: View {
             HStack(spacing: 4) {
                 Image(systemName: content.carbsNeedsAttention ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
                     .font(.caption.bold())
-                Text("\(carbsText) g")
+                Text(carbsUnit.isEmpty ? carbsText : "\(carbsText) \(carbsUnit)")
                     .font(.system(.headline, design: .rounded).bold())
                 Spacer(minLength: 4)
                 relativeAgoText(from: content.carbs?.sampleDate)

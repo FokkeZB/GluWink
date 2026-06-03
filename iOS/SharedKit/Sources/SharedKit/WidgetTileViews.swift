@@ -169,7 +169,54 @@ private func widgetGlucoseValue(_ c: ShieldContent) -> String {
 }
 
 private func widgetCarbsValue(_ c: ShieldContent) -> String {
-    c.carbs.map { "\($0.grams)" } ?? "--"
+    guard let carbs = c.carbs else { return "--" }
+    if let grams = carbs.grams { return "\(grams)" }
+    return carbs.label ?? "·"
+}
+
+/// Returns "g" when a gram count is available, empty string for meal-only
+/// entries (labelled or unlabelled) so the unit label doesn't crowd the label.
+private func widgetCarbsUnit(_ c: ShieldContent) -> String {
+    c.carbs?.grams != nil ? "g" : ""
+}
+
+/// Computes the text label for the carbs inline accessory widget.
+/// - Glucose mode: the formatted glucose value with no unit suffix.
+/// - Carbs with grams: "Xg".
+/// - Meal-only carbs (no grams): compact age "X min" / "X h".
+private func widgetInlineCarbsText(
+    _ c: ShieldContent,
+    content: WidgetTileContent,
+    forGlucose: Bool
+) -> String {
+    if forGlucose { return c.glucose?.formatted ?? "--" }
+    if c.carbs != nil && c.carbs?.grams == nil {
+        let (val, unit) = widgetCarbsMealAgoComponents(from: content.carbDate, relativeTo: content.referenceDate)
+        return unit.isEmpty ? val : "\(val) \(unit)"
+    }
+    return "\(widgetCarbsValue(c))\(widgetCarbsUnit(c))"
+}
+
+/// Breaks the carb-entry age into a `(value, unit)` pair for the circular
+/// accessory widget's two-line layout.
+/// - < 1 hour → `("X", "min")`
+/// - ≥ 1 hour → `("X", "h")`
+/// Falls back to `("--", "")` when the date is missing or in the future.
+/// Uses `referenceDate` when set (screenshot path); otherwise `Date()`.
+private func widgetCarbsMealAgoComponents(
+    from date: Date?,
+    relativeTo referenceDate: Date?
+) -> (value: String, unit: String) {
+    let minUnit = String(localized: "widget.carbsMeal.minuteUnit", bundle: .module)
+    let hourUnit = String(localized: "widget.carbsMeal.hourUnit", bundle: .module)
+    guard let date else { return ("--", "") }
+    let interval = (referenceDate ?? Date()).timeIntervalSince(date)
+    guard interval > 0 else { return ("<1", minUnit) }
+    if interval < 3600 {
+        return ("\(max(1, Int(interval / 60)))", minUnit)
+    } else {
+        return ("\(Int(interval / 3600))", hourUnit)
+    }
 }
 
 // MARK: - Small tile
@@ -202,7 +249,7 @@ public struct SmallWidgetTile: View {
 
             widgetValueWithUnit(
                 value: widgetCarbsValue(c),
-                unit: "g",
+                unit: widgetCarbsUnit(c),
                 valueFont: .system(.title, design: .rounded).bold(),
                 unitFont: .system(.caption, design: .rounded).weight(.semibold)
             )
@@ -253,7 +300,7 @@ public struct MediumWidgetTile: View {
             VStack(alignment: .leading, spacing: 4) {
                 widgetValueWithUnit(
                     value: widgetCarbsValue(c),
-                    unit: "g",
+                    unit: widgetCarbsUnit(c),
                     valueFont: .system(size: 44, weight: .bold, design: .rounded),
                     unitFont: .system(size: 18, weight: .semibold, design: .rounded)
                 )
@@ -300,12 +347,20 @@ public struct AccessoryCircularTile: View {
 
     public var body: some View {
         let c = content.shieldContent
+        // For a meal-only carb entry (grams == nil, but a reading exists)
+        // the label is not glanceable in the tight circular frame — show
+        // how long ago the meal was recorded instead, split across the
+        // two-line value/unit layout the tile uses for glucose.
+        let isCarbMealOnly = !forGlucose && c.carbs != nil && c.carbs?.grams == nil
+        let (agoValue, agoUnit) = isCarbMealOnly
+            ? widgetCarbsMealAgoComponents(from: content.carbDate, relativeTo: content.referenceDate)
+            : ("", "")
         VStack(spacing: -2) {
-            Text(forGlucose ? widgetGlucoseValue(c) : widgetCarbsValue(c))
+            Text(isCarbMealOnly ? agoValue : (forGlucose ? widgetGlucoseValue(c) : widgetCarbsValue(c)))
                 .font(.system(.title2, design: .rounded).bold())
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
-            Text(forGlucose ? c.glucoseUnit.shortLabel : "g")
+            Text(isCarbMealOnly ? agoUnit : (forGlucose ? c.glucoseUnit.shortLabel : widgetCarbsUnit(c)))
                 .font(.system(.caption, design: .rounded))
         }
         .multilineTextAlignment(.center)
@@ -350,7 +405,7 @@ public struct AccessoryRectangularTile: View {
                 HStack(spacing: 2) {
                     Text(widgetCarbsValue(c))
                         .font(.system(.headline, design: .rounded).bold())
-                    Text("g")
+                    Text(widgetCarbsUnit(c))
                         .font(.caption2)
                 }
                 .lineLimit(1)
@@ -382,11 +437,10 @@ public struct AccessoryInlineTile: View {
         let icon = needsAttention ? "exclamationmark.triangle" : "checkmark.circle"
         // Inline is space-constrained on the Lock Screen so we drop the
         // unit suffix from glucose — the value alone (e.g. "115" or "6.4")
-        // is what the user glances for. Carbs always carry the "g" suffix
-        // because the bare number reads as ambiguous.
-        let text: String = forGlucose
-            ? (c.glucose?.formatted ?? "--")
-            : "\(widgetCarbsValue(c))g"
+        // is what the user glances for. Carbs carry the "g" suffix when a
+        // gram count is present. For meal-only entries (no grams) we show
+        // the age ("5 min", "2 h") — the label is not glanceable here.
+        let text: String = widgetInlineCarbsText(c, content: content, forGlucose: forGlucose)
         Label(text, systemImage: icon)
     }
 }

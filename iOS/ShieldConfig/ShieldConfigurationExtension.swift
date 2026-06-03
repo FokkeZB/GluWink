@@ -50,6 +50,7 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
             glucose: glucoseReading?.mmol ?? 0,
             glucoseFetchedAt: glucoseReading?.sampleAt,
             lastCarbGrams: carbsReading?.grams,
+            lastCarbLabel: carbsReading?.label,
             lastCarbEntryAt: carbsReading?.sampleAt,
             highGlucoseThreshold: ThresholdResolver.highGlucose(defaults: defaults, fallback: Self.fallbackHighGlucose),
             lowGlucoseThreshold: ThresholdResolver.lowGlucose(defaults: defaults, fallback: Self.fallbackLowGlucose),

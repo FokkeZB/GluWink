@@ -3,6 +3,9 @@
 "setup.passphraseConfirmField" = "Confirm passphrase";
 "setup.passphraseMismatch" = "Passphrases do not match.";
 
+/* Home - Status */
+"home.carbsMealOnly" = "Meal";
+
 /* Home - Welcome */
 "home.welcome.title %@" = "Welcome to %@";
 "home.welcome.tagline %@" = "Turn your iPhone and Apple Watch from your biggest distraction into your best tool. Glucose and carbs everywhere. Apps blocked when something needs your attention.";
@@ -99,6 +102,7 @@
 "settings.demoHasData" = "Has data";
 "settings.demoGlucose" = "Glucose";
 "settings.demoCarbs" = "Carbs";
+"settings.demoMealLabel" = "Meal label (optional)";
 "settings.demoAt" = "At";
 "settings.setPassphrase" = "Set a Passphrase";
 "settings.changePassphrase" = "Change Passphrase";

@@ -48,6 +48,9 @@ public enum DataSourceKeys {
     public static let easyViewGlucoseSampleAt = "easyViewGlucoseSampleAt"
     public static let easyViewCarbs = "easyViewCarbs"
     public static let easyViewCarbsSampleAt = "easyViewCarbsSampleAt"
+    public static let easyViewCarbsLabel = "easyViewCarbsLabel"
+
+    public static let demoCarbsLabel = "demoCarbsLabel"
 
     public static let healthKitEnabled = "healthKitEnabled"
     public static let nightscoutEnabled = "nightscoutEnabled"
@@ -68,12 +71,20 @@ public struct GlucoseReading: Sendable, Equatable {
 }
 
 public struct CarbsReading: Sendable, Equatable {
-    public let grams: Double
+    /// Gram count of the carb entry, or `nil` when the source logged a meal
+    /// acknowledgment without a carb amount (e.g. EasyView `auto_mode_event`).
+    public let grams: Double?
+    /// Provider-supplied display label for a meal-only entry (e.g. "B'fast",
+    /// "Lunch"). Non-nil only when `grams` is nil. Stored at write time by
+    /// the provider so it is already localized. SharedKit treats this as an
+    /// opaque string — it never inspects or transforms it.
+    public let label: String?
     public let sampleAt: Date
     public let source: DataSource
 
-    public init(grams: Double, sampleAt: Date, source: DataSource) {
+    public init(grams: Double?, label: String? = nil, sampleAt: Date, source: DataSource) {
         self.grams = grams
+        self.label = label
         self.sampleAt = sampleAt
         self.source = source
     }
@@ -166,9 +177,15 @@ public enum UnifiedDataReader {
 
     public static func carbsReading(source: DataSource, from defaults: UserDefaults?) -> CarbsReading? {
         guard let defaults else { return nil }
+        // The date key is the authoritative sentinel: if it's present an entry
+        // was recorded. The value key holds grams when > 0, or 0 when the
+        // source logged a meal acknowledgment without a carb count (e.g.
+        // EasyView auto_mode_event). In the latter case grams is nil.
+        guard let date = defaults.iso8601(forKey: carbsDateKey(for: source)) else { return nil }
         let value = defaults.double(forKey: carbsValueKey(for: source))
-        guard value > 0, let date = defaults.iso8601(forKey: carbsDateKey(for: source)) else { return nil }
-        return CarbsReading(grams: value, sampleAt: date, source: source)
+        let grams: Double? = value > 0 ? value : nil
+        let label = grams == nil ? defaults.string(forKey: carbsLabelKey(for: source)) : nil
+        return CarbsReading(grams: grams, label: label, sampleAt: date, source: source)
     }
 
     public static func glucoseValueKey(for source: DataSource) -> String {
@@ -204,6 +221,17 @@ public enum UnifiedDataReader {
         case .nightscout: return DataSourceKeys.nightscoutCarbsSampleAt
         case .easyView: return DataSourceKeys.easyViewCarbsSampleAt
         case .demo: return DataSourceKeys.demoCarbsSampleAt
+        }
+    }
+
+    /// Key where a provider-supplied meal label string is stored for a source.
+    /// Only written for sources that support label-only meal entries (EasyView, Demo).
+    public static func carbsLabelKey(for source: DataSource) -> String {
+        switch source {
+        case .healthKit: return "healthKitCarbsLabel"
+        case .nightscout: return "nightscoutCarbsLabel"
+        case .easyView: return DataSourceKeys.easyViewCarbsLabel
+        case .demo: return DataSourceKeys.demoCarbsLabel
         }
     }
 }

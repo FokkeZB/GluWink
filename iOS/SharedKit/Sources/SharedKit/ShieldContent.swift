@@ -51,6 +51,7 @@ public struct ShieldContent: Sendable {
         glucose: Double,
         glucoseFetchedAt: Date?,
         lastCarbGrams: Double?,
+        lastCarbLabel: String? = nil,
         lastCarbEntryAt: Date?,
         highGlucoseThreshold: Double,
         lowGlucoseThreshold: Double,
@@ -123,16 +124,22 @@ public struct ShieldContent: Sendable {
         let isMorningGrace = currentHour < carbGraceHour
             || (currentHour == carbGraceHour && currentMinute < carbGraceMinute)
 
-        if let carbDate = lastCarbEntryAt, let grams = lastCarbGrams {
+        if let carbDate = lastCarbEntryAt {
             let cMins = Int(now.timeIntervalSince(carbDate) / 60)
             self.carbs = Carbs(
-                grams: Int(grams),
+                grams: lastCarbGrams.map { Int($0) },
+                label: lastCarbLabel,
                 sampleDate: carbDate,
                 agoMinutes: cMins
             )
             let timeStr = timeFormatter.string(from: carbDate)
             let agoStr = Self.shortAgo(cMins, strings: strings)
-            dataLines.append(String(format: strings.carbsEntry, Int(grams), timeStr, agoStr))
+            if let grams = lastCarbGrams {
+                dataLines.append(String(format: strings.carbsEntry, Int(grams), timeStr, agoStr))
+            } else {
+                let displayLabel = lastCarbLabel ?? strings.mealLabel
+                dataLines.append(String(format: strings.carbsMealOnly, displayLabel, timeStr, agoStr))
+            }
             if !isMorningGrace && now.timeIntervalSince(carbDate) / 3600 > 4 {
                 scenarios.append(.carbGap)
             }
@@ -251,8 +258,18 @@ public extension ShieldContent {
     /// A carb entry paired indivisibly with its timestamp. Mirrors
     /// `Glucose`'s atomic contract — `ShieldContent.carbs == nil` means
     /// render the no-data state, full stop.
+    ///
+    /// `grams` is `nil` when the source logged only that a meal occurred
+    /// (e.g. EasyView `auto_mode_event`) — the grace-period and carb-gap
+    /// checks are still based on `sampleDate`.
+    ///
+    /// When `grams` is `nil`, `label` may carry a provider-supplied display
+    /// string (e.g. "B'fast"). Display surfaces should prefer `label` over a
+    /// generic fallback when available. Both may be `nil` simultaneously for
+    /// legacy or non-labelling sources.
     struct Carbs: Sendable, Equatable {
-        public let grams: Int
+        public let grams: Int?
+        public let label: String?
         public let sampleDate: Date
         public let agoMinutes: Int
     }
@@ -325,6 +342,14 @@ public extension ShieldContent {
         public let glucose: String
         public let glucoseNoData: String
         public let carbsEntry: String
+        /// Displayed when a meal was acknowledged without a gram count (e.g.
+        /// EasyView `auto_mode_event`). Format: label, time, ago string.
+        /// The label arg receives `carbs.label` when available, or `mealLabel`
+        /// as a generic fallback.
+        public let carbsMealOnly: String
+        /// Generic fallback label used in `carbsMealOnly` when no
+        /// provider-specific label is stored (e.g. "Meal" / "Maaltijd").
+        public let mealLabel: String
         public let carbsNoData: String
         public let agoMinutes: String
         public let agoHoursMinutes: String
@@ -360,6 +385,8 @@ public extension ShieldContent {
                 glucose: bundle.localizedString(forKey: "shield.glucose %@ %@ %@", value: "%@ · %@ (%@ ago)", table: nil),
                 glucoseNoData: bundle.localizedString(forKey: "shield.glucoseNoData", value: "No glucose data available.", table: nil),
                 carbsEntry: bundle.localizedString(forKey: "shield.carbsEntry %d %@ %@", value: "%d g · %@ (%@ ago)", table: nil),
+                carbsMealOnly: bundle.localizedString(forKey: "shield.carbsMealOnly %@ %@ %@", value: "%@ · %@ (%@ ago)", table: nil),
+                mealLabel: bundle.localizedString(forKey: "shield.mealLabel", value: "Meal", table: nil),
                 carbsNoData: bundle.localizedString(forKey: "shield.carbsNoData", value: "No carb data", table: nil),
                 agoMinutes: bundle.localizedString(forKey: "shield.agoMinutes %d", value: "%dm ago", table: nil),
                 agoHoursMinutes: bundle.localizedString(forKey: "shield.agoHoursMinutes %d %d", value: "%dh %dm ago", table: nil),

@@ -74,19 +74,24 @@ final class SharedDataManager {
     }
 
     func saveHealthKitCarbs(grams: Double, at date: Date, force: Bool = false) {
-        saveCarbs(source: .healthKit, grams: grams, at: date, force: force)
+        saveCarbs(source: .healthKit, grams: grams, label: nil, at: date, force: force)
     }
 
     func saveNightscoutCarbs(grams: Double, at date: Date, force: Bool = false) {
-        saveCarbs(source: .nightscout, grams: grams, at: date, force: force)
+        saveCarbs(source: .nightscout, grams: grams, label: nil, at: date, force: force)
     }
 
-    func saveEasyViewCarbs(grams: Double, at date: Date, force: Bool = false) {
-        saveCarbs(source: .easyView, grams: grams, at: date, force: force)
+    /// Save an EasyView carb or meal-acknowledgment entry. Pass `nil` for
+    /// `grams` when the source logged only that a meal occurred (no carb count),
+    /// and supply the provider-localized `label` (e.g. "B'fast") for display.
+    func saveEasyViewCarbs(grams: Double?, label: String? = nil, at date: Date, force: Bool = false) {
+        saveCarbs(source: .easyView, grams: grams, label: label, at: date, force: force)
     }
 
-    func saveDemoCarbs(grams: Double, at date: Date, force: Bool = true) {
-        saveCarbs(source: .demo, grams: grams, at: date, force: force)
+    /// Save a demo carb or meal-acknowledgment entry. Pass `nil` for `grams`
+    /// and a non-nil `label` to simulate a labelled meal marker without a gram count.
+    func saveDemoCarbs(grams: Double?, label: String? = nil, at date: Date, force: Bool = true) {
+        saveCarbs(source: .demo, grams: grams, label: label, at: date, force: force)
     }
 
     /// Clear every cached value for a single source. Used when:
@@ -112,6 +117,7 @@ final class SharedDataManager {
     func clearDemoCarbs() {
         defaults?.removeObject(forKey: UnifiedDataReader.carbsValueKey(for: .demo))
         defaults?.removeObject(forKey: UnifiedDataReader.carbsDateKey(for: .demo))
+        defaults?.removeObject(forKey: UnifiedDataReader.carbsLabelKey(for: .demo))
     }
 
     private func saveGlucose(source: DataSource, mmol: Double, at date: Date, force: Bool) {
@@ -124,14 +130,23 @@ final class SharedDataManager {
         defaults?.set(date.ISO8601Format(), forKey: dateKey)
     }
 
-    private func saveCarbs(source: DataSource, grams: Double, at date: Date, force: Bool) {
+    private func saveCarbs(source: DataSource, grams: Double?, label: String?, at date: Date, force: Bool) {
         let valueKey = UnifiedDataReader.carbsValueKey(for: source)
         let dateKey = UnifiedDataReader.carbsDateKey(for: source)
+        let labelKey = UnifiedDataReader.carbsLabelKey(for: source)
         if !force, let existingIso = defaults?.string(forKey: dateKey),
            let existing = ISO8601DateFormatter().date(from: existingIso),
            date <= existing { return }
-        defaults?.set(grams, forKey: valueKey)
+        // Store 0 as the sentinel for "meal acknowledged, no gram count".
+        // UnifiedDataReader.carbsReading checks the date key for presence and
+        // maps value == 0 back to grams: nil.
+        defaults?.set(grams ?? 0.0, forKey: valueKey)
         defaults?.set(date.ISO8601Format(), forKey: dateKey)
+        if let label {
+            defaults?.set(label, forKey: labelKey)
+        } else {
+            defaults?.removeObject(forKey: labelKey)
+        }
     }
 
     private func clearSource(_ source: DataSource) {
@@ -139,6 +154,7 @@ final class SharedDataManager {
         defaults?.removeObject(forKey: UnifiedDataReader.glucoseDateKey(for: source))
         defaults?.removeObject(forKey: UnifiedDataReader.carbsValueKey(for: source))
         defaults?.removeObject(forKey: UnifiedDataReader.carbsDateKey(for: source))
+        defaults?.removeObject(forKey: UnifiedDataReader.carbsLabelKey(for: source))
     }
 
     // MARK: - Attention Badge
@@ -163,6 +179,7 @@ final class SharedDataManager {
             glucose: glucose,
             glucoseFetchedAt: glucoseReading?.sampleAt,
             lastCarbGrams: carbsReading?.grams,
+            lastCarbLabel: carbsReading?.label,
             lastCarbEntryAt: carbsReading?.sampleAt,
             highGlucoseThreshold: effectiveHighGlucoseThreshold,
             lowGlucoseThreshold: effectiveLowGlucoseThreshold,

@@ -84,7 +84,9 @@ public enum WidgetEasyViewRefresh {
                 defaults: defaults,
                 valueKey: UnifiedDataReader.carbsValueKey(for: .easyView),
                 dateKey: UnifiedDataReader.carbsDateKey(for: .easyView),
-                value: carbs.grams,
+                labelKey: UnifiedDataReader.carbsLabelKey(for: .easyView),
+                value: carbs.grams ?? 0.0,
+                label: carbs.label,
                 date: carbs.date
             )
         }
@@ -96,7 +98,9 @@ public enum WidgetEasyViewRefresh {
         defaults: UserDefaults,
         valueKey: String,
         dateKey: String,
+        labelKey: String? = nil,
         value: Double,
+        label: String? = nil,
         date: Date
     ) {
         if let existingIso = defaults.string(forKey: dateKey),
@@ -106,5 +110,12 @@ public enum WidgetEasyViewRefresh {
         }
         defaults.set(value, forKey: valueKey)
         defaults.set(date.ISO8601Format(), forKey: dateKey)
+        if let labelKey {
+            if let label {
+                defaults.set(label, forKey: labelKey)
+            } else {
+                defaults.removeObject(forKey: labelKey)
+            }
+        }
     }
 }

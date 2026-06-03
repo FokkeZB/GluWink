@@ -54,7 +54,15 @@ public struct EasyViewClient: Sendable {
     }
 
     public struct CarbEntry: Sendable {
-        public let grams: Double
+        /// Gram count, or `nil` when the entry is a meal acknowledgment
+        /// without a carb amount (e.g. from `auto_mode_event`).
+        public let grams: Double?
+        /// Provider-localized display label for a meal-only entry (e.g.
+        /// "B'fast", "Lunch"). Non-nil only when `grams` is nil. Already
+        /// localized at parse time using the `easyview.carbLabel.*` keys
+        /// from SharedKit's bundle so all callers receive a display-ready
+        /// string without any further lookup.
+        public let label: String?
         public let date: Date
     }
 
@@ -240,7 +248,7 @@ public struct EasyViewClient: Sendable {
         let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
         let dataObj = json?["data"] as? [String: Any]
 
-        let carbs = Self.parseLatestCarb(from: dataObj)
+        let carbs = Self.parseLatestCarbOrMeal(from: dataObj)
         if let glucose = Self.parseLatestSensorGlucose(from: dataObj) {
             return LatestReading(glucose: glucose, carbs: carbs)
         }
@@ -267,19 +275,85 @@ public struct EasyViewClient: Sendable {
         return GlucoseSample(mmol: mmol, date: Date(timeIntervalSince1970: ts))
     }
 
-    /// Pick the most recent carb entry from a `ds` `data` object.
-    /// `carb_event` is `[[ [ts, grams] … ]]` — per-day buckets unifying
-    /// bolus-wizard and manually-entered carbs.
-    private static func parseLatestCarb(from dataObj: [String: Any]?) -> CarbEntry? {
-        guard let carbEvent = dataObj?["carb_event"] as? [[[Any]]] else { return nil }
-        let latest = carbEvent
-            .flatMap { $0 }
-            .max { ($0.first as? Double ?? 0) < ($1.first as? Double ?? 0) }
-        guard let latest, latest.count >= 2,
-              let ts = latest[0] as? Double,
-              let grams = latest[1] as? Double
-        else { return nil }
-        return CarbEntry(grams: grams, date: Date(timeIntervalSince1970: ts))
+    /// Pick the most recent carb or meal entry from a `ds` `data` object.
+    ///
+    /// Two fields are checked:
+    /// - `carb_event`: `[[ [ts, grams] … ]]` — bolus-wizard + manually-entered
+    ///   carbs. Always has a gram amount.
+    /// - `auto_mode_event`: `[[ slot0, slot1, slot2, … ]]` where each slot is
+    ///   an array of `[ts, size_code]` entries for that meal type (0 = breakfast,
+    ///   1 = lunch, 2 = dinner, 3 = snack, …). The `size_code` encodes meal size
+    ///   (0 = Regular, 1 = Large, …), **not** grams. These are returned with
+    ///   `grams: nil` to signal "meal acknowledged, amount unknown".
+    ///
+    /// When both sources have entries the most-recent timestamp wins; on a tie
+    /// the `carb_event` entry is preferred because it carries more information.
+    private static func parseLatestCarbOrMeal(from dataObj: [String: Any]?) -> CarbEntry? {
+        var latestCarb: CarbEntry?
+        var latestMeal: CarbEntry?
+
+        if let carbEvent = dataObj?["carb_event"] as? [[[Any]]] {
+            let best = carbEvent
+                .flatMap { $0 }
+                .max { ($0.first as? Double ?? 0) < ($1.first as? Double ?? 0) }
+            if let best, best.count >= 2,
+               let ts = best[0] as? Double,
+               let grams = best[1] as? Double, grams > 0 {
+                latestCarb = CarbEntry(grams: grams, label: nil, date: Date(timeIntervalSince1970: ts))
+            }
+        }
+
+        // auto_mode_event structure: [ dayBucket, … ]
+        // dayBucket: [ slot0, slot1, slot2, … ] (0=breakfast, 1=lunch, 2=dinner, …)
+        // slot: [ [ts, size_code], … ] — array of meal events for that meal type
+        // We want the highest timestamp across all slots, tracking which slot it
+        // came from so we can produce a localized label at parse time.
+        if let autoModeEvent = dataObj?["auto_mode_event"] as? [Any] {
+            var bestTs: Double = 0
+            var bestSlotIndex: Int = -1
+            for dayBucket in autoModeEvent {
+                guard let slots = dayBucket as? [Any] else { continue }
+                for (slotIndex, slot) in slots.enumerated() {
+                    guard let entries = slot as? [[Any]] else { continue }
+                    for entry in entries {
+                        guard let ts = entry.first as? Double, ts > bestTs else { continue }
+                        bestTs = ts
+                        bestSlotIndex = slotIndex
+                    }
+                }
+            }
+            if bestTs > 0 {
+                latestMeal = CarbEntry(
+                    grams: nil,
+                    label: localizedMealLabel(for: bestSlotIndex),
+                    date: Date(timeIntervalSince1970: bestTs)
+                )
+            }
+        }
+
+        switch (latestCarb, latestMeal) {
+        case let (carb?, meal?):
+            // Prefer carb_event on a tie (it has gram information).
+            return carb.date >= meal.date ? carb : meal
+        case let (carb?, nil): return carb
+        case let (nil, meal?): return meal
+        case (nil, nil): return nil
+        }
+    }
+
+    /// Map an `auto_mode_event` slot index to a localized display label.
+    /// Localized at parse time using SharedKit's bundle so the stored string
+    /// is display-ready for all callers (App, widget extension, Watch).
+    private static func localizedMealLabel(for slotIndex: Int) -> String {
+        let key: String
+        switch slotIndex {
+        case 0: key = "easyview.carbLabel.breakfast"
+        case 1: key = "easyview.carbLabel.lunch"
+        case 2: key = "easyview.carbLabel.dinner"
+        case 3: key = "easyview.carbLabel.snack"
+        default: key = "easyview.carbLabel.meal"
+        }
+        return String(localized: String.LocalizationValue(key), bundle: .module)
     }
 
     /// Fetch the most recent manually-entered BG event from the events endpoint.

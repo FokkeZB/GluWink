@@ -20,6 +20,8 @@ final class ShieldContentAttentionTests: XCTestCase {
         glucose: "%@ · %@ (%@ ago)",
         glucoseNoData: "No glucose data",
         carbsEntry: "%d g · %@ (%@ ago)",
+        carbsMealOnly: "%@ · %@ (%@ ago)",
+        mealLabel: "Meal",
         carbsNoData: "No carb data",
         agoMinutes: "%dm",
         agoHoursMinutes: "%dh %dm",
@@ -41,6 +43,7 @@ final class ShieldContentAttentionTests: XCTestCase {
         glucose: Double = 6.5,
         glucoseFetchedAt: Date?,
         lastCarbGrams: Double? = 20,
+        lastCarbLabel: String? = nil,
         lastCarbEntryAt: Date?,
         now: Date
     ) -> ShieldContent {
@@ -48,6 +51,7 @@ final class ShieldContentAttentionTests: XCTestCase {
             glucose: glucose,
             glucoseFetchedAt: glucoseFetchedAt,
             lastCarbGrams: lastCarbGrams,
+            lastCarbLabel: lastCarbLabel,
             lastCarbEntryAt: lastCarbEntryAt,
             highGlucoseThreshold: 14.0,
             lowGlucoseThreshold: 4.0,
@@ -75,6 +79,24 @@ final class ShieldContentAttentionTests: XCTestCase {
     }
 
     // MARK: - Attention (the badge must match these)
+
+    /// A meal acknowledgment without a gram count (lastCarbEntryAt set but
+    /// lastCarbGrams nil) must NOT fire `.noCarbData`. The child told the
+    /// system they ate — GluWink must respect that signal.
+    func testMealOnlyEntryIsNotNoCarbData() {
+        let now = morning
+        let content = make(
+            glucoseFetchedAt: now.addingTimeInterval(-5 * 60),
+            lastCarbGrams: nil,
+            lastCarbLabel: "B'fast",
+            lastCarbEntryAt: now.addingTimeInterval(-30 * 60),
+            now: now
+        )
+        XCTAssertFalse(content.needsAttention, "meal-only entry within grace window must not need attention")
+        XCTAssertNotNil(content.carbs, "carbs must be non-nil when a date is present, even without grams")
+        XCTAssertNil(content.carbs?.grams, "carbs.grams must be nil when no gram count was recorded")
+        XCTAssertEqual(content.carbs?.label, "B'fast", "label must be threaded through to ShieldContent.Carbs")
+    }
 
     func testNoCarbDataEverIsAttention() {
         let now = morning

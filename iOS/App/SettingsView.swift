@@ -689,6 +689,10 @@ struct MockDataSettingsView: View {
     @State private var mockGlucose: Double
     @State private var glucoseDate: Date
     @State private var hasCarbData: Bool
+    /// When non-empty, the demo entry is a meal acknowledgment with no gram
+    /// count — the label is stored as the display string (e.g. "B'fast").
+    /// Demo is its own provider so any free-form text is accepted.
+    @State private var mealLabel: String
     @State private var mockCarbGrams: Double
     @State private var carbDate: Date
 
@@ -709,7 +713,8 @@ struct MockDataSettingsView: View {
         _mockGlucose = State(initialValue: u.displayValue(demoGlucose?.mmol ?? 6.4))
         _glucoseDate = State(initialValue: demoGlucose?.sampleAt ?? Date().addingTimeInterval(-5 * 60))
         _hasCarbData = State(initialValue: demoCarbs != nil)
-        _mockCarbGrams = State(initialValue: demoCarbs?.grams ?? 20)
+        _mealLabel = State(initialValue: demoCarbs?.label ?? "")
+        _mockCarbGrams = State(initialValue: demoCarbs?.grams ?? 20.0)
         _carbDate = State(initialValue: demoCarbs?.sampleAt ?? Date().addingTimeInterval(-120 * 60))
     }
 
@@ -723,6 +728,7 @@ struct MockDataSettingsView: View {
                         if newValue && !hasGlucoseData && !hasCarbData {
                             hasGlucoseData = true
                             hasCarbData = true
+                            mealLabel = ""
                             mockGlucose = unit.displayValue(6.4)
                             glucoseDate = Date().addingTimeInterval(-5 * 60)
                             mockCarbGrams = 20
@@ -773,9 +779,17 @@ struct MockDataSettingsView: View {
                         }
                     ))
                     if hasCarbData {
-                        HStack {
-                            Slider(value: $mockCarbGrams, in: 0...100, step: 1)
-                            Text("\(Int(mockCarbGrams))g").monospacedDigit()
+                        TextField(
+                            String(localized: "settings.demoMealLabel"),
+                            text: $mealLabel
+                        )
+                        .autocorrectionDisabled()
+                        .onChange(of: mealLabel) { saveMockData() }
+                        if mealLabel.trimmingCharacters(in: .whitespaces).isEmpty {
+                            HStack {
+                                Slider(value: $mockCarbGrams, in: 1...200, step: 1)
+                                Text("\(Int(mockCarbGrams))g").monospacedDigit()
+                            }
                         }
                         DatePicker(
                             String(localized: "settings.demoAt"),
@@ -795,6 +809,7 @@ struct MockDataSettingsView: View {
         .onChange(of: glucoseDate) { saveMockData() }
         .onChange(of: mockCarbGrams) { saveMockData() }
         .onChange(of: carbDate) { saveMockData() }
+        .onDisappear { saveMockData() }
     }
 
     private func saveMockData() {
@@ -812,7 +827,12 @@ struct MockDataSettingsView: View {
             }
 
             if hasCarbData {
-                data.saveDemoCarbs(grams: mockCarbGrams, at: carbDate)
+                let trimmedLabel = mealLabel.trimmingCharacters(in: .whitespaces)
+                if trimmedLabel.isEmpty {
+                    data.saveDemoCarbs(grams: mockCarbGrams, label: nil, at: carbDate)
+                } else {
+                    data.saveDemoCarbs(grams: nil, label: trimmedLabel, at: carbDate)
+                }
             } else {
                 data.clearDemoCarbs()
             }
@@ -978,7 +998,10 @@ struct NightscoutSettingsView: View {
                 )
                 latestSampleRow(
                     label: String(localized: "settings.nightscoutLatestCarbs"),
-                    value: latestCarbs.map { "\(Int($0.grams)) g" },
+                    value: latestCarbs.map { carbs in
+                        if let g = carbs.grams { return "\(Int(g)) g" }
+                        return carbs.label ?? "·"
+                    },
                     at: latestCarbs?.sampleAt,
                     emptyMessage: String(localized: "settings.nightscoutNoCarbsYet")
                 )
@@ -1264,7 +1287,10 @@ struct EasyViewSettingsView: View {
                 )
                 latestSampleRow(
                     label: String(localized: "settings.easyViewLatestCarbs"),
-                    value: latestCarbs.map { "\(Int($0.grams)) g" },
+                    value: latestCarbs.map { carbs in
+                        if let g = carbs.grams { return "\(Int(g)) g" }
+                        return carbs.label ?? "·"
+                    },
                     at: latestCarbs?.sampleAt,
                     emptyMessage: String(localized: "settings.easyViewNoCarbsYet")
                 )

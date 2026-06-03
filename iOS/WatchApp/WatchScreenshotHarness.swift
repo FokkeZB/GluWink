@@ -100,6 +100,8 @@ enum WatchScreenshotHarness {
         defaults.set(glucoseDate.ISO8601Format(), forKey: "glucoseFetchedAt")
         defaults.set(p.carbGrams, forKey: "lastCarbGrams")
         defaults.set(carbDate.ISO8601Format(), forKey: "lastCarbEntryAt")
+        // Screenshot presets always have gram counts; clear any stale label from a previous demo run.
+        defaults.removeObject(forKey: "lastCarbLabel")
 
         // Flip mock-mode on so the resolver ignores any stale Nightscout
         // config that happened to be synced from the phone in a past run,

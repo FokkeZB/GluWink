@@ -119,8 +119,12 @@ final class EasyViewManager {
                 logger.info("EasyView glucose: \(String(format: "%.1f", glucose.mmol)) mmol/L at \(glucose.date)")
             }
             if let carbs {
-                data.saveEasyViewCarbs(grams: carbs.grams, at: carbs.date)
-                logger.info("EasyView carbs: \(String(format: "%.0f", carbs.grams))g at \(carbs.date)")
+                data.saveEasyViewCarbs(grams: carbs.grams, label: carbs.label, at: carbs.date)
+                if let g = carbs.grams {
+                    logger.info("EasyView carbs: \(String(format: "%.0f", g))g at \(carbs.date)")
+                } else {
+                    logger.info("EasyView meal event (\(carbs.label ?? "no label")) at \(carbs.date)")
+                }
             }
             data.easyViewLastError = nil
         } catch EasyViewClient.ClientError.sessionExpired where retryOnExpiry {

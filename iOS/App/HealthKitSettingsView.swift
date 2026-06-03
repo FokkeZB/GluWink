@@ -48,7 +48,7 @@ struct HealthKitSettingsView: View {
                 )
                 latestSampleRow(
                     label: String(localized: "healthkit.settings.latestCarbs"),
-                    value: latestCarbs.map { "\(Int($0.grams)) g" },
+                    value: latestCarbs.map { $0.grams.map { "\(Int($0)) g" } ?? "·" },
                     at: latestCarbs?.sampleAt,
                     emptyMessage: String(localized: "healthkit.settings.noCarbsYet")
                 )
