@@ -169,11 +169,13 @@ private func widgetGlucoseValue(_ c: ShieldContent) -> String {
 }
 
 private func widgetCarbsValue(_ c: ShieldContent) -> String {
-    c.carbs.map { $0.grams.map { "\($0)" } ?? "·" } ?? "--"
+    guard let carbs = c.carbs else { return "--" }
+    if let grams = carbs.grams { return "\(grams)" }
+    return carbs.label ?? "·"
 }
 
 /// Returns "g" when a gram count is available, empty string for meal-only
-/// entries so the unit label doesn't appear next to the "·" placeholder.
+/// entries (labelled or unlabelled) so the unit label doesn't crowd the label.
 private func widgetCarbsUnit(_ c: ShieldContent) -> String {
     c.carbs?.grams != nil ? "g" : ""
 }

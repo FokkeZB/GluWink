@@ -57,6 +57,12 @@ public struct EasyViewClient: Sendable {
         /// Gram count, or `nil` when the entry is a meal acknowledgment
         /// without a carb amount (e.g. from `auto_mode_event`).
         public let grams: Double?
+        /// Provider-localized display label for a meal-only entry (e.g.
+        /// "B'fast", "Lunch"). Non-nil only when `grams` is nil. Already
+        /// localized at parse time using the `easyview.carbLabel.*` keys
+        /// from SharedKit's bundle so all callers receive a display-ready
+        /// string without any further lookup.
+        public let label: String?
         public let date: Date
     }
 
@@ -293,28 +299,35 @@ public struct EasyViewClient: Sendable {
             if let best, best.count >= 2,
                let ts = best[0] as? Double,
                let grams = best[1] as? Double, grams > 0 {
-                latestCarb = CarbEntry(grams: grams, date: Date(timeIntervalSince1970: ts))
+                latestCarb = CarbEntry(grams: grams, label: nil, date: Date(timeIntervalSince1970: ts))
             }
         }
 
         // auto_mode_event structure: [ dayBucket, … ]
         // dayBucket: [ slot0, slot1, slot2, … ] (0=breakfast, 1=lunch, 2=dinner, …)
         // slot: [ [ts, size_code], … ] — array of meal events for that meal type
-        // We want the highest timestamp across all slots in all day buckets.
+        // We want the highest timestamp across all slots, tracking which slot it
+        // came from so we can produce a localized label at parse time.
         if let autoModeEvent = dataObj?["auto_mode_event"] as? [Any] {
             var bestTs: Double = 0
+            var bestSlotIndex: Int = -1
             for dayBucket in autoModeEvent {
                 guard let slots = dayBucket as? [Any] else { continue }
-                for slot in slots {
+                for (slotIndex, slot) in slots.enumerated() {
                     guard let entries = slot as? [[Any]] else { continue }
                     for entry in entries {
                         guard let ts = entry.first as? Double, ts > bestTs else { continue }
                         bestTs = ts
+                        bestSlotIndex = slotIndex
                     }
                 }
             }
             if bestTs > 0 {
-                latestMeal = CarbEntry(grams: nil, date: Date(timeIntervalSince1970: bestTs))
+                latestMeal = CarbEntry(
+                    grams: nil,
+                    label: localizedMealLabel(for: bestSlotIndex),
+                    date: Date(timeIntervalSince1970: bestTs)
+                )
             }
         }
 
@@ -326,6 +339,21 @@ public struct EasyViewClient: Sendable {
         case let (nil, meal?): return meal
         case (nil, nil): return nil
         }
+    }
+
+    /// Map an `auto_mode_event` slot index to a localized display label.
+    /// Localized at parse time using SharedKit's bundle so the stored string
+    /// is display-ready for all callers (App, widget extension, Watch).
+    private static func localizedMealLabel(for slotIndex: Int) -> String {
+        let key: String
+        switch slotIndex {
+        case 0: key = "easyview.carbLabel.breakfast"
+        case 1: key = "easyview.carbLabel.lunch"
+        case 2: key = "easyview.carbLabel.dinner"
+        case 3: key = "easyview.carbLabel.snack"
+        default: key = "easyview.carbLabel.meal"
+        }
+        return String(localized: String.LocalizationValue(key), bundle: .module)
     }
 
     /// Fetch the most recent manually-entered BG event from the events endpoint.

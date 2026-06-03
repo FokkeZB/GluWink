@@ -39,8 +39,16 @@
 "shield.glucose %@ %@ %@" = "%@ · %@ (%@)";
 "shield.glucoseNoData" = "No glucose data";
 "shield.carbsEntry %d %@ %@" = "%d g · %@ (%@)";
-"shield.carbsMealOnly %@ %@" = "Meal · %@ (%@)";
+"shield.carbsMealOnly %@ %@ %@" = "%@ · %@ (%@)";
+"shield.mealLabel" = "Meal";
 "shield.carbsNoData" = "No carb data";
+
+/* EasyView meal-type labels — stored at write time, opaque to all other SharedKit code */
+"easyview.carbLabel.breakfast" = "B'fast";
+"easyview.carbLabel.lunch" = "Lunch";
+"easyview.carbLabel.dinner" = "Dinner";
+"easyview.carbLabel.snack" = "Snack";
+"easyview.carbLabel.meal" = "Meal";
 "shield.agoMinutes %d" = "%dm ago";
 "shield.agoHoursMinutes %d %d" = "%dh %dm ago";
 

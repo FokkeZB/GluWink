@@ -39,8 +39,16 @@
 "shield.glucose %@ %@ %@" = "%@ · %@ (%@)";
 "shield.glucoseNoData" = "Geen glucosedata";
 "shield.carbsEntry %d %@ %@" = "%d g · %@ (%@)";
-"shield.carbsMealOnly %@ %@" = "Maaltijd · %@ (%@)";
+"shield.carbsMealOnly %@ %@ %@" = "%@ · %@ (%@)";
+"shield.mealLabel" = "Maaltijd";
 "shield.carbsNoData" = "Geen KH-data";
+
+/* EasyView maaltijdtypes — opgeslagen bij schrijven, onbekend voor overige SharedKit-code */
+"easyview.carbLabel.breakfast" = "Ontbijt";
+"easyview.carbLabel.lunch" = "Lunch";
+"easyview.carbLabel.dinner" = "Diner";
+"easyview.carbLabel.snack" = "Snack";
+"easyview.carbLabel.meal" = "Eten";
 "shield.agoMinutes %d" = "%dm";
 "shield.agoHoursMinutes %d %d" = "%du %dm";
 
