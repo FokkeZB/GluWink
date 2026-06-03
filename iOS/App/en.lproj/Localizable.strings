@@ -159,8 +159,7 @@
 "settings.nightscoutTokenPlaceholder" = "API token (optional)";
 "settings.nightscoutTest" = "Test Connection";
 "settings.nightscoutTestSuccess" = "Connected";
-"settings.nightscoutVersion %@" = "Version: %@";
-"settings.nightscoutUnits %@" = "Server units: %@";
+
 "settings.nightscoutStatusHeader" = "Status";
 "settings.nightscoutLatestHeader" = "Latest data";
 "settings.nightscoutLatestGlucose" = "Glucose";
@@ -180,7 +179,7 @@
 "settings.easyViewPasswordPlaceholder" = "Password";
 "settings.easyViewTest" = "Test Connection";
 "settings.easyViewTestSuccess" = "Connected";
-"settings.easyViewTestGlucose %@" = "Latest glucose: %@";
+
 "settings.easyViewStatusHeader" = "Status";
 "settings.easyViewLatestHeader" = "Latest data";
 "settings.easyViewLatestGlucose" = "Glucose";
