@@ -175,8 +175,8 @@
 "settings.easyViewRequiresCredentials" = "Provide your EasyView username and password above before enabling.";
 "settings.easyViewVerifying" = "Verifying connection…";
 "settings.easyViewConfigHeader" = "Credentials";
-"settings.easyViewConfigFooter" = "Enter your EasyView account username and password.";
-"settings.easyViewUsernamePlaceholder" = "Username or email";
+"settings.easyViewConfigFooter" = "Enter your EasyView account email and password.";
+"settings.easyViewUsernamePlaceholder" = "Email";
 "settings.easyViewPasswordPlaceholder" = "Password";
 "settings.easyViewTest" = "Test Connection";
 "settings.easyViewTestSuccess" = "Connected";
