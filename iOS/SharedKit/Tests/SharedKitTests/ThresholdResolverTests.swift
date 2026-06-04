@@ -30,7 +30,7 @@ final class ThresholdResolverTests: XCTestCase {
     func testFallbackUsedWhenNoOverride() {
         XCTAssertEqual(ThresholdResolver.highGlucose(defaults: defaults, fallback: 9.5), 9.5)
         XCTAssertEqual(ThresholdResolver.lowGlucose(defaults: defaults, fallback: 4.0), 4.0)
-        XCTAssertEqual(ThresholdResolver.criticalGlucose(defaults: defaults, fallback: 20.0), 20.0)
+        XCTAssertEqual(ThresholdResolver.criticalGlucose(defaults: defaults, fallback: 16.7), 16.7)
         XCTAssertEqual(ThresholdResolver.staleMinutes(defaults: defaults, fallback: 30), 30)
         XCTAssertEqual(ThresholdResolver.carbGraceHour(defaults: defaults, fallback: 9), 9)
         XCTAssertEqual(ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: 30), 30)
@@ -39,7 +39,7 @@ final class ThresholdResolverTests: XCTestCase {
     func testFallbackUsedWhenDefaultsIsNil() {
         XCTAssertEqual(ThresholdResolver.highGlucose(defaults: nil, fallback: 9.5), 9.5)
         XCTAssertEqual(ThresholdResolver.lowGlucose(defaults: nil, fallback: 4.0), 4.0)
-        XCTAssertEqual(ThresholdResolver.criticalGlucose(defaults: nil, fallback: 20.0), 20.0)
+        XCTAssertEqual(ThresholdResolver.criticalGlucose(defaults: nil, fallback: 16.7), 16.7)
         XCTAssertEqual(ThresholdResolver.staleMinutes(defaults: nil, fallback: 30), 30)
         XCTAssertEqual(ThresholdResolver.carbGraceHour(defaults: nil, fallback: 9), 9)
         XCTAssertEqual(ThresholdResolver.carbGraceMinute(defaults: nil, fallback: 30), 30)
@@ -57,7 +57,7 @@ final class ThresholdResolverTests: XCTestCase {
 
         XCTAssertEqual(ThresholdResolver.highGlucose(defaults: defaults, fallback: 9.5), 8.5)
         XCTAssertEqual(ThresholdResolver.lowGlucose(defaults: defaults, fallback: 4.0), 3.5)
-        XCTAssertEqual(ThresholdResolver.criticalGlucose(defaults: defaults, fallback: 20.0), 18.0)
+        XCTAssertEqual(ThresholdResolver.criticalGlucose(defaults: defaults, fallback: 16.7), 18.0)
         XCTAssertEqual(ThresholdResolver.staleMinutes(defaults: defaults, fallback: 30), 45)
         XCTAssertEqual(ThresholdResolver.carbGraceHour(defaults: defaults, fallback: 9), 7)
         XCTAssertEqual(ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: 30), 15)
@@ -73,7 +73,7 @@ final class ThresholdResolverTests: XCTestCase {
         defaults.set(13.0, forKey: ThresholdResolver.criticalGlucoseKey)
 
         XCTAssertEqual(
-            ThresholdResolver.criticalGlucose(defaults: defaults, fallback: 20.0),
+            ThresholdResolver.criticalGlucose(defaults: defaults, fallback: 16.7),
             13.0,
             "Resolver must return the persisted value even when invariant is violated."
         )

@@ -164,8 +164,8 @@ extension ScreenshotHarness.Scene {
             )
         case .orangeShield:
             // High-but-not-critical: 14.8 mmol/L sits above the default
-            // `HighGlucoseThreshold` (14.0) but well below
-            // `CriticalGlucoseThreshold` (20.0), so `ShieldContent` resolves
+            // `HighGlucoseThreshold` (13.9) but well below
+            // `CriticalGlucoseThreshold` (16.7), so `ShieldContent` resolves
             // to the orange attention level and the check-in is dismissible.
             return HomeViewPreset(
                 glucose: 14.8,
@@ -181,7 +181,7 @@ extension ScreenshotHarness.Scene {
             )
         case .redShield:
             // Critical: 21.2 mmol/L is above `CriticalGlucoseThreshold`
-            // (20.0 default), which flips `isCriticalGlucose` true. The
+            // (16.7 default), which flips `isCriticalGlucose` true. The
             // home view hides the interactive check-in and shows the
             // "shield cannot be dismissed until glucose is below X"
             // subtitle — the marketing-visible proof of the no-disarm

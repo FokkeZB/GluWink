@@ -557,7 +557,7 @@ The shield check-in logic lives in the ShieldAction extension. Rules determine w
 ALWAYS required:
 - [ ] "I have checked my pump"
 
-IF currentGlucose >= criticalGlucoseThreshold (default 20.0 mmol/L):
+IF currentGlucose >= criticalGlucoseThreshold (default 16.7 mmol/L):
 - Shield CANNOT be dismissed by any check-in path. The primary button
   re-uses the regular check-in label, but tapping it is a no-op: the
   subtitle explains the condition ("The shield cannot be dismissed until
@@ -568,7 +568,7 @@ IF currentGlucose >= criticalGlucoseThreshold (default 20.0 mmol/L):
   Contract enforced in: `SharedKit.ShieldContent` (UI) + ShieldAction
   extension (gate). See issue #84.
 
-ELSE IF currentGlucose > highGlucoseThreshold (default 14.0 mmol/L):
+ELSE IF currentGlucose > highGlucoseThreshold (default 13.9 mmol/L):
 - [ ] "My glucose is high. I have taken corrective action."
 - Shield CAN be dismissed after acknowledgement; re-arms after the
   configured "needs attention" interval.
