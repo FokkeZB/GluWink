@@ -242,7 +242,7 @@ struct WidgetShowcaseView: View {
 
     /// Red, critical state — mirror of `ScreenshotHarness.redShield`.
     /// Glucose 21.2 mmol/L is at/above the default critical threshold
-    /// (20.0), so `ShieldContent.isCriticalGlucose` flips true and the
+    /// (16.7), so `ShieldContent.isCriticalGlucose` flips true and the
     /// tile background resolves to `BrandTint.red` automatically via
     /// `attentionLevel.tint`.
     private var criticalContent: WidgetTileContent {

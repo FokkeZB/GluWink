@@ -33,7 +33,7 @@ public enum SettingsValidation {
     /// `high` on the given step grid — used by Settings UI to auto-bump
     /// the slider's floor when the user lowers it below high.
     ///
-    /// Example: `high = 14.0`, `step = 0.5` → `14.5`.
+    /// Example: `high = 13.9`, `step = 0.1` → `14.0`.
     public static func minimumCritical(above high: Double, step: Double) -> Double {
         guard step > 0 else { return high }
         let bumped = (high / step).rounded(.down) * step + step
