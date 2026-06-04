@@ -86,7 +86,7 @@ The script writes to `iOS/fastlane/screenshots/<locale>/<NN>_<scene>.png` (flat 
 1a. **Sync to the marketing site.** After a successful capture run, `make appstore-screenshots` automatically runs `make docs-sync-screenshots` (copies the curated subset into `docs/assets/screenshots/`) and `make docs-og-images` (regenerates `og-{en,nl}.png` from the updated `01_greenShield` screenshot). If you used `capture.sh` directly, run both manually.
 2. **Review every PNG.** Read each file in the agent client and check:
    - Status bar reads `9:41`, full bars, full battery (charged charging glyph).
-   - Glucose / carb numbers match the harness presets (greenShield: 6.4 mmol/L + 25 g; orangeShield: 14.8 mmol/L + 30 g; redShield: 21.2 mmol/L — critical, above the 20.0 default). English locales display as mg/dL, everything else as mmol/L.
+   - Glucose / carb numbers match the harness presets (greenShield: 6.4 mmol/L + 25 g; orangeShield: 14.8 mmol/L + 30 g; redShield: 21.2 mmol/L — critical, above the 16.7 default). English locales display as mg/dL, everything else as mmol/L.
    - `redShield` has **no** Continue / check-in button — the critical path hides it, and the subtitle reads "shield cannot be dismissed until your glucose is below …". If you see a dismiss button, the critical preset regressed.
    - `orangeShield` **does** show the check-in list with the first row ticked, and the face is the brand orange shade (not red, not system orange).
    - Caption matches the matching row in `AppStore/<locale>.md` → "Screenshot captions" and reads cleanly without hitting the 3-line limit.
