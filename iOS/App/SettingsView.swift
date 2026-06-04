@@ -310,7 +310,7 @@ struct AttentionRulesSettingsView: View {
     }
 
     private var highStep: Double {
-        unit == .mmolL ? 0.5 : 5
+        unit == .mmolL ? 0.1 : 5
     }
 
     private var lowRange: ClosedRange<Double> {
