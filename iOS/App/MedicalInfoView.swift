@@ -13,12 +13,7 @@ struct MedicalInfoView: View {
             Section {
                 Text("medicalInfo.dataSources", tableName: "Localizable")
                     .font(.body)
-                Link("medicalInfo.source.appleHealth",
-                     destination: URL(string: "https://www.apple.com/health/")!)
-                Link("medicalInfo.source.nightscout",
-                     destination: URL(string: "https://nightscout.github.io/")!)
-                Link("medicalInfo.source.easyview",
-                     destination: URL(string: "https://easyview.medtrum.eu/")!)
+                SourceLinks(key: "medicalInfo.dataSources.links")
             } header: {
                 Text("medicalInfo.dataSourcesHeader", tableName: "Localizable")
             }
@@ -26,33 +21,15 @@ struct MedicalInfoView: View {
             Section {
                 Text("medicalInfo.thresholds", tableName: "Localizable")
                     .font(.body)
+                SourceLinks(key: "medicalInfo.thresholds.links")
             } header: {
                 Text("medicalInfo.thresholdsHeader", tableName: "Localizable")
-            }
-            Section {
-                Link("medicalInfo.source.adaHypoglycemia",
-                     destination: URL(string: "https://diabetes.org/living-with-diabetes/hypoglycemia-low-blood-glucose")!)
-                Link("medicalInfo.source.adaHyperglycemia",
-                     destination: URL(string: "https://diabetes.org/living-with-diabetes/treatment-care/hyperglycemia")!)
-                Link("medicalInfo.source.adaTargets",
-                     destination: URL(string: "https://diabetes.org/living-with-diabetes/treatment-care/checking-your-blood-sugar")!)
-                Link("medicalInfo.source.adaKetones",
-                     destination: URL(string: "https://diabetes.org/living-with-diabetes/managing-ketones")!)
-                Link("medicalInfo.source.ispad",
-                     destination: URL(string: "https://www.ispad.org/general/custom.asp?page=ISPADGuidelines2022")!)
-                Link("medicalInfo.source.diabetesFonds",
-                     destination: URL(string: "https://www.diabetesfonds.nl/over-diabetes/dagelijks-leven/hypo-s-en-hypers")!)
-                Link("medicalInfo.source.dvn",
-                     destination: URL(string: "https://www.dvn.nl/diabetes/bloedwaarden/glucosewaarden")!)
-            } header: {
-                Text("medicalInfo.sourcesHeader", tableName: "Localizable")
             }
 
             Section {
                 Text("medicalInfo.glucoseUnits", tableName: "Localizable")
                     .font(.body)
-                Link("medicalInfo.source.adaTargets",
-                     destination: URL(string: "https://diabetes.org/living-with-diabetes/treatment-care/checking-your-blood-sugar")!)
+                SourceLinks(key: "medicalInfo.glucoseUnits.links")
             } header: {
                 Text("medicalInfo.glucoseUnitsHeader", tableName: "Localizable")
             }
@@ -60,18 +37,9 @@ struct MedicalInfoView: View {
             Section {
                 Text("medicalInfo.checks", tableName: "Localizable")
                     .font(.body)
+                SourceLinks(key: "medicalInfo.checks.links")
             } header: {
                 Text("medicalInfo.checksHeader", tableName: "Localizable")
-            }
-            Section {
-                Link("medicalInfo.source.adaHypoglycemia",
-                     destination: URL(string: "https://diabetes.org/living-with-diabetes/hypoglycemia-low-blood-glucose")!)
-                Link("medicalInfo.source.adaHyperglycemia",
-                     destination: URL(string: "https://diabetes.org/living-with-diabetes/treatment-care/hyperglycemia")!)
-                Link("medicalInfo.source.diabetesFonds",
-                     destination: URL(string: "https://www.diabetesfonds.nl/over-diabetes/dagelijks-leven/hypo-s-en-hypers")!)
-            } header: {
-                Text("medicalInfo.sourcesHeader", tableName: "Localizable")
             }
 
             Section {
@@ -86,5 +54,27 @@ struct MedicalInfoView: View {
         }
         .navigationTitle(String(localized: "medicalInfo.title"))
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// Renders a list of `Link` rows parsed from a localized string whose value
+/// is one or more `Label|URL` pairs separated by newlines.
+private struct SourceLinks: View {
+    let key: String
+
+    private var items: [(label: String, url: URL)] {
+        NSLocalizedString(key, tableName: "Localizable", bundle: .main, comment: "")
+            .components(separatedBy: "\n")
+            .compactMap { entry in
+                let parts = entry.components(separatedBy: "|")
+                guard parts.count == 2, let url = URL(string: parts[1]) else { return nil }
+                return (label: parts[0], url: url)
+            }
+    }
+
+    var body: some View {
+        ForEach(items, id: \.url) { item in
+            Link(item.label, destination: item.url)
+        }
     }
 }
