@@ -94,18 +94,22 @@ final class LibreLinkUpManager {
         do {
             let token = try await validToken()
             let region = SharedDataManager.shared.librelinkupRegion
-            let connections = try await Self.fetchConnections(token: token, region: region)
+            let userId = SharedDataManager.shared.librelinkupUserId
+            let connections = try await Self.fetchConnections(token: token, region: region, userId: userId)
 
-            guard let first = connections.first else {
+            guard !connections.isEmpty else {
                 logger.warning("LibreLinkUp: no connections in account")
-                SharedDataManager.shared.librelinkupLastError = "No connections found"
+                SharedDataManager.shared.librelinkupLastError = String(localized: "librelinkup.error.noConnections")
                 return
             }
 
-            let mmol = first.glucoseMeasurement.valueInMgPerDl / 18.01559
-            let sampleAt = first.glucoseMeasurement.timestamp
+            let storedPatientId = SharedDataManager.shared.librelinkupPatientId
+            let connection = connections.first(where: { $0.patientId == storedPatientId }) ?? connections[0]
+
+            let mmol = connection.glucoseMeasurement.valueInMgPerDl / 18.01559
+            let sampleAt = connection.glucoseMeasurement.timestamp
             SharedDataManager.shared.saveLibreLinkUpGlucose(mmol: mmol, at: sampleAt)
-            SharedDataManager.shared.librelinkupPatientId = first.patientId
+            SharedDataManager.shared.librelinkupPatientId = connection.patientId
             SharedDataManager.shared.librelinkupLastFetchedAt = Date()
             SharedDataManager.shared.librelinkupLastError = nil
 
@@ -127,7 +131,9 @@ final class LibreLinkUpManager {
     struct TestResult {
         let mmol: Double
         let sampleAt: Date
+        let patientId: String
         let patientName: String
+        let allConnections: [(patientId: String, name: String)]
     }
 
     /// Authenticate with the given credentials and fetch one glucose sample.
@@ -141,21 +147,35 @@ final class LibreLinkUpManager {
 
         let token = try await authenticate(email: email, password: password)
         let region = SharedDataManager.shared.librelinkupRegion
-        let connections = try await Self.fetchConnections(token: token, region: region)
+        let connections = try await Self.fetchConnections(token: token, region: region, userId: SharedDataManager.shared.librelinkupUserId)
 
         guard let first = connections.first else {
             throw LibreLinkUpError.noConnections
         }
 
-        let mmol = first.glucoseMeasurement.valueInMgPerDl / 18.01559
-        let sampleAt = first.glucoseMeasurement.timestamp
-        SharedDataManager.shared.librelinkupPatientId = first.patientId
+        let storedPatientId = SharedDataManager.shared.librelinkupPatientId
+        let picked = connections.first(where: { $0.patientId == storedPatientId }) ?? first
+
+        let mmol = picked.glucoseMeasurement.valueInMgPerDl / 18.01559
+        let sampleAt = picked.glucoseMeasurement.timestamp
+        SharedDataManager.shared.librelinkupPatientId = picked.patientId
 
         return TestResult(
             mmol: mmol,
             sampleAt: sampleAt,
-            patientName: "\(first.firstName) \(first.lastName)"
+            patientId: picked.patientId,
+            patientName: "\(picked.firstName) \(picked.lastName)",
+            allConnections: connections.map { (patientId: $0.patientId, name: "\($0.firstName) \($0.lastName)") }
         )
+    }
+
+    /// Fetch available follower connections without saving glucose — used by the settings UI to populate the patient picker.
+    func fetchConnectionList() async throws -> [(patientId: String, name: String)] {
+        let token = try await validToken()
+        let region = SharedDataManager.shared.librelinkupRegion
+        let userId = SharedDataManager.shared.librelinkupUserId
+        let connections = try await Self.fetchConnections(token: token, region: region, userId: userId)
+        return connections.map { (patientId: $0.patientId, name: "\($0.firstName) \($0.lastName)") }
     }
 
     // MARK: - Background refresh
@@ -194,7 +214,8 @@ final class LibreLinkUpManager {
     private func validToken() async throws -> String {
         if let token = KeychainManager.shared.libreLinkUpToken,
            let expiry = KeychainManager.shared.libreLinkUpTokenExpiry,
-           expiry.timeIntervalSinceNow > 60 {
+           expiry.timeIntervalSinceNow > 60,
+           SharedDataManager.shared.librelinkupUserId != nil {
             return token
         }
         guard let email = KeychainManager.shared.libreLinkUpEmail,
@@ -224,13 +245,14 @@ final class LibreLinkUpManager {
 
             case let .touRequired(stepType, ticketToken):
                 logger.info("LibreLinkUp auth: ToU required (type=\(stepType)), accepting")
-                try await Self.postContinue(type: stepType, token: ticketToken, baseURL: baseURL)
+                try await Self.postContinue(type: stepType, token: ticketToken, baseURL: baseURL, userId: nil)
                 // After terms acceptance, re-login to get a full auth ticket.
                 continue
 
-            case let .success(token, expiry, _):
+            case let .success(token, expiry, userId):
                 KeychainManager.shared.libreLinkUpToken = token
                 KeychainManager.shared.libreLinkUpTokenExpiry = expiry
+                SharedDataManager.shared.librelinkupUserId = userId
                 return token
             }
         }
@@ -249,7 +271,7 @@ final class LibreLinkUpManager {
 
     private static let commonHeaders: [String: String] = [
         "product": "llu.ios",
-        "version": "4.12.0",
+        "version": "5.0.1",
         "content-type": "application/json",
         "accept-encoding": "gzip",
         "cache-control": "no-cache",
@@ -323,7 +345,7 @@ final class LibreLinkUpManager {
         throw LibreLinkUpError.unexpectedAuthResponse(status: status)
     }
 
-    private static func postContinue(type: String, token: String, baseURL: String) async throws {
+    private static func postContinue(type: String, token: String, baseURL: String, userId: String?) async throws {
         guard let url = URL(string: "\(baseURL)/llu/auth/continue/\(type)") else {
             throw LibreLinkUpError.invalidURL
         }
@@ -331,6 +353,9 @@ final class LibreLinkUpManager {
         request.httpMethod = "POST"
         for (key, value) in commonHeaders { request.setValue(value, forHTTPHeaderField: key) }
         request.setValue("Bearer \(token)", forHTTPHeaderField: "authorization")
+        if let userId {
+            request.setValue(accountIDHeader(for: userId), forHTTPHeaderField: "account-id")
+        }
 
         let (_, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -357,7 +382,7 @@ final class LibreLinkUpManager {
         return f
     }()
 
-    private static func fetchConnections(token: String, region: String?) async throws -> [Connection] {
+    private static func fetchConnections(token: String, region: String?, userId: String?) async throws -> [Connection] {
         guard let url = URL(string: "\(baseURL(for: region))/llu/connections") else {
             throw LibreLinkUpError.invalidURL
         }
@@ -365,7 +390,9 @@ final class LibreLinkUpManager {
         request.httpMethod = "GET"
         for (key, value) in commonHeaders { request.setValue(value, forHTTPHeaderField: key) }
         request.setValue("Bearer \(token)", forHTTPHeaderField: "authorization")
-
+        if let userId {
+            request.setValue(accountIDHeader(for: userId), forHTTPHeaderField: "account-id")
+        }
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw LibreLinkUpError.invalidResponse }
 

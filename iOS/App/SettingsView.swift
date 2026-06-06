@@ -1436,11 +1436,12 @@ struct LibreLinkUpSettingsView: View {
     @State private var enabled: Bool
     @State private var email: String
     @State private var password: String
-    @State private var lastError: String?
     @State private var latestGlucose: GlucoseReading?
     @State private var isTesting = false
     @State private var testResult: TestResult?
     @State private var region: String?
+    @State private var selectedPatientId: String?
+    @State private var availableConnections: [(patientId: String, name: String)] = []
 
     enum TestResult: Equatable {
         case success(String)
@@ -1452,9 +1453,9 @@ struct LibreLinkUpSettingsView: View {
         _enabled = State(initialValue: data.librelinkupEnabled)
         _email = State(initialValue: KeychainManager.shared.libreLinkUpEmail ?? "")
         _password = State(initialValue: KeychainManager.shared.libreLinkUpPassword ?? "")
-        _lastError = State(initialValue: data.librelinkupLastError)
         _latestGlucose = State(initialValue: data.glucoseReading(source: .libreLinkUp))
         _region = State(initialValue: data.librelinkupRegion)
+        _selectedPatientId = State(initialValue: data.librelinkupPatientId)
     }
 
     private var hasCredentials: Bool {
@@ -1565,19 +1566,33 @@ struct LibreLinkUpSettingsView: View {
                 }
             }
 
-            if let lastError {
+            if availableConnections.count > 1 {
                 Section {
-                    Label(lastError, systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(BrandTint.orange)
-                        .font(.caption)
+                    Picker(String(localized: "settings.librelinkup.connection"), selection: $selectedPatientId) {
+                        ForEach(availableConnections, id: \.patientId) { conn in
+                            Text(conn.name).tag(Optional(conn.patientId))
+                        }
+                    }
+                    .onChange(of: selectedPatientId) { _, newId in
+                        SharedDataManager.shared.librelinkupPatientId = newId
+                        SharedDataManager.shared.flush()
+                        Task { await LibreLinkUpManager.shared.fetchLatestGlucose() }
+                    }
                 } header: {
-                    Text("settings.librelinkup.statusHeader", tableName: "Localizable")
+                    Text("settings.librelinkup.connectionHeader", tableName: "Localizable")
                 }
             }
         }
         .navigationTitle(String(localized: "settings.librelinkup.title"))
         .navigationBarTitleDisplayMode(.inline)
         .task {
+            // Pre-populate the connection picker if the source is already enabled.
+            if SharedDataManager.shared.librelinkupEnabled {
+                if let connections = try? await LibreLinkUpManager.shared.fetchConnectionList(),
+                   connections.count > 1 {
+                    availableConnections = connections
+                }
+            }
             while !Task.isCancelled {
                 refreshStatusFields()
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
@@ -1590,7 +1605,6 @@ struct LibreLinkUpSettingsView: View {
 
     private func refreshStatusFields() {
         let data = SharedDataManager.shared
-        lastError = data.librelinkupLastError
         latestGlucose = data.glucoseReading(source: .libreLinkUp)
         region = data.librelinkupRegion
     }
@@ -1658,6 +1672,10 @@ struct LibreLinkUpSettingsView: View {
             let formatted = unit.formattedWithUnit(result.mmol)
             let timeStr = result.sampleAt.formatted(date: .omitted, time: .shortened)
             testResult = .success(String(localized: "settings.librelinkup.testSuccess \(result.patientName) \(formatted) \(timeStr)"))
+            if result.allConnections.count > 1 {
+                availableConnections = result.allConnections
+                selectedPatientId = result.patientId
+            }
             refreshStatusFields()
             return true
         } catch {

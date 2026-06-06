@@ -211,6 +211,8 @@
 "settings.librelinkup.carbsNote" = "Carb data requires Apple Health or Nightscout. LibreLinkUp provides glucose only.";
 "settings.librelinkup.region" = "Region";
 "settings.librelinkup.region.default" = "Default (international)";
+"settings.librelinkup.connectionHeader" = "Connection";
+"settings.librelinkup.connection" = "Following";
 "settings.librelinkup.latestData" = "Latest data";
 "settings.librelinkup.latestGlucose" = "Glucose";
 "settings.librelinkup.noGlucoseYet" = "No data yet";

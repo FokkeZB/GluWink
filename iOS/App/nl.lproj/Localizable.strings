@@ -211,6 +211,8 @@
 "settings.librelinkup.carbsNote" = "Koolhydraatgegevens vereisen Apple Gezondheid of Nightscout. LibreLinkUp levert alleen glucosegegevens.";
 "settings.librelinkup.region" = "Regio";
 "settings.librelinkup.region.default" = "Standaard (internationaal)";
+"settings.librelinkup.connectionHeader" = "Verbinding";
+"settings.librelinkup.connection" = "Volg";
 "settings.librelinkup.latestData" = "Laatste gegevens";
 "settings.librelinkup.latestGlucose" = "Glucose";
 "settings.librelinkup.noGlucoseYet" = "Nog geen gegevens";

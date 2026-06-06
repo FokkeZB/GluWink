@@ -485,7 +485,7 @@ final class SharedDataManager {
             "nightscoutLastFetchedAt", "nightscoutLastError",
             "easyViewUsername", "easyViewSession",
             "easyViewPatientUID", "easyViewLastFetchedAt", "easyViewLastError",
-            "librelinkupRegion", "librelinkupPatientId",
+            "librelinkupRegion", "librelinkupUserId", "librelinkupPatientId",
             "librelinkupLastFetchedAt", "librelinkupLastError",
             "setupTipsHidden",
         ]
@@ -694,6 +694,17 @@ final class SharedDataManager {
                 defaults?.set(error, forKey: "librelinkupLastError")
             } else {
                 defaults?.removeObject(forKey: "librelinkupLastError")
+            }
+        }
+    }
+
+    var librelinkupUserId: String? {
+        get { defaults?.string(forKey: "librelinkupUserId") }
+        set {
+            if let value = newValue {
+                defaults?.set(value, forKey: "librelinkupUserId")
+            } else {
+                defaults?.removeObject(forKey: "librelinkupUserId")
             }
         }
     }
