@@ -29,6 +29,7 @@ struct SettingsView: View {
     @State private var nightscoutEnabled: Bool
     @State private var healthKitEnabled: Bool
     @State private var easyViewEnabled: Bool
+    @State private var libreLinkUpEnabled: Bool
 
     init() {
         let data = SharedDataManager.shared
@@ -39,6 +40,7 @@ struct SettingsView: View {
         _nightscoutEnabled = State(initialValue: data.nightscoutEnabled)
         _healthKitEnabled = State(initialValue: data.healthKitEnabled)
         _easyViewEnabled = State(initialValue: data.easyViewEnabled)
+        _libreLinkUpEnabled = State(initialValue: data.librelinkupEnabled)
     }
 
     var body: some View {
@@ -163,6 +165,19 @@ struct SettingsView: View {
                     }
 
                     NavigationLink {
+                        LibreLinkUpSettingsView()
+                    } label: {
+                        HStack {
+                            Label(String(localized: "settings.librelinkup.title"), systemImage: "drop.circle")
+                            Spacer()
+                            Text(libreLinkUpEnabled
+                                ? String(localized: "settings.statusOn")
+                                : String(localized: "settings.statusOff"))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    NavigationLink {
                         MockDataSettingsView()
                     } label: {
                         HStack {
@@ -204,6 +219,7 @@ struct SettingsView: View {
                 nightscoutEnabled = data.nightscoutEnabled
                 healthKitEnabled = data.healthKitEnabled
                 easyViewEnabled = data.easyViewEnabled
+                libreLinkUpEnabled = data.librelinkupEnabled
             }
             .navigationTitle(String(localized: "settings.title"))
             .navigationBarTitleDisplayMode(.inline)
@@ -852,6 +868,12 @@ struct MockDataSettingsView: View {
                 if data.nightscoutEnabled {
                     await NightscoutManager.shared.fetchAll()
                 }
+                if data.easyViewEnabled {
+                    await EasyViewManager.shared.fetchAll()
+                }
+                if data.librelinkupEnabled {
+                    await LibreLinkUpManager.shared.fetchLatestGlucose()
+                }
                 await HealthKitManager.shared.refreshIfAuthorized()
             }
         }
@@ -1402,6 +1424,271 @@ struct EasyViewSettingsView: View {
         Task {
             await HealthKitManager.shared.refreshIfAuthorized()
             if data.nightscoutEnabled { await NightscoutManager.shared.fetchAll() }
+        }
+        WatchSessionManager.shared.sendLatestContext()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+}
+
+// MARK: - LibreLinkUp
+
+struct LibreLinkUpSettingsView: View {
+    @State private var enabled: Bool
+    @State private var email: String
+    @State private var password: String
+    @State private var lastError: String?
+    @State private var latestGlucose: GlucoseReading?
+    @State private var isTesting = false
+    @State private var testResult: TestResult?
+    @State private var region: String?
+
+    enum TestResult: Equatable {
+        case success(String)
+        case failure(String)
+    }
+
+    init() {
+        let data = SharedDataManager.shared
+        _enabled = State(initialValue: data.librelinkupEnabled)
+        _email = State(initialValue: KeychainManager.shared.libreLinkUpEmail ?? "")
+        _password = State(initialValue: KeychainManager.shared.libreLinkUpPassword ?? "")
+        _lastError = State(initialValue: data.librelinkupLastError)
+        _latestGlucose = State(initialValue: data.glucoseReading(source: .libreLinkUp))
+        _region = State(initialValue: data.librelinkupRegion)
+    }
+
+    private var hasCredentials: Bool {
+        !email.trimmingCharacters(in: .whitespaces).isEmpty
+            && !password.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    var body: some View {
+        List {
+            Section {
+                HStack {
+                    Toggle(String(localized: "settings.librelinkup.enabled"), isOn: Binding(
+                        get: { enabled && hasCredentials },
+                        set: { newValue in
+                            if newValue {
+                                Task { await enableWithVerification() }
+                            } else {
+                                disable()
+                            }
+                        }
+                    ))
+                    .disabled(!hasCredentials || isTesting)
+                    if isTesting {
+                        ProgressView()
+                    }
+                }
+            } footer: {
+                if !hasCredentials {
+                    Text("settings.librelinkup.requiresCredentials", tableName: "Localizable")
+                } else if isTesting {
+                    Text("settings.librelinkup.verifying", tableName: "Localizable")
+                } else {
+                    Text("settings.librelinkup.footer", tableName: "Localizable")
+                }
+            }
+            .onChange(of: hasCredentials) { _, newValue in
+                if !newValue, enabled {
+                    disable()
+                }
+            }
+
+            Section {
+                TextField(
+                    String(localized: "settings.librelinkup.email"),
+                    text: $email
+                )
+                .textContentType(.username)
+                .keyboardType(.emailAddress)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+
+                SecureField(
+                    String(localized: "settings.librelinkup.password"),
+                    text: $password
+                )
+                .textContentType(.password)
+            } header: {
+                Text("settings.librelinkup.configHeader", tableName: "Localizable")
+            }
+
+            Section {
+                Button {
+                    Task { await runConnectionTest() }
+                } label: {
+                    HStack {
+                        Label(String(localized: "settings.librelinkup.testConnection"), systemImage: "network")
+                        Spacer()
+                        if isTesting {
+                            ProgressView()
+                        }
+                    }
+                }
+                .disabled(isTesting || !hasCredentials)
+
+                if let testResult {
+                    switch testResult {
+                    case let .success(summary):
+                        Label(summary, systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(BrandTint.green)
+                    case let .failure(message):
+                        Label(message, systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(BrandTint.red)
+                    }
+                }
+            }
+
+            Section {
+                latestSampleRow(
+                    label: String(localized: "settings.librelinkup.latestGlucose"),
+                    value: latestGlucose.map { SharedDataManager.shared.glucoseUnit.formattedWithUnit($0.mmol) },
+                    at: latestGlucose?.sampleAt,
+                    emptyMessage: String(localized: "settings.librelinkup.noGlucoseYet")
+                )
+            } header: {
+                Text("settings.librelinkup.latestData", tableName: "Localizable")
+            } footer: {
+                Text("settings.librelinkup.carbsNote", tableName: "Localizable")
+            }
+
+            if let region {
+                Section {
+                    HStack {
+                        Text("settings.librelinkup.region", tableName: "Localizable")
+                        Spacer()
+                        Text(region.isEmpty ? String(localized: "settings.librelinkup.region.default") : region.uppercased())
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            if let lastError {
+                Section {
+                    Label(lastError, systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(BrandTint.orange)
+                        .font(.caption)
+                } header: {
+                    Text("settings.librelinkup.statusHeader", tableName: "Localizable")
+                }
+            }
+        }
+        .navigationTitle(String(localized: "settings.librelinkup.title"))
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            while !Task.isCancelled {
+                refreshStatusFields()
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+            }
+        }
+        .onDisappear {
+            persistFields()
+        }
+    }
+
+    private func refreshStatusFields() {
+        let data = SharedDataManager.shared
+        lastError = data.librelinkupLastError
+        latestGlucose = data.glucoseReading(source: .libreLinkUp)
+        region = data.librelinkupRegion
+    }
+
+    @ViewBuilder
+    private func latestSampleRow(label: String, value: String?, at: Date?, emptyMessage: String) -> some View {
+        if let value, let at {
+            HStack(alignment: .firstTextBaseline) {
+                Text(label)
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(value)
+                        .monospacedDigit()
+                    Text(at, style: .relative)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } else {
+            HStack {
+                Text(label)
+                Spacer()
+                Text(emptyMessage)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func persistFields() {
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        let emailChanged = KeychainManager.shared.libreLinkUpEmail != (trimmedEmail.isEmpty ? nil : trimmedEmail)
+        let passwordChanged = KeychainManager.shared.libreLinkUpPassword != (trimmedPassword.isEmpty ? nil : trimmedPassword)
+        KeychainManager.shared.libreLinkUpEmail = trimmedEmail.isEmpty ? nil : trimmedEmail
+        KeychainManager.shared.libreLinkUpPassword = trimmedPassword.isEmpty ? nil : trimmedPassword
+        if emailChanged || passwordChanged {
+            // Clear the cached token so the next fetch re-authenticates.
+            KeychainManager.shared.libreLinkUpToken = nil
+            KeychainManager.shared.libreLinkUpTokenExpiry = nil
+            LibreLinkUpManager.shared.configurationDidChange()
+            WatchSessionManager.shared.sendLatestContext()
+        }
+    }
+
+    private func runConnectionTest() async {
+        _ = await verifyConnection()
+    }
+
+    private func verifyConnection() async -> Bool {
+        persistFields()
+        isTesting = true
+        testResult = nil
+        defer { isTesting = false }
+
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        do {
+            let result = try await LibreLinkUpManager.shared.testConnection(
+                email: trimmedEmail,
+                password: trimmedPassword
+            )
+            let data = SharedDataManager.shared
+            data.saveLibreLinkUpGlucose(mmol: result.mmol, at: result.sampleAt)
+            let unit = data.glucoseUnit
+            let formatted = unit.formattedWithUnit(result.mmol)
+            let timeStr = result.sampleAt.formatted(date: .omitted, time: .shortened)
+            testResult = .success(String(localized: "settings.librelinkup.testSuccess \(result.patientName) \(formatted) \(timeStr)"))
+            refreshStatusFields()
+            return true
+        } catch {
+            testResult = .failure(error.localizedDescription)
+            return false
+        }
+    }
+
+    private func enableWithVerification() async {
+        guard await verifyConnection() else { return }
+        enabled = true
+        SharedDataManager.shared.librelinkupEnabled = true
+        SharedDataManager.shared.flush()
+        LibreLinkUpManager.shared.startPolling()
+        await LibreLinkUpManager.shared.fetchLatestGlucose()
+        WatchSessionManager.shared.sendLatestContext()
+        refreshStatusFields()
+    }
+
+    private func disable() {
+        enabled = false
+        let data = SharedDataManager.shared
+        data.librelinkupEnabled = false
+        data.flush()
+        LibreLinkUpManager.shared.disable()
+        latestGlucose = nil
+        ShieldManager.shared.disableIfNoDataSource()
+        Task {
+            await HealthKitManager.shared.refreshIfAuthorized()
+            if data.nightscoutEnabled { await NightscoutManager.shared.fetchAll() }
+            if data.easyViewEnabled { await EasyViewManager.shared.fetchAll() }
         }
         WatchSessionManager.shared.sendLatestContext()
         WidgetCenter.shared.reloadAllTimelines()

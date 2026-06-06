@@ -45,6 +45,7 @@ struct SetupChecklistCard: View {
     /// to age out.
     @State private var healthKitEnabled: Bool
     @State private var easyViewEnabled: Bool
+    @State private var libreLinkUpEnabled: Bool
     @State private var showHideConfirmation = false
 
     init(refreshToken: Binding<Int>) {
@@ -59,6 +60,7 @@ struct SetupChecklistCard: View {
         _isMockModeEnabled = State(initialValue: data.isMockModeEnabled)
         _healthKitEnabled = State(initialValue: data.healthKitEnabled)
         _easyViewEnabled = State(initialValue: data.easyViewEnabled)
+        _libreLinkUpEnabled = State(initialValue: data.librelinkupEnabled)
     }
 
     var body: some View {
@@ -134,7 +136,7 @@ struct SetupChecklistCard: View {
     /// changes. Reading the manager directly here would skip re-render
     /// because the body wouldn't observe those flags.
     private var hasAnyDataSource: Bool {
-        nightscoutEnabled || isMockModeEnabled || healthKitEnabled || easyViewEnabled
+        nightscoutEnabled || isMockModeEnabled || healthKitEnabled || easyViewEnabled || libreLinkUpEnabled
     }
 
     /// The shielding row stays visible until shielding is actually enabled —
@@ -171,7 +173,7 @@ struct SetupChecklistCard: View {
                 kind: .dataSources,
                 titleKey: "setup.checklist.dataSources",
                 footerKey: "setup.checklist.dataSourcesFooter",
-                rows: [.healthKit, .nightscout, .easyView, .demo]
+                rows: [.healthKit, .nightscout, .easyView, .libreLinkUp, .demo]
             )]
         }
 
@@ -308,6 +310,7 @@ struct SetupChecklistCard: View {
         case .healthKit: presentedSheet = .healthKit
         case .nightscout: presentedSheet = .nightscout
         case .easyView: presentedSheet = .easyView
+        case .libreLinkUp: presentedSheet = .libreLinkUp
         case .demo: presentedSheet = .demo
         case .shielding: presentedSheet = .shielding
         case .passphrase: presentedSheet = .passphrase
@@ -331,6 +334,7 @@ struct SetupChecklistCard: View {
         isMockModeEnabled = data.isMockModeEnabled
         healthKitEnabled = data.healthKitEnabled
         easyViewEnabled = data.easyViewEnabled
+        libreLinkUpEnabled = data.librelinkupEnabled
         Task {
             let settings = await UNUserNotificationCenter.current().notificationSettings()
             await MainActor.run { notificationStatus = settings.authorizationStatus }
@@ -387,6 +391,11 @@ struct SetupChecklistCard: View {
                 EasyViewSettingsView()
                     .toolbar { dismissToolbar }
             }
+        case .libreLinkUp:
+            NavigationStack {
+                LibreLinkUpSettingsView()
+                    .toolbar { dismissToolbar }
+            }
         case .demo:
             NavigationStack {
                 MockDataSettingsView()
@@ -418,6 +427,7 @@ private enum ChecklistRow: String, Hashable {
     case healthKit
     case nightscout
     case easyView
+    case libreLinkUp
     case demo
     case shielding
     case passphrase
@@ -428,6 +438,7 @@ private enum ChecklistRow: String, Hashable {
         case .healthKit: return "heart.text.square"
         case .nightscout: return "cloud"
         case .easyView: return "waveform.path.ecg"
+        case .libreLinkUp: return "drop.circle"
         case .demo: return "flask"
         case .shielding: return "shield.lefthalf.filled"
         case .passphrase: return "lock"
@@ -440,6 +451,7 @@ private enum ChecklistRow: String, Hashable {
         case .healthKit: return "setup.checklist.connectHealthKit"
         case .nightscout: return "setup.checklist.connectNightscout"
         case .easyView: return "setup.checklist.connectEasyView"
+        case .libreLinkUp: return "setup.checklist.connectLibreLinkUp"
         case .demo: return "setup.checklist.tryDemo"
         case .shielding: return "setup.checklist.enableShielding"
         case .passphrase: return "setup.checklist.setPassphrase"
@@ -452,6 +464,7 @@ private enum ChecklistRow: String, Hashable {
         case .healthKit: return "setup.checklist.connectHealthKit.subtitle"
         case .nightscout: return "setup.checklist.connectNightscout.subtitle"
         case .easyView: return "setup.checklist.connectEasyView.subtitle"
+        case .libreLinkUp: return "setup.checklist.connectLibreLinkUp.subtitle"
         case .demo: return "setup.checklist.tryDemo.subtitle"
         case .shielding: return "setup.checklist.enableShielding.subtitle"
         case .passphrase: return "setup.checklist.setPassphrase.subtitle"
@@ -479,6 +492,6 @@ private struct ChecklistGroup: Identifiable {
 }
 
 private enum ChecklistSheet: String, Identifiable {
-    case healthKit, nightscout, easyView, demo, shielding, passphrase
+    case healthKit, nightscout, easyView, libreLinkUp, demo, shielding, passphrase
     var id: String { rawValue }
 }
