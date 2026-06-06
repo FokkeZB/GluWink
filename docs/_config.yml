@@ -16,7 +16,7 @@ github_username: FokkeZB
 
 # CTA state. Flip to true (and update _includes/cta.html with the App Store
 # badge + URL) on launch day. See docs/README.md → "Flipping the CTA".
-launched: false
+launched: true
 
 plugins:
   - jekyll-sitemap

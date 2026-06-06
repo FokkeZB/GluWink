@@ -25,7 +25,7 @@ hero:
   cta_primary_label_pre_launch: "Coming soon to the App Store"
   cta_primary_label_post_launch: "Download on the App Store"
   cta_secondary_label: "Star the repo on GitHub"
-  cta_app_store_url: "https://apps.apple.com/app/gluwink/id0000000000" # placeholder, update at launch
+  cta_app_store_url: "https://apps.apple.com/app/gluwink/id6762511154"
   cta_repo_url: "https://github.com/FokkeZB/GluWink"
 
 three_things:
