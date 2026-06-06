@@ -25,6 +25,7 @@ hero:
   cta_primary_label_post_launch: "Download on the App Store"
   cta_secondary_label: "Star the repo on GitHub"
   cta_app_store_url: "https://apps.apple.com/us/app/gluwink/id6762511154?itscg=30200&itsct=apps_box_badge&mttnsubad=6762511154"
+  cta_badge_locale: "en-us"
   cta_repo_url: "https://github.com/FokkeZB/GluWink"
 
 three_things:
