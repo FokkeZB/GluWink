@@ -22,10 +22,10 @@ hero:
   title: "From distraction to ally."
   subtitle: "Make your iPhone and Apple Watch a tool for diabetes — not a distraction from it."
   body: "Glucose and carbs everywhere — Home Screen, Lock Screen, StandBy, every Apple Watch face. Green when things look good, orange when something needs your attention, red when a critical high locks the shield until glucose drops. Other apps stay blocked until you've done the diabetes thing."
-  cta_primary_label_pre_launch: "Coming soon to the App Store"
   cta_primary_label_post_launch: "Download on the App Store"
   cta_secondary_label: "Star the repo on GitHub"
-  cta_app_store_url: "https://apps.apple.com/app/gluwink/id0000000000" # placeholder, update at launch
+  cta_app_store_url: "https://apps.apple.com/us/app/gluwink/id6762511154?itscg=30200&itsct=apps_box_badge&mttnsubad=6762511154"
+  cta_badge_locale: "en-us"
   cta_repo_url: "https://github.com/FokkeZB/GluWink"
 
 three_things:
