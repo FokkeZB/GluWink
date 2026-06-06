@@ -192,16 +192,51 @@
 "setup.checklist.connectEasyView" = "EasyView koppelen";
 "setup.checklist.connectEasyView.subtitle" = "Voor CGM-systemen die de EasyView-cloud gebruiken.";
 
+/* Configuratielijst — LibreLinkUp */
+"setup.checklist.connectLibreLinkUp" = "LibreLinkUp koppelen";
+"setup.checklist.connectLibreLinkUp.subtitle" = "Voor FreeStyle Libre-gebruikers met een LibreLinkUp-volgersaccount.";
+
+/* LibreLinkUp */
+"settings.librelinkup.title" = "LibreLinkUp";
+"settings.librelinkup.enabled" = "LibreLinkUp inschakelen";
+"settings.librelinkup.description" = "Verbind met een LibreLinkUp-volgersaccount om FreeStyle Libre-glucosegegevens te lezen.";
+"settings.librelinkup.footer" = "Haal glucosegegevens op van de LibreView-cloud via een LibreLinkUp-volgersaccount. Zijn meerdere bronnen actief, dan wint de nieuwste waarde.";
+"settings.librelinkup.requiresCredentials" = "Vul hierboven eerst een e-mailadres en wachtwoord in voordat je dit kunt inschakelen.";
+"settings.librelinkup.verifying" = "Verbinding controleren…";
+"settings.librelinkup.configHeader" = "Inloggegevens";
+"settings.librelinkup.email" = "E-mailadres";
+"settings.librelinkup.password" = "Wachtwoord";
+"settings.librelinkup.testConnection" = "Verbinding testen";
+"settings.librelinkup.testSuccess %@ %@ %@" = "Verbonden – %@ – %@ om %@";
+"settings.librelinkup.carbsNote" = "Koolhydraatgegevens vereisen Apple Gezondheid of Nightscout. LibreLinkUp levert alleen glucosegegevens.";
+"settings.librelinkup.region" = "Regio";
+"settings.librelinkup.region.default" = "Standaard (internationaal)";
+"settings.librelinkup.latestData" = "Laatste gegevens";
+"settings.librelinkup.latestGlucose" = "Glucose";
+"settings.librelinkup.noGlucoseYet" = "Nog geen gegevens";
+"settings.librelinkup.statusHeader" = "Status";
+
+/* LibreLinkUp-fouten */
+"librelinkup.error.missingCredentials" = "E-mailadres of wachtwoord niet ingesteld.";
+"librelinkup.error.invalidURL" = "Ongeldige server-URL.";
+"librelinkup.error.invalidResponse" = "Onverwacht antwoord van de LibreView-server.";
+"librelinkup.error.invalidCredentials" = "Onjuist e-mailadres of wachtwoord.";
+"librelinkup.error.httpError %lld" = "Serverfout (HTTP %lld).";
+"librelinkup.error.tokenExpired" = "Sessie verlopen. Wordt opnieuw ingelogd bij de volgende ophaalactie.";
+"librelinkup.error.noConnections" = "Geen volgersverbindingen gevonden in je LibreLinkUp-account.";
+"librelinkup.error.authLoopExceeded" = "Aanmelden mislukt na meerdere pogingen.";
+"librelinkup.error.unexpectedAuthResponse %lld" = "Onverwacht aanmeldingsantwoord (status %lld).";
+
 /* Medische informatie */
 "settings.medicalInfoRow" = "Medische informatie";
 "medicalInfo.title" = "Medische informatie";
 "medicalInfo.notADeviceHeader" = "Geen medisch hulpmiddel";
 "medicalInfo.notADevice" = "GluWink is geen medisch hulpmiddel en geeft geen medisch advies. Het is een hulpmiddel dat helpt om het diabetesbeheer zichtbaar en bewust te houden.";
 "medicalInfo.dataSourcesHeader" = "Waar je gegevens vandaan komen";
-"medicalInfo.dataSources" = "Glucose- en koolhydraatwaarden worden rechtstreeks uit je geconfigureerde bron gelezen — Apple Gezondheid, Nightscout of EasyView. GluWink toont wat je CGM-systeem rapporteert. De app genereert, interpreteert of valideert deze waarden niet.";
+"medicalInfo.dataSources" = "Glucose- en koolhydraatwaarden worden rechtstreeks uit je geconfigureerde bron gelezen — Apple Gezondheid, Nightscout, EasyView of LibreLinkUp. GluWink toont wat je CGM-systeem rapporteert. De app genereert, interpreteert of valideert deze waarden niet.";
 "medicalInfo.thresholdsHeader" = "Over drempelwaarden";
 "medicalInfo.thresholds" = "De app wordt geleverd met drie standaard vertrekpuntdrempelwaarden — Laag 4,0 mmol/L, Hoog 13,9 mmol/L (250 mg/dL) en Kritiek 16,7 mmol/L (300 mg/dL). De Laag-drempel sluit aan bij de klinische definitie van een hypo: bloedglucose onder 4 mmol/L vereist directe behandeling. De Hoog-drempel volgt de aanbeveling van ADA en ISPAD 2022 dat minder dan 5% van de CGM-metingen de 13,9 mmol/L (250 mg/dL) mag overschrijden. De Kritiek-drempel is een instelbare app-grens — bij of boven deze waarde kan het scherm niet worden gesloten totdat de glucose daalt; dit staat voor ernstige hyperglykemie waarbij behandeling dringend is. Er bestaat geen universeel vastgestelde kritieke waarde. Stel alle drempelwaarden in overleg met je diabetesteam in.";
-"medicalInfo.dataSources.links" = "Apple Gezondheid|https://www.apple.com/health/\nNightscout|https://nightscout.github.io/\nEasyView by Medtrum|https://easyview.medtrum.eu/";
+"medicalInfo.dataSources.links" = "Apple Gezondheid|https://www.apple.com/health/\nNightscout|https://nightscout.github.io/\nEasyView by Medtrum|https://easyview.medtrum.eu/\nLibreLinkUp|https://librelinkup.com/";
 "medicalInfo.thresholds.links" = "Diabetes Fonds — Hypo & hyper|https://www.diabetesfonds.nl/over-diabetes/dagelijks-leven/hypo-s-en-hypers\nDVN — Glucosewaarden|https://www.dvn.nl/diabetes/bloedwaarden/glucosewaarden";
 "medicalInfo.glucoseUnits.links" = "Diabetes Fonds — Hypo & hyper|https://www.diabetesfonds.nl/over-diabetes/dagelijks-leven/hypo-s-en-hypers";
 "medicalInfo.checks.links" = "Diabetes Fonds — Hypo & hyper|https://www.diabetesfonds.nl/over-diabetes/dagelijks-leven/hypo-s-en-hypers";
