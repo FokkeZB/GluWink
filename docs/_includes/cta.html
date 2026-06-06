@@ -1,26 +1,27 @@
 {%- comment -%}
   SINGLE swap point for the primary CTA.
 
-  Today (site.launched: false in _config.yml):
-    Pre-launch button → "Coming soon" linking to the GitHub repo.
+  Pre-launch (site.launched: false in _config.yml):
+    Disabled "Coming soon" button → GitHub repo.
     Secondary button → "Star the repo".
 
-  At v1.0 launch:
-    1. Flip site.launched to true in _config.yml.
-    2. Update the `if site.launched` branch below to swap in Apple's
-       App Store badge artwork (downloaded from
-       https://developer.apple.com/app-store/marketing/guidelines/) and
-       the App Store URL — see hero.cta_app_store_url in _data/<lang>.yml.
-
-  Both branches read their copy from _data/en.yml and _data/nl.yml so we
-  only edit copy in one place per language.
+  Post-launch (site.launched: true):
+    App Store badge served from Apple's Marketing Tools API, locale-matched.
+    Badge locale: en → en-us, nl → nl-nl.
+    App Store URL + tracking params from _data/<lang>.yml.
 {%- endcomment -%}
 {%- assign t = page.lang | default: "en" -%}
-{%- if t == "nl" -%}{%- assign data = site.data.nl -%}{%- else -%}{%- assign data = site.data.en -%}{%- endif -%}
+{%- if t == "nl" -%}
+  {%- assign data = site.data.nl -%}
+  {%- assign badge_locale = "nl-nl" -%}
+{%- else -%}
+  {%- assign data = site.data.en -%}
+  {%- assign badge_locale = "en-us" -%}
+{%- endif -%}
 <div class="cta">
   {%- if site.launched -%}
     <a class="btn btn--primary btn--app-store" href="{{ data.hero.cta_app_store_url }}">
-      <img src="{{ '/assets/badges/app-store-' | append: t | append: '.svg' | relative_url }}" alt="{{ data.hero.cta_primary_label_post_launch }}" height="56">
+      <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/{{ badge_locale }}?releaseDate=1780617600" alt="{{ data.hero.cta_primary_label_post_launch }}" height="56">
     </a>
   {%- else -%}
     <a class="btn btn--primary btn--disabled" href="{{ data.hero.cta_repo_url }}" rel="noopener">
