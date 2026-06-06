@@ -65,10 +65,12 @@ data_sources:
     - heading: "Nightscout"
       body: "Verbind je eigen Nightscout-site — handig als een ouder op afstand meekijkt, of als jouw diabetessysteem wel naar Nightscout schrijft maar niet naar Apple Gezondheid."
     - heading: "EasyView van Medtrum"
-      body: "Een Medtrum-pomp of -CGM? Verbind rechtstreeks met EasyView van Medtrum — voor patiënten én verzorgers die een patiënt volgen. Meerdere bronnen kunnen tegelijk aanstaan; de meest recente meting wint."
+      body: "Een Medtrum-pomp of -CGM? Verbind rechtstreeks met EasyView van Medtrum — voor patiënten én verzorgers die een patiënt volgen."
+    - heading: "LibreLinkUp"
+      body: "FreeStyle Libre met LibreLinkUp? Verbind je volgersaccount — GluWink haalt glucose rechtstreeks op uit Abbott's cloud. Meerdere bronnen kunnen tegelijk aanstaan; de meest recente meting wint."
     - heading: "Demo-modus"
       body: "Eerst even proberen? In de demo-modus zie je realistische glucose- en koolhydratenwaarden zonder sensor."
-  privacy_promise: "Je gegevens blijven op je toestel (via HealthKit) of op de Nightscout- of EasyView-dienst die je verbindt. Geen accounts van ons, geen servers van ons, geen tracking, geen advertenties."
+  privacy_promise: "Je gegevens blijven op je toestel (via HealthKit), op je eigen Nightscout-site, of op de LibreLinkUp- of EasyView-dienst die je verbindt. Geen accounts van ons, geen servers van ons, geen tracking, geen advertenties."
 
 screenshots:
   title: "Op elk scherm dat de telefoon heeft."
@@ -94,7 +96,7 @@ open_source:
 footer:
   tagline: "Diabetes type 1 stopt nooit. Je telefoon hoeft daar niet aan mee te doen."
   copyright: "© 2026 Fokke Zandbergen"
-  trademarks: "Dexcom, FreeStyle Libre, CamAPS, Medtrum, EasyView, Nightscout, Apple, Apple Watch en andere productnamen zijn handelsmerken van hun respectieve eigenaren. GluWink is niet verbonden aan, goedgekeurd door of gesponsord door een van hen."
+  trademarks: "Dexcom, FreeStyle Libre, LibreLinkUp, CamAPS, Medtrum, EasyView, Nightscout, Apple, Apple Watch en andere productnamen zijn handelsmerken van hun respectieve eigenaren. GluWink is niet verbonden aan, goedgekeurd door of gesponsord door een van hen."
   links:
     - { label: "Privacy", url: /nl/privacy/ }
     - { label: "Hulp", url: /nl/support/ }
@@ -103,7 +105,7 @@ footer:
 
 privacy_page:
   meta_title: "Privacybeleid — GluWink"
-  meta_description: "GluWink verzamelt geen gegevens. HealthKit-data blijft op je toestel. Nightscout- en EasyView-data wordt rechtstreeks van de dienst die je verbindt gelezen."
+  meta_description: "GluWink verzamelt geen gegevens. HealthKit-data blijft op je toestel. Nightscout-, LibreLinkUp- en EasyView-data wordt rechtstreeks van de dienst die je verbindt gelezen."
   title: "Privacybeleid"
   last_updated: "Laatst bijgewerkt: 18 april 2026"
   intro: "GluWink is zo gebouwd dat er niets te verzamelen valt. Deze pagina bestaat omdat de App Store een privacybeleid vereist, niet omdat we gegevens te melden hebben."
@@ -116,10 +118,12 @@ privacy_page:
       body: "Als je Nightscout als databron kiest, praat GluWink rechtstreeks vanaf je iPhone met de URL die je hebt opgegeven. Je glucose-, koolhydraten- en andere Nightscout-data wordt alleen tussen je iPhone en je Nightscout-server uitgewisseld. Er zit geen door GluWink beheerde server tussen."
     - heading: "EasyView-verbindingen"
       body: "Als je EasyView van Medtrum als databron kiest, praat GluWink rechtstreeks vanaf je iPhone met de EasyView-cloud. Je EasyView-gebruikersnaam staat op je telefoon en je wachtwoord ligt in de iOS Keychain — het wordt nergens anders heen gestuurd dan naar EasyView om in te loggen. Glucose- en koolhydratengegevens worden alleen tussen je iPhone en de EasyView-dienst uitgewisseld. Er zit geen door GluWink beheerde server tussen."
+    - heading: "LibreLinkUp-verbindingen"
+      body: "Als je LibreLinkUp als databron kiest, praat GluWink rechtstreeks vanaf je iPhone met Abbott's LibreLinkUp-cloud. Je LibreLinkUp-e-mailadres staat op je telefoon en je wachtwoord ligt in de iOS Keychain — het wordt nergens anders heen gestuurd dan naar LibreLinkUp om in te loggen. Glucosegegevens worden alleen tussen je iPhone en de LibreLinkUp-dienst uitgewisseld. Er zit geen door GluWink beheerde server tussen."
     - heading: "Apple Watch"
       body: "Als de Apple Watch-app geïnstalleerd is, leest de watch HealthKit op de watch zelf. Er wordt niets ergens heen geüpload; de telefoon en de watch wisselen alleen via Apple's standaard WatchConnectivity-framework gegevens uit als de watch in de buurt is."
     - heading: "Gegevens van kinderen (Delen met gezin)"
-      body: "Wanneer GluWink op het toestel van een kind wordt ingesteld via Delen met gezin, gelden dezelfde regels: er verlaat niets het toestel van het kind buiten wat HealthKit en (optioneel) Nightscout of EasyView normaal al doen. De rol van de ouder is configureren, niet verzamelen."
+      body: "Wanneer GluWink op het toestel van een kind wordt ingesteld via Delen met gezin, gelden dezelfde regels: er verlaat niets het toestel van het kind buiten wat HealthKit en (optioneel) Nightscout, LibreLinkUp of EasyView normaal al doen. De rol van de ouder is configureren, niet verzamelen."
     - heading: "Cookies en trackers op deze site"
       body: "Deze marketingsite gebruikt nul cookies en nul third-party scripts of trackers. Lettertypen en afbeeldingen worden alleen vanaf dit domein geserveerd."
     - heading: "Wijzigingen van dit beleid"
@@ -137,9 +141,9 @@ support_page:
   faq_heading: "Veelgestelde vragen"
   faqs:
     - q: "Waar kan ik de app downloaden?"
-      a: "De App Store-release is nog niet live. Tot die tijd kun je GluWink zelf bouwen vanuit de broncode — zie de README op GitHub voor de iOS-setup-walkthrough. We werken deze pagina (en de homepage) bij zodra de app in de App Store staat."
+      a: "GluWink staat in de App Store. Zoek op GluWink, of gebruik de link op de homepagina."
     - q: "Werkt het met mijn CGM?"
-      a: "GluWink leest glucose- en koolhydratengegevens uit Apple Gezondheid. Als jouw CGM-app (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS en de meeste andere) naar Apple Gezondheid schrijft, ben je klaar. Alternatief: verbind een Nightscout-site of EasyView van Medtrum — meerdere bronnen kunnen tegelijk aanstaan."
+      a: "GluWink leest glucose- en koolhydratengegevens uit Apple Gezondheid. Als jouw CGM-app (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS en de meeste andere) naar Apple Gezondheid schrijft, ben je klaar. Alternatief: verbind een Nightscout-site, EasyView van Medtrum of een LibreLinkUp-volgersaccount — meerdere bronnen kunnen tegelijk aanstaan."
     - q: "Wat is het verschil tussen het oranje en het rode gezichtje?"
       a: "Oranje betekent \"er is iets dat aandacht vraagt\" — glucose te hoog of te laag, sensor verouderd, of koolhydraten nog niet ingevoerd. Je loopt het korte lijstje langs, alles gaat terug naar groen. Rood is voorbehouden aan een kritieke hoge waarde: glucose is boven een drempel uitgekomen die jij zelf instelt (de standaard zit ver in gevaarlijk gebied). Op dat moment verbergt GluWink de check-in-knop — het schild kan pas weer als de glucose onder die drempel zakt. Geen wachtwoord-override, geen disarm. Het is de enige plek in de app waar de wrijving bewust absoluut is."
     - q: "Waarom werkt het schild niet in de iOS Simulator?"

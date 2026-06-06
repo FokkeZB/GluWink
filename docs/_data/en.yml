@@ -65,10 +65,12 @@ data_sources:
     - heading: "Nightscout"
       body: "Connect your own Nightscout site — handy when a parent monitors a child remotely, or when your diabetes system writes to Nightscout but not Apple Health."
     - heading: "Medtrum's EasyView"
-      body: "On a Medtrum pump or CGM? Connect Medtrum's EasyView cloud directly — it works for patients and for caregivers following a patient. Any source can be on at once; the most recent reading wins."
+      body: "On a Medtrum pump or CGM? Connect Medtrum's EasyView cloud directly — it works for patients and for caregivers following a patient."
+    - heading: "LibreLinkUp"
+      body: "Using FreeStyle Libre with LibreLinkUp? Connect your follower account — GluWink fetches glucose direct from Abbott's cloud. Any source can be on at once; the most recent reading wins."
     - heading: "Demo mode"
       body: "Want to try the app first? Demo mode shows realistic glucose and carb data without any sensor."
-  privacy_promise: "Your data stays on your device (HealthKit) or on the Nightscout or EasyView service you connect. No accounts we run, no servers we run, no analytics, no ads."
+  privacy_promise: "Your data stays on your device (HealthKit), on the Nightscout site you control, or on the LibreLinkUp or EasyView service you connect. No accounts we run, no servers we run, no analytics, no ads."
 
 screenshots:
   title: "On every screen the phone has."
@@ -94,7 +96,7 @@ open_source:
 footer:
   tagline: "Type 1 diabetes is relentless. The phone doesn't have to be."
   copyright: "© 2026 Fokke Zandbergen"
-  trademarks: "Dexcom, FreeStyle Libre, CamAPS, Medtrum, EasyView, Nightscout, Apple, Apple Watch, and other product names are trademarks of their respective owners. GluWink is not affiliated with, endorsed by, or sponsored by any of them."
+  trademarks: "Dexcom, FreeStyle Libre, LibreLinkUp, CamAPS, Medtrum, EasyView, Nightscout, Apple, Apple Watch, and other product names are trademarks of their respective owners. GluWink is not affiliated with, endorsed by, or sponsored by any of them."
   links:
     - { label: "Privacy", url: /privacy/ }
     - { label: "Support", url: /support/ }
@@ -103,7 +105,7 @@ footer:
 
 privacy_page:
   meta_title: "Privacy Policy — GluWink"
-  meta_description: "GluWink does not collect any data. HealthKit data stays on the device. Nightscout and EasyView data is read directly from the service you connect."
+  meta_description: "GluWink does not collect any data. HealthKit data stays on the device. Nightscout, LibreLinkUp, and EasyView data is read directly from the service you connect."
   title: "Privacy Policy"
   last_updated: "Last updated: 18 April 2026"
   intro: "GluWink is built so there is nothing to collect. This page exists because the App Store requires a privacy policy, not because we have data to disclose."
@@ -116,10 +118,12 @@ privacy_page:
       body: "If you choose Nightscout as a data source, GluWink talks directly from your iPhone to the URL you provided. Your glucose, carb, and any other Nightscout data is exchanged between your iPhone and your Nightscout server only. No GluWink-operated server sits in between."
     - heading: "EasyView connections"
       body: "If you choose Medtrum's EasyView as a data source, GluWink talks directly from your iPhone to the EasyView cloud. Your EasyView username is stored on your phone and your password is kept in the iOS Keychain — never sent anywhere except to EasyView to sign in. Glucose and carb data is exchanged between your iPhone and the EasyView service only. No GluWink-operated server sits in between."
+    - heading: "LibreLinkUp connections"
+      body: "If you choose LibreLinkUp as a data source, GluWink talks directly from your iPhone to Abbott's LibreLinkUp cloud. Your LibreLinkUp email is stored on your phone and your password is kept in the iOS Keychain — never sent anywhere except to LibreLinkUp to sign in. Glucose data is exchanged between your iPhone and the LibreLinkUp service only. No GluWink-operated server sits in between."
     - heading: "Apple Watch"
       body: "When the Apple Watch app is installed, the watch reads HealthKit on the watch itself. No data is uploaded anywhere; it is shared with the phone via Apple's standard WatchConnectivity framework only when the watch is in range."
     - heading: "Children's data (Family Sharing)"
-      body: "When GluWink is set up on a child's device via Family Sharing, the same rules apply: nothing leaves the child's device beyond what HealthKit and (optionally) Nightscout or EasyView normally do. The parent's role is configuration, not data collection."
+      body: "When GluWink is set up on a child's device via Family Sharing, the same rules apply: nothing leaves the child's device beyond what HealthKit and (optionally) Nightscout, LibreLinkUp, or EasyView normally do. The parent's role is configuration, not data collection."
     - heading: "Cookies and trackers on this site"
       body: "This marketing site has zero cookies and zero third-party scripts or trackers. Fonts and images are served from this domain only."
     - heading: "Changes to this policy"
@@ -137,9 +141,9 @@ support_page:
   faq_heading: "Frequently asked questions"
   faqs:
     - q: "Where can I download the app?"
-      a: "The App Store release isn't live yet. Until it is, you can build GluWink from source — see the README on GitHub for the iOS setup walkthrough. We'll update this page (and the home page) the moment it's available on the App Store."
+      a: "GluWink is on the App Store. Search for GluWink, or use the link on the home page."
     - q: "Does it work with my CGM?"
-      a: "GluWink reads glucose and carb data from Apple Health. If your CGM app (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS, and most others) writes to Apple Health, you're good. Alternatively, connect a Nightscout site or Medtrum's EasyView cloud — any of these can be on at the same time."
+      a: "GluWink reads glucose and carb data from Apple Health. If your CGM app (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS, and most others) writes to Apple Health, you're good. Alternatively, connect a Nightscout site, Medtrum's EasyView cloud, or a LibreLinkUp follower account — any of these can be on at the same time."
     - q: "What's the difference between the orange and red face?"
       a: "Orange means \"something needs attention\" — glucose is high or low, the sensor is stale, or carbs weren't entered. You run through the short check-in list, everything goes back to green. Red is reserved for a critical high: glucose has gone above a threshold you configure (the default is well into dangerous territory). At that point GluWink hides the check-in button — the shield cannot be dismissed until glucose drops below that threshold again. No passphrase override, no disarm. It's the one place in the app where the friction is deliberately absolute."
     - q: "Why doesn't shielding work in the iOS Simulator?"
