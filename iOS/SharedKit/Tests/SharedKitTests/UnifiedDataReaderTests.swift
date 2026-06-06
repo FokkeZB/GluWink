@@ -180,6 +180,37 @@ final class UnifiedDataReaderTests: XCTestCase {
         XCTAssertNil(UnifiedDataReader.currentCarbsReading(from: defaults))
     }
 
+    // MARK: - LibreLinkUp (glucose-only source)
+
+    func testLibreLinkUpGlucoseWinsWhenFreshest() {
+        defaults.set(true, forKey: DataSourceKeys.libreLinkUpEnabled)
+        defaults.set(true, forKey: DataSourceKeys.nightscoutEnabled)
+
+        writeGlucose(source: .libreLinkUp, value: 7.8, minutesAgo: 2)
+        writeGlucose(source: .nightscout, value: 6.4, minutesAgo: 15)
+
+        let reading = UnifiedDataReader.currentGlucoseReading(from: defaults)
+        XCTAssertEqual(reading?.source, .libreLinkUp)
+        XCTAssertEqual(reading?.mmol, 7.8)
+    }
+
+    func testLibreLinkUpIgnoredWhenDisabled() {
+        defaults.set(false, forKey: DataSourceKeys.libreLinkUpEnabled)
+        defaults.set(true, forKey: DataSourceKeys.nightscoutEnabled)
+
+        writeGlucose(source: .libreLinkUp, value: 7.8, minutesAgo: 1)  // fresher but disabled
+        writeGlucose(source: .nightscout, value: 6.4, minutesAgo: 10)
+
+        let reading = UnifiedDataReader.currentGlucoseReading(from: defaults)
+        XCTAssertEqual(reading?.source, .nightscout)
+    }
+
+    func testLibreLinkUpReturnsNilCarbsAlways() {
+        defaults.set(true, forKey: DataSourceKeys.libreLinkUpEnabled)
+        XCTAssertNil(UnifiedDataReader.carbsReading(source: .libreLinkUp, from: defaults),
+                     "LibreLinkUp never writes carbs; per-source carbsReading must be nil")
+    }
+
     // MARK: - Per-source accessors
 
     func testPerSourceReadingReturnsStoredValueIgnoringToggles() {

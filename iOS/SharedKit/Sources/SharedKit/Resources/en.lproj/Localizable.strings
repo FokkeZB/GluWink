@@ -72,6 +72,7 @@
 "dataSource.healthKit" = "Apple Health";
 "dataSource.nightscout" = "Nightscout";
 "dataSource.easyView" = "EasyView";
+"dataSource.libreLinkUp" = "LibreLinkUp";
 "dataSource.demo" = "Demo";
 
 /* Widget tiles (shared between StatusWidget extension and App screenshot showcase) */
