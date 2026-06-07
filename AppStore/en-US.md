@@ -60,7 +60,7 @@ GluWink reads glucose and carbs from Apple Health. Most CGM apps (Dexcom, Libre,
 
 Prefer Nightscout? Connect a Nightscout site instead — handy when a parent is monitoring a child remotely, or when the diabetes system writes to Nightscout but not Apple Health.
 
-On a Medtrum pump or CGM? Connect Medtrum's EasyView cloud directly — for patients and for caregivers following a patient. Any source can be on at once; the most recent reading wins.
+On Medtrum? Connect EasyView — works for patients and caregivers alike. On FreeStyle Libre with LibreLinkUp? Connect your follower account — GluWink fetches glucose direct from Abbott's cloud. Any source can be on at once; the most recent reading wins.
 
 Want to try the app first? Demo mode shows realistic glucose and carb data without any sensor.
 
@@ -80,16 +80,16 @@ GluWink is not a medical device. It does not replace your CGM, your pump, your e
 
 — Open source —
 
-GluWink is open source. Your data stays on your device (with HealthKit) or on the Nightscout site you control. There are no accounts, no servers run by us, no analytics, no ads. Source code, build instructions, and the rules engine are all on GitHub.
+GluWink is open source. Your data stays on your device (with HealthKit), on the Nightscout site you control, or on the LibreLinkUp or EasyView service you connect. There are no accounts, no servers run by us, no analytics, no ads. Source code, build instructions, and the rules engine are all on GitHub.
 
 Type 1 diabetes is relentless. The phone doesn't have to be.
 ```
-*(~3,972 / 4000 — tight; trim an existing bullet before adding a new one)*
+*(~3,990 / 4000)*
 
 ## Keywords (100)
 
 ```
-diabetes,type 1,glucose,cgm,dexcom,libre,nightscout,carbs,kids,parents,screen time,shield,medtrum
+diabetes,type 1,glucose,cgm,dexcom,libre,nightscout,librelinkup,carbs,kids,parents,screen time,shield,medtrum
 ```
 *(97 / 100)*
 
@@ -98,6 +98,14 @@ Notes:
 - Do **not** put spaces after commas (Apple counts them).
 - The plural / singular forms (`carb` vs `carbs`) are also indexed when one is present, so the shorter form is preferred.
 - `loop`, `iaps`, `camaps`, `xdrip` are intentionally omitted to avoid trademark friction; they're mentioned in the description instead.
+
+## What's New (4000) — v1.1 (upcoming)
+
+```
+New in this release:
+• LibreLinkUp support: connect your FreeStyle Libre follower account as a glucose data source — reads direct from Abbott's cloud.
+```
+*(~148 / 4000)*
 
 ## What's New (4000) — v1.0 launch
 
@@ -131,7 +139,7 @@ Scene order matches the table in `README.md` → Screenshots.
 | 4 | Glucose and carbs on every screen. |
 | 5 | Tune alerts, pick a data source, shape the shield — your call. |
 | 6 | Glucose and carbs on every watch face. |
-| 7 | Apple Health, Nightscout, EasyView, or demo. |
+| 7 | Apple Health, Nightscout, EasyView, LibreLinkUp, or demo. |
 
 ### Apple Watch (46mm)
 

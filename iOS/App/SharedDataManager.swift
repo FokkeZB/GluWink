@@ -69,6 +69,10 @@ final class SharedDataManager {
         saveGlucose(source: .easyView, mmol: mmol, at: date, force: force)
     }
 
+    func saveLibreLinkUpGlucose(mmol: Double, at date: Date, force: Bool = false) {
+        saveGlucose(source: .libreLinkUp, mmol: mmol, at: date, force: force)
+    }
+
     func saveDemoGlucose(mmol: Double, at date: Date, force: Bool = true) {
         saveGlucose(source: .demo, mmol: mmol, at: date, force: force)
     }
@@ -104,6 +108,7 @@ final class SharedDataManager {
     func clearHealthKitData() { clearSource(.healthKit) }
     func clearNightscoutData() { clearSource(.nightscout) }
     func clearEasyViewData() { clearSource(.easyView) }
+    func clearLibreLinkUpData() { clearSource(.libreLinkUp) }
     func clearDemoData() { clearSource(.demo) }
 
     /// Targeted per-metric clears — used by the Demo Settings panel
@@ -250,7 +255,7 @@ final class SharedDataManager {
     /// per-source toggles in place this is now a simple `OR` of the
     /// three enabled flags — no recency heuristic needed.
     var hasAnyDataSource: Bool {
-        healthKitEnabled || nightscoutEnabled || easyViewEnabled || isMockModeEnabled
+        healthKitEnabled || nightscoutEnabled || easyViewEnabled || librelinkupEnabled || isMockModeEnabled
     }
 
     /// Call after a data-source toggle flips off. Clears the disabled
@@ -475,10 +480,13 @@ final class SharedDataManager {
             DataSourceKeys.nightscoutEnabled,
             DataSourceKeys.healthKitEnabled,
             DataSourceKeys.easyViewEnabled,
+            DataSourceKeys.libreLinkUpEnabled,
             "nightscoutBaseURL", "nightscoutToken",
             "nightscoutLastFetchedAt", "nightscoutLastError",
             "easyViewUsername", "easyViewSession",
             "easyViewPatientUID", "easyViewLastFetchedAt", "easyViewLastError",
+            "librelinkupRegion", "librelinkupUserId", "librelinkupPatientId",
+            "librelinkupLastFetchedAt", "librelinkupLastError",
             "setupTipsHidden",
         ]
         for key in settingsKeys {
@@ -624,6 +632,79 @@ final class SharedDataManager {
                 defaults?.set(error, forKey: "easyViewLastError")
             } else {
                 defaults?.removeObject(forKey: "easyViewLastError")
+            }
+        }
+    }
+
+    // MARK: - LibreLinkUp
+
+    var librelinkupEnabled: Bool {
+        get { defaults?.bool(forKey: DataSourceKeys.libreLinkUpEnabled) ?? false }
+        set { defaults?.set(newValue, forKey: DataSourceKeys.libreLinkUpEnabled) }
+    }
+
+    var librelinkupRegion: String? {
+        get {
+            guard let value = defaults?.string(forKey: "librelinkupRegion"),
+                  !value.isEmpty else { return nil }
+            return value
+        }
+        set {
+            if let value = newValue, !value.isEmpty {
+                defaults?.set(value, forKey: "librelinkupRegion")
+            } else {
+                defaults?.removeObject(forKey: "librelinkupRegion")
+            }
+        }
+    }
+
+    var librelinkupPatientId: String? {
+        get {
+            guard let value = defaults?.string(forKey: "librelinkupPatientId"),
+                  !value.isEmpty else { return nil }
+            return value
+        }
+        set {
+            if let value = newValue, !value.isEmpty {
+                defaults?.set(value, forKey: "librelinkupPatientId")
+            } else {
+                defaults?.removeObject(forKey: "librelinkupPatientId")
+            }
+        }
+    }
+
+    var librelinkupLastFetchedAt: Date? {
+        get {
+            guard let iso = defaults?.string(forKey: "librelinkupLastFetchedAt") else { return nil }
+            return ISO8601DateFormatter().date(from: iso)
+        }
+        set {
+            if let date = newValue {
+                defaults?.set(date.ISO8601Format(), forKey: "librelinkupLastFetchedAt")
+            } else {
+                defaults?.removeObject(forKey: "librelinkupLastFetchedAt")
+            }
+        }
+    }
+
+    var librelinkupLastError: String? {
+        get { defaults?.string(forKey: "librelinkupLastError") }
+        set {
+            if let error = newValue {
+                defaults?.set(error, forKey: "librelinkupLastError")
+            } else {
+                defaults?.removeObject(forKey: "librelinkupLastError")
+            }
+        }
+    }
+
+    var librelinkupUserId: String? {
+        get { defaults?.string(forKey: "librelinkupUserId") }
+        set {
+            if let value = newValue {
+                defaults?.set(value, forKey: "librelinkupUserId")
+            } else {
+                defaults?.removeObject(forKey: "librelinkupUserId")
             }
         }
     }

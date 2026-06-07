@@ -60,6 +60,19 @@ struct MainApp: App {
                 EasyViewManager.shared.handleBackgroundRefresh(refreshTask)
             }
         }
+
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: LibreLinkUpManager.backgroundTaskIdentifier,
+            using: nil
+        ) { task in
+            guard let refreshTask = task as? BGAppRefreshTask else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+            Task { @MainActor in
+                LibreLinkUpManager.shared.handleBackgroundRefresh(refreshTask)
+            }
+        }
     }
 
     var body: some Scene {
@@ -111,6 +124,13 @@ struct MainApp: App {
                         EasyViewManager.shared.scheduleBackgroundRefresh()
                     }
 
+                    // LibreLinkUp: only poll when the user has enabled the integration.
+                    if data.librelinkupEnabled {
+                        LibreLinkUpManager.shared.startPolling()
+                        await LibreLinkUpManager.shared.fetchLatestGlucose()
+                        LibreLinkUpManager.shared.scheduleBackgroundRefresh()
+                    }
+
                     // Shielding requires at least one live data source to
                     // make attention decisions. Run this *after* the HK /
                     // Nightscout fetches above so `hasAnyDataSource` has
@@ -157,6 +177,9 @@ struct MainApp: App {
                             if SharedDataManager.shared.easyViewEnabled {
                                 await EasyViewManager.shared.fetchAll()
                             }
+                            if SharedDataManager.shared.librelinkupEnabled {
+                                await LibreLinkUpManager.shared.fetchLatestGlucose()
+                            }
                             // Always reconcile on foreground — staleness and
                             // carb-grace transitions cross thresholds on
                             // wall-clock time alone, with no fetch event to
@@ -170,6 +193,9 @@ struct MainApp: App {
                         }
                         if SharedDataManager.shared.easyViewEnabled {
                             EasyViewManager.shared.scheduleBackgroundRefresh()
+                        }
+                        if SharedDataManager.shared.librelinkupEnabled {
+                            LibreLinkUpManager.shared.scheduleBackgroundRefresh()
                         }
                     }
                 }
@@ -207,6 +233,10 @@ struct MainApp: App {
         SharedDataManager.shared.wipeAllForFreshInstall()
         KeychainManager.shared.removePassphrase()
         KeychainManager.shared.easyViewPassword = nil
+        KeychainManager.shared.libreLinkUpEmail = nil
+        KeychainManager.shared.libreLinkUpPassword = nil
+        KeychainManager.shared.libreLinkUpToken = nil
+        KeychainManager.shared.libreLinkUpTokenExpiry = nil
         ShieldManager.shared.removeShields()
         ActivityScheduler.shared.stopMonitoring()
 

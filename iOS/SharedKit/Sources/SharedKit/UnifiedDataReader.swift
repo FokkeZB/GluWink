@@ -11,6 +11,7 @@ public enum DataSource: String, Sendable, CaseIterable {
     case healthKit
     case nightscout
     case easyView
+    case libreLinkUp
     case demo
 
     public var displayName: String {
@@ -18,6 +19,7 @@ public enum DataSource: String, Sendable, CaseIterable {
         case .healthKit: String(localized: "dataSource.healthKit", bundle: .module)
         case .nightscout: String(localized: "dataSource.nightscout", bundle: .module)
         case .easyView: String(localized: "dataSource.easyView", bundle: .module)
+        case .libreLinkUp: String(localized: "dataSource.libreLinkUp", bundle: .module)
         case .demo: String(localized: "dataSource.demo", bundle: .module)
         }
     }
@@ -50,11 +52,15 @@ public enum DataSourceKeys {
     public static let easyViewCarbsSampleAt = "easyViewCarbsSampleAt"
     public static let easyViewCarbsLabel = "easyViewCarbsLabel"
 
+    public static let libreLinkUpGlucose = "librelinkupGlucose"
+    public static let libreLinkUpGlucoseSampleAt = "librelinkupGlucoseSampleAt"
+
     public static let demoCarbsLabel = "demoCarbsLabel"
 
     public static let healthKitEnabled = "healthKitEnabled"
     public static let nightscoutEnabled = "nightscoutEnabled"
     public static let easyViewEnabled = "easyViewEnabled"
+    public static let libreLinkUpEnabled = "librelinkupEnabled"
     public static let mockModeEnabled = "mockModeEnabled"
 }
 
@@ -137,6 +143,10 @@ public enum UnifiedDataReader {
            let reading = glucoseReading(source: .easyView, from: defaults) {
             candidates.append(reading)
         }
+        if defaults.bool(forKey: DataSourceKeys.libreLinkUpEnabled),
+           let reading = glucoseReading(source: .libreLinkUp, from: defaults) {
+            candidates.append(reading)
+        }
         return candidates.max(by: { $0.sampleAt < $1.sampleAt })
     }
 
@@ -193,6 +203,7 @@ public enum UnifiedDataReader {
         case .healthKit: return DataSourceKeys.healthKitGlucose
         case .nightscout: return DataSourceKeys.nightscoutGlucose
         case .easyView: return DataSourceKeys.easyViewGlucose
+        case .libreLinkUp: return DataSourceKeys.libreLinkUpGlucose
         case .demo: return DataSourceKeys.demoGlucose
         }
     }
@@ -202,6 +213,7 @@ public enum UnifiedDataReader {
         case .healthKit: return DataSourceKeys.healthKitGlucoseSampleAt
         case .nightscout: return DataSourceKeys.nightscoutGlucoseSampleAt
         case .easyView: return DataSourceKeys.easyViewGlucoseSampleAt
+        case .libreLinkUp: return DataSourceKeys.libreLinkUpGlucoseSampleAt
         case .demo: return DataSourceKeys.demoGlucoseSampleAt
         }
     }
@@ -211,6 +223,7 @@ public enum UnifiedDataReader {
         case .healthKit: return DataSourceKeys.healthKitCarbs
         case .nightscout: return DataSourceKeys.nightscoutCarbs
         case .easyView: return DataSourceKeys.easyViewCarbs
+        case .libreLinkUp: return "librelinkupCarbs"
         case .demo: return DataSourceKeys.demoCarbs
         }
     }
@@ -220,6 +233,7 @@ public enum UnifiedDataReader {
         case .healthKit: return DataSourceKeys.healthKitCarbsSampleAt
         case .nightscout: return DataSourceKeys.nightscoutCarbsSampleAt
         case .easyView: return DataSourceKeys.easyViewCarbsSampleAt
+        case .libreLinkUp: return "librelinkupCarbsSampleAt"
         case .demo: return DataSourceKeys.demoCarbsSampleAt
         }
     }
@@ -231,6 +245,7 @@ public enum UnifiedDataReader {
         case .healthKit: return "healthKitCarbsLabel"
         case .nightscout: return "nightscoutCarbsLabel"
         case .easyView: return DataSourceKeys.easyViewCarbsLabel
+        case .libreLinkUp: return "librelinkupCarbsLabel"
         case .demo: return DataSourceKeys.demoCarbsLabel
         }
     }

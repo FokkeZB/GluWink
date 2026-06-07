@@ -58,6 +58,33 @@ final class KeychainManager {
         set { writeOrDelete(string: newValue, account: "easyview-password") }
     }
 
+    // MARK: - LibreLinkUp credentials
+
+    var libreLinkUpEmail: String? {
+        get { readString(account: "librelinkup-email") }
+        set { writeOrDelete(string: newValue, account: "librelinkup-email") }
+    }
+
+    var libreLinkUpPassword: String? {
+        get { readString(account: "librelinkup-password") }
+        set { writeOrDelete(string: newValue, account: "librelinkup-password") }
+    }
+
+    var libreLinkUpToken: String? {
+        get { readString(account: "librelinkup-token") }
+        set { writeOrDelete(string: newValue, account: "librelinkup-token") }
+    }
+
+    var libreLinkUpTokenExpiry: Date? {
+        get {
+            guard let iso = readString(account: "librelinkup-token-expiry") else { return nil }
+            return ISO8601DateFormatter().date(from: iso)
+        }
+        set {
+            writeOrDelete(string: newValue?.ISO8601Format(), account: "librelinkup-token-expiry")
+        }
+    }
+
     // MARK: - Private helpers
 
     private func readString(account: String) -> String? {

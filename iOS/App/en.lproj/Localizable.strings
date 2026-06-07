@@ -192,16 +192,53 @@
 "setup.checklist.connectEasyView" = "Connect EasyView";
 "setup.checklist.connectEasyView.subtitle" = "For CGM systems using the EasyView cloud.";
 
+/* Setup Checklist — LibreLinkUp */
+"setup.checklist.connectLibreLinkUp" = "Connect LibreLinkUp";
+"setup.checklist.connectLibreLinkUp.subtitle" = "For FreeStyle Libre users with a LibreLinkUp follower account.";
+
+/* LibreLinkUp */
+"settings.librelinkup.title" = "LibreLinkUp";
+"settings.librelinkup.enabled" = "Enable LibreLinkUp";
+"settings.librelinkup.description" = "Connect to a LibreLinkUp follower account to read FreeStyle Libre glucose data.";
+"settings.librelinkup.footer" = "Fetch glucose data from the LibreView cloud via a LibreLinkUp follower account. When multiple sources are enabled, the most recent data wins.";
+"settings.librelinkup.requiresCredentials" = "Provide your LibreLinkUp email and password above before enabling.";
+"settings.librelinkup.verifying" = "Verifying connection…";
+"settings.librelinkup.configHeader" = "Credentials";
+"settings.librelinkup.email" = "Email";
+"settings.librelinkup.password" = "Password";
+"settings.librelinkup.testConnection" = "Test Connection";
+"settings.librelinkup.testSuccess %@ %@ %@" = "Connected – %@ – %@ at %@";
+"settings.librelinkup.carbsNote" = "Carb data requires Apple Health or Nightscout. LibreLinkUp provides glucose only.";
+"settings.librelinkup.region" = "Region";
+"settings.librelinkup.region.default" = "Default (international)";
+"settings.librelinkup.connectionHeader" = "Connection";
+"settings.librelinkup.connection" = "Following";
+"settings.librelinkup.latestData" = "Latest data";
+"settings.librelinkup.latestGlucose" = "Glucose";
+"settings.librelinkup.noGlucoseYet" = "No data yet";
+"settings.librelinkup.statusHeader" = "Status";
+
+/* LibreLinkUp errors */
+"librelinkup.error.missingCredentials" = "Email or password not configured.";
+"librelinkup.error.invalidURL" = "Invalid server URL.";
+"librelinkup.error.invalidResponse" = "Unexpected response from the LibreView server.";
+"librelinkup.error.invalidCredentials" = "Incorrect email or password.";
+"librelinkup.error.httpError %lld" = "Server error (HTTP %lld).";
+"librelinkup.error.tokenExpired" = "Session expired. Will re-authenticate on next fetch.";
+"librelinkup.error.noConnections" = "No follower connections found in your LibreLinkUp account.";
+"librelinkup.error.authLoopExceeded" = "Authentication failed after multiple attempts.";
+"librelinkup.error.unexpectedAuthResponse %lld" = "Unexpected authentication response (status %lld).";
+
 /* Medical Information */
 "settings.medicalInfoRow" = "Medical Information";
 "medicalInfo.title" = "Medical Information";
 "medicalInfo.notADeviceHeader" = "Not a Medical Device";
 "medicalInfo.notADevice" = "GluWink is not a medical device and does not provide medical advice. It is a tool that helps keep diabetes management visible and front of mind.";
 "medicalInfo.dataSourcesHeader" = "Where Your Data Comes From";
-"medicalInfo.dataSources" = "Glucose and carb values are read directly from your configured source — Apple Health, Nightscout, or EasyView. GluWink displays what your CGM system reports. It does not generate, interpret, or validate these values.";
+"medicalInfo.dataSources" = "Glucose and carb values are read directly from your configured source — Apple Health, Nightscout, EasyView, or LibreLinkUp. GluWink displays what your CGM system reports. It does not generate, interpret, or validate these values.";
 "medicalInfo.thresholdsHeader" = "About Thresholds";
 "medicalInfo.thresholds" = "The app ships with three default starting-point thresholds — Low 4.0 mmol/L, High 13.9 mmol/L (250 mg/dL), and Critical 16.7 mmol/L (300 mg/dL). The Low threshold aligns with the clinical definition of hypoglycaemia: blood glucose below 4 mmol/L requires prompt treatment. The High threshold follows the ADA and ISPAD 2022 recommendation that less than 5% of CGM readings should exceed 13.9 mmol/L (250 mg/dL). The Critical threshold is a configurable app gate — at or above this value the shield cannot be dismissed until glucose drops; it represents severe hyperglycaemia where treatment is urgent. There is no single universally defined critical value. Set all thresholds with your diabetes care team.";
-"medicalInfo.dataSources.links" = "Apple Health|https://www.apple.com/health/\nNightscout|https://nightscout.github.io/\nEasyView by Medtrum|https://easyview.medtrum.eu/";
+"medicalInfo.dataSources.links" = "Apple Health|https://www.apple.com/health/\nNightscout|https://nightscout.github.io/\nEasyView by Medtrum|https://easyview.medtrum.eu/\nLibreLinkUp|https://librelinkup.com/";
 "medicalInfo.thresholds.links" = "ADA — Low Blood Glucose (Hypoglycemia)|https://diabetes.org/living-with-diabetes/hypoglycemia-low-blood-glucose\nADA — Hyperglycemia (High Blood Glucose)|https://diabetes.org/living-with-diabetes/treatment-care/hyperglycemia\nADA — Blood Sugar Targets|https://diabetes.org/living-with-diabetes/treatment-care/checking-your-blood-sugar\nADA — Managing Ketones|https://diabetes.org/living-with-diabetes/managing-ketones\nISPAD Clinical Practice Guidelines 2022|https://www.ispad.org/general/custom.asp?page=ISPADGuidelines2022";
 "medicalInfo.glucoseUnits.links" = "ADA — Blood Sugar Targets|https://diabetes.org/living-with-diabetes/treatment-care/checking-your-blood-sugar";
 "medicalInfo.checks.links" = "ADA — Low Blood Glucose (Hypoglycemia)|https://diabetes.org/living-with-diabetes/hypoglycemia-low-blood-glucose\nADA — Hyperglycemia (High Blood Glucose)|https://diabetes.org/living-with-diabetes/treatment-care/hyperglycemia";

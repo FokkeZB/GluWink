@@ -62,7 +62,7 @@ GluWink leest glucose en koolhydraten uit Apple Gezondheid. De meeste CGM-apps (
 
 Liever Nightscout? Verbind dan een Nightscout-site — handig als een ouder op afstand meekijkt, of als jouw diabetessysteem wel naar Nightscout schrijft maar niet naar Apple Gezondheid.
 
-Een Medtrum-pomp of -CGM? Verbind rechtstreeks met EasyView van Medtrum — voor patiënten én verzorgers die een patiënt volgen. Meerdere bronnen kunnen tegelijk aanstaan; de meest recente meting wint.
+Een Medtrum-pomp of -CGM? Verbind met EasyView — voor patiënten én verzorgers. FreeStyle Libre met LibreLinkUp? Verbind je volgersaccount — GluWink haalt glucose rechtstreeks op uit Abbott's cloud. Meerdere bronnen kunnen tegelijk aanstaan; de meest recente meting wint.
 
 Eerst even proberen? In de demo-modus zie je realistische glucose- en koolhydratenwaarden zonder sensor.
 
@@ -82,16 +82,16 @@ GluWink is geen medisch hulpmiddel. Het vervangt je CGM, je pomp, je internist e
 
 — Open source —
 
-GluWink is open source. Je gegevens blijven op je toestel (via HealthKit) of op je eigen Nightscout-site. Geen accounts, geen servers van ons, geen tracking, geen advertenties. Broncode, bouwinstructies en de regels staan op GitHub.
+GluWink is open source. Je gegevens blijven op je toestel (via HealthKit), op je eigen Nightscout-site, of op de LibreLinkUp- of EasyView-dienst die je verbindt. Geen accounts, geen servers van ons, geen tracking, geen advertenties. Broncode, bouwinstructies en de regels staan op GitHub.
 
 Diabetes type 1 stopt nooit. Je telefoon hoeft daar niet aan mee te doen.
 ```
-*(~3,932 / 4000 — tight; trim iets voordat je nieuw feature-bullet toevoegt)*
+*(~3,970 / 4000)*
 
 ## Keywords (100)
 
 ```
-diabetes,type 1,glucose,cgm,dexcom,libre,nightscout,koolhydraten,ouder,schermtijd,schild,medtrum
+diabetes,type 1,glucose,cgm,dexcom,libre,nightscout,librelinkup,koolhydraten,ouder,schermtijd,schild,medtrum
 ```
 *(96 / 100)*
 
@@ -100,6 +100,14 @@ Opmerkingen:
 - Geen spaties na komma's (Apple telt ze mee).
 - `koolhydraten` is bewust alleen als meervoud opgenomen: dat wordt het meest gezocht.
 - `health` / `gezondheid` zijn al gedekt door de categorie.
+
+## What's New (4000) — 1.1 (binnenkort)
+
+```
+Nieuw in deze release:
+• LibreLinkUp-ondersteuning: verbind je FreeStyle Libre-volgersaccount als glucosebron — leest rechtstreeks uit Abbott's cloud.
+```
+*(~148 / 4000)*
 
 ## What's New (4000) — 1.0-release
 
@@ -133,7 +141,7 @@ Scènevolgorde komt overeen met de tabel in `README.md` → Screenshots.
 | 4 | Glucose en koolhydraten op elk scherm. |
 | 5 | Stel alerts in, kies een bron, regel het schild — jouw keuze. |
 | 6 | Glucose en koolhydraten op elke wijzerplaat. |
-| 7 | Apple Gezondheid, Nightscout, EasyView of demo. |
+| 7 | Apple Gezondheid, Nightscout, EasyView, LibreLinkUp of demo. |
 
 ### Apple Watch (46mm)
 
