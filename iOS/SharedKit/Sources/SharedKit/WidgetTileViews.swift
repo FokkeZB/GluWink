@@ -230,36 +230,49 @@ public struct SmallWidgetTile: View {
 
     public var body: some View {
         let c = content.shieldContent
+        let carbsEnabled = c.carbsEnabled
         VStack(alignment: .leading, spacing: 6) {
             widgetValueWithUnit(
                 value: widgetGlucoseValue(c),
                 unit: c.glucoseUnitLabel,
-                valueFont: .system(.title, design: .rounded).bold(),
+                valueFont: carbsEnabled
+                    ? .system(.title, design: .rounded).bold()
+                    : .system(.largeTitle, design: .rounded).bold(),
                 unitFont: .system(.caption, design: .rounded).weight(.semibold)
             )
-            widgetRelativeAgoText(
-                from: content.glucoseDate,
-                hasData: c.glucose != nil,
-                relativeTo: content.referenceDate
-            )
+            if carbsEnabled {
+                widgetRelativeAgoText(
+                    from: content.glucoseDate,
+                    hasData: c.glucose != nil,
+                    relativeTo: content.referenceDate
+                )
                 .font(.caption)
                 .opacity(0.7)
 
-            Spacer(minLength: 2)
+                Spacer(minLength: 2)
 
-            widgetValueWithUnit(
-                value: widgetCarbsValue(c),
-                unit: widgetCarbsUnit(c),
-                valueFont: .system(.title, design: .rounded).bold(),
-                unitFont: .system(.caption, design: .rounded).weight(.semibold)
-            )
-            widgetRelativeAgoText(
-                from: content.carbDate,
-                hasData: c.carbs != nil,
-                relativeTo: content.referenceDate
-            )
+                widgetValueWithUnit(
+                    value: widgetCarbsValue(c),
+                    unit: widgetCarbsUnit(c),
+                    valueFont: .system(.title, design: .rounded).bold(),
+                    unitFont: .system(.caption, design: .rounded).weight(.semibold)
+                )
+                widgetRelativeAgoText(
+                    from: content.carbDate,
+                    hasData: c.carbs != nil,
+                    relativeTo: content.referenceDate
+                )
                 .font(.caption)
                 .opacity(0.7)
+            } else {
+                widgetStackedTime(
+                    from: content.glucoseDate,
+                    hasData: c.glucose != nil,
+                    relativeTo: content.referenceDate
+                )
+                .font(.caption)
+                .opacity(0.7)
+            }
         }
         .foregroundStyle(.white)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -278,42 +291,66 @@ public struct MediumWidgetTile: View {
 
     public var body: some View {
         let c = content.shieldContent
+        let carbsEnabled = c.carbsEnabled
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 4) {
                 widgetValueWithUnit(
                     value: widgetGlucoseValue(c),
-                    unit: c.glucoseUnit.shortLabel,
-                    valueFont: .system(size: 44, weight: .bold, design: .rounded),
-                    unitFont: .system(size: 18, weight: .semibold, design: .rounded)
+                    unit: carbsEnabled ? c.glucoseUnit.shortLabel : c.glucoseUnitLabel,
+                    valueFont: .system(size: carbsEnabled ? 44 : 80, weight: .bold, design: .rounded),
+                    unitFont: .system(size: carbsEnabled ? 18 : 28, weight: .semibold, design: .rounded)
                 )
-                widgetStackedTime(
-                    from: content.glucoseDate,
-                    hasData: c.glucose != nil,
-                    relativeTo: content.referenceDate
-                )
+                if carbsEnabled {
+                    widgetStackedTime(
+                        from: content.glucoseDate,
+                        hasData: c.glucose != nil,
+                        relativeTo: content.referenceDate
+                    )
                     .font(.subheadline)
                     .opacity(0.7)
                     .lineLimit(1)
+                } else {
+                    let relAgo = widgetRelativeAgoText(
+                        from: content.glucoseDate,
+                        hasData: c.glucose != nil,
+                        relativeTo: content.referenceDate
+                    )
+                    Group {
+                        if let date = content.glucoseDate {
+                            (relAgo + Text(" · ") + Text(date, style: .time))
+                                .font(.body)
+                                .opacity(0.7)
+                                .lineLimit(1)
+                        } else {
+                            relAgo
+                                .font(.body)
+                                .opacity(0.7)
+                                .lineLimit(1)
+                        }
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            VStack(alignment: .leading, spacing: 4) {
-                widgetValueWithUnit(
-                    value: widgetCarbsValue(c),
-                    unit: widgetCarbsUnit(c),
-                    valueFont: .system(size: 44, weight: .bold, design: .rounded),
-                    unitFont: .system(size: 18, weight: .semibold, design: .rounded)
-                )
-                widgetStackedTime(
-                    from: content.carbDate,
-                    hasData: c.carbs != nil,
-                    relativeTo: content.referenceDate
-                )
+            if carbsEnabled {
+                VStack(alignment: .leading, spacing: 4) {
+                    widgetValueWithUnit(
+                        value: widgetCarbsValue(c),
+                        unit: widgetCarbsUnit(c),
+                        valueFont: .system(size: 44, weight: .bold, design: .rounded),
+                        unitFont: .system(size: 18, weight: .semibold, design: .rounded)
+                    )
+                    widgetStackedTime(
+                        from: content.carbDate,
+                        hasData: c.carbs != nil,
+                        relativeTo: content.referenceDate
+                    )
                     .font(.subheadline)
                     .opacity(0.7)
                     .lineLimit(1)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .foregroundStyle(.white)
         .frame(maxHeight: .infinity)
@@ -347,23 +384,38 @@ public struct AccessoryCircularTile: View {
 
     public var body: some View {
         let c = content.shieldContent
-        // For a meal-only carb entry (grams == nil, but a reading exists)
-        // the label is not glanceable in the tight circular frame — show
-        // how long ago the meal was recorded instead, split across the
-        // two-line value/unit layout the tile uses for glucose.
-        let isCarbMealOnly = !forGlucose && c.carbs != nil && c.carbs?.grams == nil
-        let (agoValue, agoUnit) = isCarbMealOnly
-            ? widgetCarbsMealAgoComponents(from: content.carbDate, relativeTo: content.referenceDate)
-            : ("", "")
-        VStack(spacing: -2) {
-            Text(isCarbMealOnly ? agoValue : (forGlucose ? widgetGlucoseValue(c) : widgetCarbsValue(c)))
-                .font(.system(.title2, design: .rounded).bold())
-                .minimumScaleFactor(0.6)
-                .lineLimit(1)
-            Text(isCarbMealOnly ? agoUnit : (forGlucose ? c.glucoseUnit.shortLabel : widgetCarbsUnit(c)))
-                .font(.system(.caption, design: .rounded))
+        // Carbs-only widget with carb tracking disabled: show a clear
+        // "off" + "carbs" placeholder so the complication slot doesn't
+        // look broken. The attention level stays `.clear` (no tint).
+        if !forGlucose && !c.carbsEnabled {
+            VStack(spacing: -2) {
+                Text(String(localized: "widget.carbsDisabledShort", bundle: .module))
+                    .font(.system(.title2, design: .rounded).bold())
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                Text(String(localized: "widget.carbsLabel", bundle: .module))
+                    .font(.system(.caption, design: .rounded))
+            }
+            .multilineTextAlignment(.center)
+        } else {
+            // For a meal-only carb entry (grams == nil, but a reading exists)
+            // the label is not glanceable in the tight circular frame — show
+            // how long ago the meal was recorded instead, split across the
+            // two-line value/unit layout the tile uses for glucose.
+            let isCarbMealOnly = !forGlucose && c.carbs != nil && c.carbs?.grams == nil
+            let (agoValue, agoUnit) = isCarbMealOnly
+                ? widgetCarbsMealAgoComponents(from: content.carbDate, relativeTo: content.referenceDate)
+                : ("", "")
+            VStack(spacing: -2) {
+                Text(isCarbMealOnly ? agoValue : (forGlucose ? widgetGlucoseValue(c) : widgetCarbsValue(c)))
+                    .font(.system(.title2, design: .rounded).bold())
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                Text(isCarbMealOnly ? agoUnit : (forGlucose ? c.glucoseUnit.shortLabel : widgetCarbsUnit(c)))
+                    .font(.system(.caption, design: .rounded))
+            }
+            .multilineTextAlignment(.center)
         }
-        .multilineTextAlignment(.center)
     }
 }
 
@@ -377,46 +429,78 @@ public struct AccessoryRectangularTile: View {
     public var body: some View {
         let c = content.shieldContent
         VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 4) {
-                Image(systemName: c.glucoseNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
-                    .font(.caption2.bold())
-                    .widgetAccentable()
-                HStack(spacing: 2) {
-                    Text(widgetGlucoseValue(c))
-                        .font(.system(.headline, design: .rounded).bold())
-                    Text(c.glucoseUnit.shortLabel)
+            if c.carbsEnabled {
+                HStack(spacing: 4) {
+                    Image(systemName: c.glucoseNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
+                        .font(.caption2.bold())
+                        .widgetAccentable()
+                    HStack(spacing: 2) {
+                        Text(widgetGlucoseValue(c))
+                            .font(.system(.headline, design: .rounded).bold())
+                        Text(c.glucoseUnit.shortLabel)
+                            .font(.caption2)
+                    }
+                    .lineLimit(1)
+                    widgetRelativeAgoText(
+                        from: content.glucoseDate,
+                        hasData: c.glucose != nil,
+                        relativeTo: content.referenceDate
+                    )
                         .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
-                .lineLimit(1)
-                widgetRelativeAgoText(
+                HStack(spacing: 4) {
+                    Image(systemName: c.carbsNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
+                        .font(.caption2.bold())
+                        .widgetAccentable()
+                    HStack(spacing: 2) {
+                        Text(widgetCarbsValue(c))
+                            .font(.system(.headline, design: .rounded).bold())
+                        Text(widgetCarbsUnit(c))
+                            .font(.caption2)
+                    }
+                    .lineLimit(1)
+                    widgetRelativeAgoText(
+                        from: content.carbDate,
+                        hasData: c.carbs != nil,
+                        relativeTo: content.referenceDate
+                    )
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            } else {
+                HStack(spacing: 4) {
+                    Image(systemName: c.glucoseNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
+                        .font(.subheadline.bold())
+                        .widgetAccentable()
+                    HStack(spacing: 2) {
+                        Text(widgetGlucoseValue(c))
+                            .font(.headline.bold())
+                        Text(c.glucoseUnitLabel)
+                            .font(.subheadline)
+                    }
+                    .lineLimit(1)
+                }
+                let relAgo = widgetRelativeAgoText(
                     from: content.glucoseDate,
                     hasData: c.glucose != nil,
                     relativeTo: content.referenceDate
                 )
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-
-            HStack(spacing: 4) {
-                Image(systemName: c.carbsNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
-                    .font(.caption2.bold())
-                    .widgetAccentable()
-                HStack(spacing: 2) {
-                    Text(widgetCarbsValue(c))
-                        .font(.system(.headline, design: .rounded).bold())
-                    Text(widgetCarbsUnit(c))
-                        .font(.caption2)
+                Group {
+                    if let date = content.glucoseDate {
+                        (relAgo + Text(" · ") + Text(date, style: .time))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    } else {
+                        relAgo
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
                 }
-                .lineLimit(1)
-                widgetRelativeAgoText(
-                    from: content.carbDate,
-                    hasData: c.carbs != nil,
-                    relativeTo: content.referenceDate
-                )
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
             }
         }
     }
@@ -433,6 +517,13 @@ public struct AccessoryInlineTile: View {
 
     public var body: some View {
         let c = content.shieldContent
+        // Carbs-only inline widget with carb tracking disabled.
+        if !forGlucose && !c.carbsEnabled {
+            Label(
+                String(localized: "widget.carbsDisabled", bundle: .module),
+                systemImage: "fork.knife"
+            )
+        } else {
         let needsAttention = forGlucose ? c.glucoseNeedsAttention : c.carbsNeedsAttention
         let icon = needsAttention ? "exclamationmark.triangle" : "checkmark.circle"
         // Inline is space-constrained on the Lock Screen so we drop the
@@ -442,6 +533,7 @@ public struct AccessoryInlineTile: View {
         // the age ("5 min", "2 h") — the label is not glanceable here.
         let text: String = widgetInlineCarbsText(c, content: content, forGlucose: forGlucose)
         Label(text, systemImage: icon)
+        }
     }
 }
 
@@ -464,34 +556,57 @@ public struct LargeWidgetTile: View {
                     valueFont: .system(size: 80, weight: .bold, design: .rounded),
                     unitFont: .system(size: 32, weight: .semibold, design: .rounded)
                 )
-                widgetStackedTime(
-                    from: content.glucoseDate,
-                    hasData: c.glucose != nil,
-                    relativeTo: content.referenceDate
-                )
+                if c.carbsEnabled {
+                    widgetStackedTime(
+                        from: content.glucoseDate,
+                        hasData: c.glucose != nil,
+                        relativeTo: content.referenceDate
+                    )
                     .font(.body)
                     .opacity(0.7)
+                } else {
+                    let relAgo = widgetRelativeAgoText(
+                        from: content.glucoseDate,
+                        hasData: c.glucose != nil,
+                        relativeTo: content.referenceDate
+                    )
+                    Group {
+                        if let date = content.glucoseDate {
+                            (relAgo + Text(" · ") + Text(date, style: .time))
+                                .font(.body)
+                                .opacity(0.7)
+                                .lineLimit(1)
+                        } else {
+                            relAgo
+                                .font(.body)
+                                .opacity(0.7)
+                                .lineLimit(1)
+                        }
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Spacer(minLength: 8)
+            if c.carbsEnabled {
+                Spacer(minLength: 8)
 
-            VStack(alignment: .leading, spacing: 6) {
-                widgetValueWithUnit(
-                    value: widgetCarbsValue(c),
-                    unit: "g",
-                    valueFont: .system(size: 80, weight: .bold, design: .rounded),
-                    unitFont: .system(size: 32, weight: .semibold, design: .rounded)
-                )
-                widgetStackedTime(
-                    from: content.carbDate,
-                    hasData: c.carbs != nil,
-                    relativeTo: content.referenceDate
-                )
-                    .font(.body)
-                    .opacity(0.7)
+                VStack(alignment: .leading, spacing: 6) {
+                    widgetValueWithUnit(
+                        value: widgetCarbsValue(c),
+                        unit: "g",
+                        valueFont: .system(size: 80, weight: .bold, design: .rounded),
+                        unitFont: .system(size: 32, weight: .semibold, design: .rounded)
+                    )
+                    widgetStackedTime(
+                        from: content.carbDate,
+                        hasData: c.carbs != nil,
+                        relativeTo: content.referenceDate
+                    )
+                        .font(.body)
+                        .opacity(0.7)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .foregroundStyle(.white)
         .padding()

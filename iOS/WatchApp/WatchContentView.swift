@@ -74,20 +74,22 @@ struct WatchContentView: View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(glucoseValueText(for: current))
-                    .font(valueFont)
+                    .font(current.carbsEnabled ? valueFont : .system(size: 36, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                 relativeTimeText(from: current.glucose?.sampleDate)
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.85))
             }
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(carbsValueText(for: current))
-                    .font(valueFont)
-                    .foregroundStyle(.white.opacity(0.95))
-                relativeTimeText(from: current.carbs?.sampleDate)
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.85))
+            if current.carbsEnabled {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(carbsValueText(for: current))
+                        .font(valueFont)
+                        .foregroundStyle(.white.opacity(0.95))
+                    relativeTimeText(from: current.carbs?.sampleDate)
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.85))
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

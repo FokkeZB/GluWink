@@ -46,6 +46,8 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
         let unit: GlucoseUnit = defaults?.string(forKey: "glucoseUnit")
             .flatMap { GlucoseUnit(rawValue: $0) } ?? .mmolL
 
+        let carbsEnabled = defaults?.object(forKey: "carbsEnabled") as? Bool ?? true
+
         let content = ShieldContent(
             glucose: glucoseReading?.mmol ?? 0,
             glucoseFetchedAt: glucoseReading?.sampleAt,
@@ -58,6 +60,7 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
             glucoseStaleMinutes: ThresholdResolver.staleMinutes(defaults: defaults, fallback: Self.fallbackStaleMinutes),
             carbGraceHour: ThresholdResolver.carbGraceHour(defaults: defaults, fallback: Self.fallbackCarbGraceHour),
             carbGraceMinute: ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: Self.fallbackCarbGraceMinute),
+            carbsEnabled: carbsEnabled,
             glucoseUnit: unit,
             customChecks: customChecks,
             strings: .fromPackage()

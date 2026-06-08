@@ -5,3 +5,5 @@
 "watch.widget.carbsTitle" = "Koolhydraten";
 "watch.widget.carbsDescription" = "Toon de laatste KH-invoer.";
 "watch.widget.noData" = "Geen data";
+"watch.widget.carbsDisabledShort" = "uit";
+"watch.widget.carbsLabel" = "kh";

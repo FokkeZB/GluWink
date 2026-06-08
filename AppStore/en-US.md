@@ -34,9 +34,9 @@ Make your iPhone and Apple Watch a tool for diabetes — not a distraction from 
 
 GluWink does three things, and nothing more:
 
-1. Glucose and carbs visible everywhere. Home Screen, Lock Screen and StandBy widgets in every size. Complications on every Apple Watch face. An optional glucose number on the app icon badge.
+1. Glucose and carbs visible everywhere. Home Screen, Lock Screen and StandBy widgets in every size. Complications on every Apple Watch face. An optional glucose number on the app icon badge. Turn carb features off in settings if you don't track carbs.
 
-2. Clear status at a glance. A green face means everything looks good. An orange face means something needs attention — glucose is high or low, the sensor is stale, or carbs were never entered for that meal. A red face is reserved for a critical high: glucose has climbed above the critical threshold you set, and the shield cannot be dismissed until it drops back down. Every surface — the shield, widgets, watch — speaks the same three-color language.
+2. Clear status at a glance. A green face means everything looks good. An orange face means something needs attention — glucose is high or low, the sensor is stale, or (when carb tracking is on) carbs were never entered for that meal. A red face is reserved for a critical high: glucose has climbed above the critical threshold you set, and the shield cannot be dismissed until it drops back down. Every surface — the shield, widgets, watch — speaks the same three-color language.
 
 3. Optional app blocking — your call. Choose to block other apps at configurable intervals, either always or only when something needs your attention. While blocking is active and the face is orange, GluWink locks other apps until the check-in is done. When the face is red, the check-in is off the table entirely until glucose drops back below the critical threshold — no passphrase override, no disarm. When everything is green — or you've turned blocking off entirely — your phone is just your phone.
 
@@ -66,11 +66,11 @@ Want to try the app first? Demo mode shows realistic glucose and carb data witho
 
 — What you get —
 
-• Friendly check-in shield with action items based on the current glucose and last carbs.
+• Friendly check-in shield with action items based on the current glucose and (optionally) last carbs.
 • Three-way signal: green (all clear), orange (check-in needed), red (critical — shield locked until glucose drops). Thresholds are yours to set.
 • Home Screen, Lock Screen, and StandBy widgets in every size, tinted with the same three-color attention signal.
-• Apple Watch app and complications — glucose and carbs at a glance, on every watch face.
-• Configurable thresholds, intervals, and a daily carb grace period (so 6am cereal isn't an emergency).
+• Apple Watch app and complications — glucose at a glance on every watch face, with optional carbs.
+• Configurable thresholds, intervals, and (when carb tracking is on) a daily carb grace period.
 • Block apps always, only when attention is needed, or not at all — you decide.
 • English and Dutch throughout.
 

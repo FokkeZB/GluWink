@@ -192,6 +192,7 @@ final class SharedDataManager {
             glucoseStaleMinutes: effectiveGlucoseStaleMinutes,
             carbGraceHour: effectiveCarbGraceHour,
             carbGraceMinute: effectiveCarbGraceMinute,
+            carbsEnabled: carbsEnabled,
             glucoseUnit: glucoseUnit,
             strings: ShieldContent.Strings.fromPackage()
         )
@@ -376,6 +377,19 @@ final class SharedDataManager {
         set { defaults?.set(newValue, forKey: "onlyShieldWhenAttention") }
     }
 
+    /// Whether the app should track and enforce carb data. When `false`,
+    /// carb scenarios (`.carbGap`, `.noCarbData`) never fire, carb rows
+    /// are hidden in the home screen and widgets, and carb-only widgets
+    /// show a "disabled" placeholder. Data is still fetched so re-enabling
+    /// surfaces fresh values immediately.
+    var carbsEnabled: Bool {
+        get { defaults?.object(forKey: "carbsEnabled") as? Bool ?? true }
+        set {
+            defaults?.set(newValue, forKey: "carbsEnabled")
+            WatchSessionManager.shared.sendLatestContext()
+        }
+    }
+
     var glucoseBadgeMode: GlucoseBadgeMode {
         get {
             guard let raw = defaults?.string(forKey: "glucoseBadgeMode"),
@@ -476,6 +490,7 @@ final class SharedDataManager {
             "attentionIntervalMinutes", "noAttentionIntervalMinutes",
             "cooldownSeconds", "shieldingEnabled", "onlyShieldWhenAttention",
             "glucoseBadgeMode", "glucoseUnit", "rearmShieldsAt",
+            "carbsEnabled",
             DataSourceKeys.mockModeEnabled,
             DataSourceKeys.nightscoutEnabled,
             DataSourceKeys.healthKitEnabled,

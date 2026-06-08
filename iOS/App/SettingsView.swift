@@ -30,6 +30,7 @@ struct SettingsView: View {
     @State private var healthKitEnabled: Bool
     @State private var easyViewEnabled: Bool
     @State private var libreLinkUpEnabled: Bool
+    @State private var carbsEnabled: Bool
 
     init() {
         let data = SharedDataManager.shared
@@ -41,6 +42,7 @@ struct SettingsView: View {
         _healthKitEnabled = State(initialValue: data.healthKitEnabled)
         _easyViewEnabled = State(initialValue: data.easyViewEnabled)
         _libreLinkUpEnabled = State(initialValue: data.librelinkupEnabled)
+        _carbsEnabled = State(initialValue: data.carbsEnabled)
     }
 
     var body: some View {
@@ -105,6 +107,24 @@ struct SettingsView: View {
                     .pickerStyle(.navigationLink)
                 } footer: {
                     Text("settings.glucoseBadgeFooter", tableName: "Localizable")
+                }
+
+                Section {
+                    Toggle(isOn: Binding(
+                        get: { carbsEnabled },
+                        set: { newValue in
+                            carbsEnabled = newValue
+                            SharedDataManager.shared.carbsEnabled = newValue
+                            SharedDataManager.shared.flush()
+                            ShieldManager.shared.reevaluateShields()
+                            SharedDataManager.shared.refreshAttentionBadge()
+                            WidgetCenter.shared.reloadAllTimelines()
+                        }
+                    )) {
+                        Label(String(localized: "settings.carbsEnabled"), systemImage: "fork.knife")
+                    }
+                } footer: {
+                    Text("settings.carbsEnabledFooter", tableName: "Localizable")
                 }
 
                 Section {
@@ -296,6 +316,7 @@ struct AttentionRulesSettingsView: View {
     @State private var staleMinutes: Double
     @State private var carbGraceHour: Int
     @State private var carbGraceMinute: Int
+    @State private var carbsEnabled: Bool
     /// Surfaced when the user tries to drag `critical` at or below `high`,
     /// or when high is raised above critical. Cleared as soon as the values
     /// are coherent again. Drives the inline validation banner.
@@ -316,6 +337,7 @@ struct AttentionRulesSettingsView: View {
         _staleMinutes = State(initialValue: Double(data.glucoseStaleMinutes ?? SettingsDefaults.staleMinutes))
         _carbGraceHour = State(initialValue: data.carbGraceHour ?? SettingsDefaults.carbGraceHour)
         _carbGraceMinute = State(initialValue: data.carbGraceMinute ?? SettingsDefaults.carbGraceMinute)
+        _carbsEnabled = State(initialValue: data.carbsEnabled)
     }
 
     private var highRange: ClosedRange<Double> {
@@ -420,6 +442,8 @@ struct AttentionRulesSettingsView: View {
             } footer: {
                 Text("settings.carbGraceFooter", tableName: "Localizable")
             }
+            .disabled(!carbsEnabled)
+            .opacity(carbsEnabled ? 1 : 0.5)
         }
         .navigationTitle(String(localized: "settings.attentionRulesRow"))
         .navigationBarTitleDisplayMode(.inline)
@@ -1017,6 +1041,11 @@ struct NightscoutSettingsView: View {
                 )
             } header: {
                 Text("settings.nightscoutLatestHeader", tableName: "Localizable")
+            } footer: {
+                if latestCarbs == nil && SharedDataManager.shared.carbsEnabled {
+                    Text("settings.noCarbsHint", tableName: "Localizable")
+                        .foregroundStyle(.secondary)
+                }
             }
 
             if let lastError {
@@ -1296,6 +1325,11 @@ struct EasyViewSettingsView: View {
                 )
             } header: {
                 Text("settings.easyViewLatestHeader", tableName: "Localizable")
+            } footer: {
+                if latestCarbs == nil && SharedDataManager.shared.carbsEnabled {
+                    Text("settings.noCarbsHint", tableName: "Localizable")
+                        .foregroundStyle(.secondary)
+                }
             }
 
             if let lastError {
@@ -1552,7 +1586,9 @@ struct LibreLinkUpSettingsView: View {
             } header: {
                 Text("settings.librelinkup.latestData", tableName: "Localizable")
             } footer: {
-                Text("settings.librelinkup.carbsNote", tableName: "Localizable")
+                if SharedDataManager.shared.carbsEnabled {
+                    Text("settings.librelinkup.carbsNote", tableName: "Localizable")
+                }
             }
 
             if let region {
@@ -1734,8 +1770,11 @@ struct AttentionChecksSettingsView: View {
     }
 
     var body: some View {
+        let carbsEnabled = SharedDataManager.shared.carbsEnabled
+        let carbScenarios: Set<AttentionScenario> = [.carbGap, .noCarbData]
         List {
             ForEach(AttentionScenario.allCases) { scenario in
+                let isCarb = carbScenarios.contains(scenario)
                 Section {
                     checksRows(for: scenario)
 
@@ -1755,6 +1794,8 @@ struct AttentionChecksSettingsView: View {
                         .font(.caption)
                     }
                 }
+                .disabled(isCarb && !carbsEnabled)
+                .opacity((isCarb && !carbsEnabled) ? 0.5 : 1)
             }
         }
         .navigationTitle(String(localized: "settings.attentionChecksRow"))

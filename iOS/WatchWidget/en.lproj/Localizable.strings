@@ -5,3 +5,5 @@
 "watch.widget.carbsTitle" = "Carbs";
 "watch.widget.carbsDescription" = "Show the latest carb entry.";
 "watch.widget.noData" = "No data";
+"watch.widget.carbsDisabledShort" = "off";
+"watch.widget.carbsLabel" = "carbs";
