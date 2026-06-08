@@ -36,7 +36,7 @@ GluWink does three things, and nothing more:
 
 1. Glucose and carbs visible everywhere. Home Screen, Lock Screen and StandBy widgets in every size. Complications on every Apple Watch face. An optional glucose number on the app icon badge. Turn carb features off in settings if you don't track carbs.
 
-2. Clear status at a glance. A green face means everything looks good. An orange face means something needs attention — glucose is high or low, the sensor is stale, or (when carb tracking is on) carbs were never entered for that meal. A red face is reserved for a critical high: glucose has climbed above the critical threshold you set, and the shield cannot be dismissed until it drops back down. Every surface — the shield, widgets, watch — speaks the same three-color language.
+2. Clear status at a glance. Green: all clear. Orange: something needs attention — glucose is high or low, sensor is stale, or (if carb tracking is on) no carbs logged yet. Red: critical high — shield locked until glucose drops below your threshold. Every surface speaks the same three-color language.
 
 3. Optional app blocking — your call. Choose to block other apps at configurable intervals, either always or only when something needs your attention. While blocking is active and the face is orange, GluWink locks other apps until the check-in is done. When the face is red, the check-in is off the table entirely until glucose drops back below the critical threshold — no passphrase override, no disarm. When everything is green — or you've turned blocking off entirely — your phone is just your phone.
 
@@ -60,7 +60,7 @@ GluWink reads glucose and carbs from Apple Health. Most CGM apps (Dexcom, Libre,
 
 Prefer Nightscout? Connect a Nightscout site instead — handy when a parent is monitoring a child remotely, or when the diabetes system writes to Nightscout but not Apple Health.
 
-On Medtrum? Connect EasyView — works for patients and caregivers alike. On FreeStyle Libre with LibreLinkUp? Connect your follower account — GluWink fetches glucose direct from Abbott's cloud. Any source can be on at once; the most recent reading wins.
+On Medtrum? Connect EasyView — works for patients and caregivers. On FreeStyle Libre? Connect LibreLinkUp — GluWink reads direct from Abbott's cloud. Any source can be on at once; the freshest reading wins.
 
 Want to try the app first? Demo mode shows realistic glucose and carb data without any sensor.
 
@@ -89,7 +89,7 @@ Type 1 diabetes is relentless. The phone doesn't have to be.
 ## Keywords (100)
 
 ```
-diabetes,type 1,glucose,cgm,dexcom,libre,nightscout,librelinkup,carbs,kids,parents,screen time,shield,medtrum
+diabetes,type 1,glucose,cgm,dexcom,libre,nightscout,librelinkup,carbs,kids,parents,screen time
 ```
 *(97 / 100)*
 
