@@ -25,9 +25,9 @@ Van afleider naar bondgenoot
 ## Promotional text (170)
 
 ```
-Verander je iPhone en Apple Watch van je grootste afleider in je beste hulpmiddel. Glucose overal — koolhydraten bijhouden optioneel. Apps blokkeren als iets je aandacht vraagt.
+Verander je iPhone en Apple Watch van afleider in hulpmiddel. Glucose overal — koolhydraten bijhouden optioneel. Apps blokkeren als iets je aandacht vraagt.
 ```
-*(168 / 170)*
+*(157 / 170)*
 
 ## Description (4000)
 
@@ -38,7 +38,7 @@ GluWink doet drie dingen, en niets meer:
 
 1. Glucose overal zichtbaar — koolhydraten bijhouden optioneel. Widgets voor beginscherm, toegangsscherm en StandBy in alle formaten. Complicaties op elke Apple Watch-wijzerplaat. Optioneel de glucosewaarde als badge op het app-icoon. Zet koolhydraatfuncties uit in de instellingen als je geen koolhydraten bijhoudt.
 
-2. Status in één oogopslag. Groen = alles ziet er goed uit. Oranje = er is iets dat aandacht vraagt: glucose te hoog of te laag, sensor verouderd, of (als koolhydraten bijhouden aanstaat) koolhydraten nog niet ingevoerd. Rood is voorbehouden aan een kritieke hoge waarde: glucose is boven de door jou ingestelde drempel uitgekomen en het schild kan pas weer als die waarde daalt. Overal dezelfde taal in drie kleuren.
+2. Status in één oogopslag. Groen: alles oké. Oranje: glucose te hoog of te laag, sensor verouderd, of (als koolhydraten bijhouden aanstaat) koolhydraten nog niet ingevoerd. Rood: kritieke hoge waarde — schild blijft tot glucose daalt. Overal dezelfde drie kleuren.
 
 3. Apps blokkeren is optioneel — jij bepaalt. Kies om andere apps op instelbare intervallen te blokkeren: altijd, of alleen als iets je aandacht vraagt. Bij oranje houdt GluWink andere apps op slot tot de check-in is gedaan. Bij rood is de check-in niet beschikbaar tot de glucose weer zakt — geen wachtwoord-override, geen disarm. Bij groen is je telefoon gewoon je telefoon.
 
@@ -62,7 +62,7 @@ GluWink leest glucose en koolhydraten uit Apple Gezondheid. De meeste CGM-apps (
 
 Liever Nightscout? Verbind dan een Nightscout-site — handig als een ouder op afstand meekijkt, of als jouw diabetessysteem wel naar Nightscout schrijft maar niet naar Apple Gezondheid.
 
-Een Medtrum-pomp of -CGM? Verbind met EasyView — voor patiënten én verzorgers. FreeStyle Libre met LibreLinkUp? Verbind je volgersaccount — GluWink haalt glucose rechtstreeks op uit Abbott's cloud. Meerdere bronnen kunnen tegelijk aanstaan; de meest recente meting wint.
+Medtrum-pomp of -CGM? Verbind EasyView — voor patiënten én verzorgers. FreeStyle Libre? Verbind LibreLinkUp — GluWink haalt glucose rechtstreeks uit Abbott's cloud. Meerdere bronnen tegelijk; de meest recente meting wint.
 
 Eerst even proberen? In de demo-modus zie je realistische glucose- en koolhydratenwaarden zonder sensor.
 
@@ -91,7 +91,7 @@ Diabetes type 1 stopt nooit. Je telefoon hoeft daar niet aan mee te doen.
 ## Keywords (100)
 
 ```
-diabetes,type 1,glucose,cgm,dexcom,libre,nightscout,librelinkup,koolhydraten,ouder,schermtijd,schild,medtrum
+diabetes,type 1,glucose,cgm,dexcom,libre,nightscout,librelinkup,koolhydraten,ouder,schermtijd
 ```
 *(96 / 100)*
 
