@@ -278,13 +278,7 @@ platform :ios do
     end
 
     UI.message("Creating App Store version #{version} in ASC…")
-    Spaceship::ConnectAPI::AppStoreVersion.create(
-      app_id: app.id,
-      attributes: {
-        "versionString" => version,
-        "platform" => "IOS",
-      },
-    )
+    app.ensure_version!(version, platform: Spaceship::ConnectAPI::Platform::IOS)
     UI.success("Created App Store version #{version}.")
   end
 
