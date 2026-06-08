@@ -297,17 +297,38 @@ public struct MediumWidgetTile: View {
                 widgetValueWithUnit(
                     value: widgetGlucoseValue(c),
                     unit: carbsEnabled ? c.glucoseUnit.shortLabel : c.glucoseUnitLabel,
-                    valueFont: .system(size: carbsEnabled ? 44 : 64, weight: .bold, design: .rounded),
-                    unitFont: .system(size: carbsEnabled ? 18 : 24, weight: .semibold, design: .rounded)
+                    valueFont: .system(size: carbsEnabled ? 44 : 80, weight: .bold, design: .rounded),
+                    unitFont: .system(size: carbsEnabled ? 18 : 28, weight: .semibold, design: .rounded)
                 )
-                widgetStackedTime(
-                    from: content.glucoseDate,
-                    hasData: c.glucose != nil,
-                    relativeTo: content.referenceDate
-                )
-                .font(carbsEnabled ? .subheadline : .body)
-                .opacity(0.7)
-                .lineLimit(1)
+                if carbsEnabled {
+                    widgetStackedTime(
+                        from: content.glucoseDate,
+                        hasData: c.glucose != nil,
+                        relativeTo: content.referenceDate
+                    )
+                    .font(.subheadline)
+                    .opacity(0.7)
+                    .lineLimit(1)
+                } else {
+                    let relAgo = widgetRelativeAgoText(
+                        from: content.glucoseDate,
+                        hasData: c.glucose != nil,
+                        relativeTo: content.referenceDate
+                    )
+                    Group {
+                        if let date = content.glucoseDate {
+                            (relAgo + Text(" · ") + Text(date, style: .time))
+                                .font(.body)
+                                .opacity(0.7)
+                                .lineLimit(1)
+                        } else {
+                            relAgo
+                                .font(.body)
+                                .opacity(0.7)
+                                .lineLimit(1)
+                        }
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -452,31 +473,30 @@ public struct AccessoryRectangularTile: View {
             } else {
                 HStack(spacing: 4) {
                     Image(systemName: c.glucoseNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
-                        .font(.caption.bold())
+                        .font(.subheadline.bold())
                         .widgetAccentable()
                     HStack(spacing: 2) {
                         Text(widgetGlucoseValue(c))
-                            .font(.caption.bold())
+                            .font(.headline.bold())
                         Text(c.glucoseUnitLabel)
-                            .font(.caption)
+                            .font(.subheadline)
                     }
                     .lineLimit(1)
                 }
-                HStack(spacing: 0) {
-                    widgetRelativeAgoText(
-                        from: content.glucoseDate,
-                        hasData: c.glucose != nil,
-                        relativeTo: content.referenceDate
-                    )
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                let relAgo = widgetRelativeAgoText(
+                    from: content.glucoseDate,
+                    hasData: c.glucose != nil,
+                    relativeTo: content.referenceDate
+                )
+                Group {
                     if let date = content.glucoseDate {
-                        Text(" · ")
-                            .font(.caption2)
+                        (relAgo + Text(" · ") + Text(date, style: .time))
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
-                        Text(date, style: .time)
-                            .font(.caption2)
+                            .lineLimit(1)
+                    } else {
+                        relAgo
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
@@ -536,13 +556,34 @@ public struct LargeWidgetTile: View {
                     valueFont: .system(size: 80, weight: .bold, design: .rounded),
                     unitFont: .system(size: 32, weight: .semibold, design: .rounded)
                 )
-                widgetStackedTime(
-                    from: content.glucoseDate,
-                    hasData: c.glucose != nil,
-                    relativeTo: content.referenceDate
-                )
+                if c.carbsEnabled {
+                    widgetStackedTime(
+                        from: content.glucoseDate,
+                        hasData: c.glucose != nil,
+                        relativeTo: content.referenceDate
+                    )
                     .font(.body)
                     .opacity(0.7)
+                } else {
+                    let relAgo = widgetRelativeAgoText(
+                        from: content.glucoseDate,
+                        hasData: c.glucose != nil,
+                        relativeTo: content.referenceDate
+                    )
+                    Group {
+                        if let date = content.glucoseDate {
+                            (relAgo + Text(" · ") + Text(date, style: .time))
+                                .font(.body)
+                                .opacity(0.7)
+                                .lineLimit(1)
+                        } else {
+                            relAgo
+                                .font(.body)
+                                .opacity(0.7)
+                                .lineLimit(1)
+                        }
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
