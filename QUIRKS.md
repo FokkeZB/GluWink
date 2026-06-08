@@ -178,6 +178,18 @@ If the `--use-old-altool` approach ever stops working, the manual fallback is **
 
 `bundle update fastlane` does not fix either bug — they are in Xcode 26's bundled binaries, not in fastlane itself.
 
+### `Spaceship::ConnectAPI::AppStoreVersion.create` removed in fastlane 2.235
+
+The `AppStoreVersion.create` class method was removed from Spaceship in fastlane 2.235.x. The replacement is `app.ensure_version!(version, platform: Spaceship::ConnectAPI::Platform::IOS)`. Our `ensure_app_store_version!` helper in `Fastfile` was updated accordingly (2026-06-08). If you see `NoMethodError: undefined method 'create' for class Spaceship::ConnectAPI::AppStoreVersion`, the Fastfile has regressed — verify it uses `app.ensure_version!`.
+
+### `push_to_git_remote` is blocked by branch-protection on `main`
+
+`make release` bumps the version, commits, then tries to push. Since `main` requires PRs, a direct `git push origin main:main` fails with `GH013: Repository rule violations found`. The Fastfile now pushes to `release/vX.Y.Z` and opens a PR automatically — merge it after the release is in App Store review to land the bump on `main`.
+
+### App Store copy character limits are easy to exceed silently
+
+The `*(N / max)*` annotations in `AppStore/<locale>.md` are manually maintained and drift. Run `make appstore-sync` after every copy edit to catch overruns immediately — it validates all fields locally with no network call and takes under 5 seconds. Skipping it means the same check fails 10 minutes into `make release` after the build is already archived.
+
 ## Naming
 
 ### Bundle identifiers kept as nl.fokkezb.*
