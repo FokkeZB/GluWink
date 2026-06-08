@@ -172,11 +172,13 @@ platform :ios do
       xcodeproj: "App.xcodeproj",
     )
 
-    next_build_number = latest_testflight_build_number(
+    latest_tf_build = latest_testflight_build_number(
       api_key_path: api_key_path,
       initial_build_number: 0,
-    ) + 1
-    UI.message("Next build number: #{next_build_number}")
+    )
+    current_build = get_build_number(xcodeproj: "App.xcodeproj").to_i
+    next_build_number = [latest_tf_build, current_build].max + 1
+    UI.message("Next build number: #{next_build_number} (latest TF: #{latest_tf_build}, current: #{current_build})")
 
     increment_build_number(
       build_number: next_build_number,
