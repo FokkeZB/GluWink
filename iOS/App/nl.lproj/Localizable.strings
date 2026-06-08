@@ -150,7 +150,7 @@
 
 /* Koolhydraten bijhouden */
 "settings.carbsEnabled" = "Koolhydraten bijhouden";
-"settings.carbsEnabledFooter" = "Schakel uit als je geen maaltijden bijhoudt of een sensor gebruikt die alleen glucose geeft, zoals LibreLinkUp.";
+"settings.carbsEnabledFooter" = "Schakel uit als je nergens maaltijden of koolhydraten bijhoudt.";
 "settings.noCarbsHint" = "Log je geen koolhydraten? Schakel koolhydraattracking uit via Instellingen → Koolhydraten bijhouden.";
 
 /* Nightscout */

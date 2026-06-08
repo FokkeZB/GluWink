@@ -150,7 +150,7 @@
 
 /* Track Carbs */
 "settings.carbsEnabled" = "Track carbs";
-"settings.carbsEnabledFooter" = "Turn off if you don't log meals or use a glucose-only sensor like LibreLinkUp.";
+"settings.carbsEnabledFooter" = "Turn off if you don't log meals or carbs anywhere.";
 "settings.noCarbsHint" = "Not logging carbs? Turn off carb tracking under Settings → Track carbs.";
 
 /* Nightscout */
