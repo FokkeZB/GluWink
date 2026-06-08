@@ -408,30 +408,27 @@ public struct AccessoryRectangularTile: View {
     public var body: some View {
         let c = content.shieldContent
         VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 4) {
-                Image(systemName: c.glucoseNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
-                    .font(c.carbsEnabled ? .caption2.bold() : .caption.bold())
-                    .widgetAccentable()
-                HStack(spacing: 2) {
-                    Text(widgetGlucoseValue(c))
-                        .font(c.carbsEnabled
-                            ? .system(.headline, design: .rounded).bold()
-                            : .system(.title3, design: .rounded).bold())
-                    Text(c.carbsEnabled ? c.glucoseUnit.shortLabel : c.glucoseUnitLabel)
-                        .font(c.carbsEnabled ? .caption2 : .caption)
-                }
-                .lineLimit(1)
-                widgetRelativeAgoText(
-                    from: content.glucoseDate,
-                    hasData: c.glucose != nil,
-                    relativeTo: content.referenceDate
-                )
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-
             if c.carbsEnabled {
+                HStack(spacing: 4) {
+                    Image(systemName: c.glucoseNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
+                        .font(.caption2.bold())
+                        .widgetAccentable()
+                    HStack(spacing: 2) {
+                        Text(widgetGlucoseValue(c))
+                            .font(.system(.headline, design: .rounded).bold())
+                        Text(c.glucoseUnit.shortLabel)
+                            .font(.caption2)
+                    }
+                    .lineLimit(1)
+                    widgetRelativeAgoText(
+                        from: content.glucoseDate,
+                        hasData: c.glucose != nil,
+                        relativeTo: content.referenceDate
+                    )
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
                 HStack(spacing: 4) {
                     Image(systemName: c.carbsNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
                         .font(.caption2.bold())
@@ -451,6 +448,38 @@ public struct AccessoryRectangularTile: View {
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                }
+            } else {
+                HStack(spacing: 4) {
+                    Image(systemName: c.glucoseNeedsAttention ? "exclamationmark.triangle" : "checkmark.circle")
+                        .font(.caption.bold())
+                        .widgetAccentable()
+                    HStack(spacing: 2) {
+                        Text(widgetGlucoseValue(c))
+                            .font(.system(.title3, design: .rounded).bold())
+                        Text(c.glucoseUnitLabel)
+                            .font(.caption)
+                    }
+                    .lineLimit(1)
+                }
+                HStack(spacing: 4) {
+                    widgetRelativeAgoText(
+                        from: content.glucoseDate,
+                        hasData: c.glucose != nil,
+                        relativeTo: content.referenceDate
+                    )
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                    if let date = content.glucoseDate {
+                        Text("·")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text(date, style: .time)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
                 }
             }
         }
