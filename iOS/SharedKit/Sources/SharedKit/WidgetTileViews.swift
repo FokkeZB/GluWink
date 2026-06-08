@@ -456,13 +456,13 @@ public struct AccessoryRectangularTile: View {
                         .widgetAccentable()
                     HStack(spacing: 2) {
                         Text(widgetGlucoseValue(c))
-                            .font(.system(.title3, design: .rounded).bold())
+                            .font(.caption.bold())
                         Text(c.glucoseUnitLabel)
                             .font(.caption)
                     }
                     .lineLimit(1)
                 }
-                HStack(spacing: 4) {
+                HStack(spacing: 0) {
                     widgetRelativeAgoText(
                         from: content.glucoseDate,
                         hasData: c.glucose != nil,
@@ -472,7 +472,7 @@ public struct AccessoryRectangularTile: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                     if let date = content.glucoseDate {
-                        Text("·")
+                        Text(" · ")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                         Text(date, style: .time)
