@@ -8,7 +8,7 @@
 
 /* Home - Welkom */
 "home.welcome.title %@" = "Welkom bij %@";
-"home.welcome.tagline %@" = "Verander je iPhone en Apple Watch van je grootste afleider in je beste hulpmiddel. Glucose en koolhydraten overal zichtbaar. Apps blokkeren als iets je aandacht vraagt.";
+"home.welcome.tagline %@" = "Verander je iPhone en Apple Watch van je grootste afleider in je beste hulpmiddel. Glucosedata overal zichtbaar. Apps blokkeren als iets je aandacht vraagt.";
 
 /* Set-up Checklist */
 "setup.checklist.hide" = "Verberg";
@@ -53,7 +53,7 @@
 /* Afscherming - Autorisatie */
 "settings.shieldingAuthorizing" = "Schermtijd aanvragen…";
 "settings.shieldingNotAuthorizedFooter" = "Schermtijd-autorisatie is nodig voordat afscherming daadwerkelijk apps kan blokkeren.";
-"settings.shieldingRequiresDataSource" = "Koppel eerst Apple Gezondheid, Nightscout of demo-data — afscherming heeft glucose- of koolhydraatgegevens nodig om te weten wanneer apps geblokkeerd moeten worden.";
+"settings.shieldingRequiresDataSource" = "Koppel eerst Apple Gezondheid, Nightscout of demo-data — afscherming heeft glucosegegevens nodig om te weten wanneer apps geblokkeerd moeten worden.";
 
 /* Passphrase Prompt */
 "passphrase.title" = "Instellingen Vergrendeld";
@@ -147,6 +147,11 @@
 "settings.glucoseBadge.always" = "Altijd";
 "settings.glucoseBadge.onlyWhenAttention" = "Bij aandacht";
 "settings.glucoseBadgeFooter" = "Toon de huidige glucosewaarde als badge op het apppictogram.";
+
+/* Koolhydraten bijhouden */
+"settings.carbsEnabled" = "Koolhydraten bijhouden";
+"settings.carbsEnabledFooter" = "Schakel uit als je geen maaltijden bijhoudt of een sensor gebruikt die alleen glucose geeft, zoals LibreLinkUp.";
+"settings.noCarbsHint" = "Log je geen koolhydraten? Schakel koolhydraattracking uit via Instellingen → Koolhydraten bijhouden.";
 
 /* Nightscout */
 "settings.nightscout" = "Nightscout";

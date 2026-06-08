@@ -402,28 +402,30 @@ struct HomeView: View {
                 }
             }
 
-            VStack(spacing: 4) {
-                HStack(spacing: 8) {
-                    Image(systemName: "fork.knife")
-                        .foregroundStyle(.secondary)
-                    Text(carbValueText(for: content))
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(Color(.label))
-                }
-                HStack(spacing: 6) {
-                    relativeTimeText(from: carbDate, hasData: content.carbs != nil, fallback: strings.carbsNoData)
-                        .font(.subheadline)
-                    if content.carbs != nil, carbDate != nil {
-                        Text("•")
-                            .foregroundStyle(.tertiary)
-                        absoluteTimeText(from: carbDate, hasData: true)
-                            .font(.subheadline)
+            if SharedDataManager.shared.carbsEnabled {
+                VStack(spacing: 4) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "fork.knife")
+                            .foregroundStyle(.secondary)
+                        Text(carbValueText(for: content))
+                            .font(.title2.weight(.semibold))
+                            .foregroundStyle(Color(.label))
                     }
-                    if let source = carbsSource, content.carbs != nil {
-                        Text("•")
-                            .foregroundStyle(.tertiary)
-                        Text(source.displayName)
+                    HStack(spacing: 6) {
+                        relativeTimeText(from: carbDate, hasData: content.carbs != nil, fallback: strings.carbsNoData)
                             .font(.subheadline)
+                        if content.carbs != nil, carbDate != nil {
+                            Text("•")
+                                .foregroundStyle(.tertiary)
+                            absoluteTimeText(from: carbDate, hasData: true)
+                                .font(.subheadline)
+                        }
+                        if let source = carbsSource, content.carbs != nil {
+                            Text("•")
+                                .foregroundStyle(.tertiary)
+                            Text(source.displayName)
+                                .font(.subheadline)
+                        }
                     }
                 }
             }

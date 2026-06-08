@@ -55,7 +55,12 @@ struct HealthKitSettingsView: View {
             } header: {
                 Text("healthkit.settings.latestDataHeader", tableName: "Localizable")
             } footer: {
-                Text("healthkit.settings.statusFooterRequested", tableName: "Localizable")
+                if latestCarbs == nil && SharedDataManager.shared.carbsEnabled {
+                    Text("settings.noCarbsHint", tableName: "Localizable")
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("healthkit.settings.statusFooterRequested", tableName: "Localizable")
+                }
             }
 
             Section {

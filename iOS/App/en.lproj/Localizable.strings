@@ -8,7 +8,7 @@
 
 /* Home - Welcome */
 "home.welcome.title %@" = "Welcome to %@";
-"home.welcome.tagline %@" = "Turn your iPhone and Apple Watch from your biggest distraction into your best tool. Glucose and carbs everywhere. Apps blocked when something needs your attention.";
+"home.welcome.tagline %@" = "Turn your iPhone and Apple Watch from your biggest distraction into your best tool. Glucose data everywhere. Apps blocked when something needs your attention.";
 
 /* Setup Checklist */
 "setup.checklist.hide" = "Hide";
@@ -53,7 +53,7 @@
 /* Shielding - Authorization */
 "settings.shieldingAuthorizing" = "Requesting Screen Time…";
 "settings.shieldingNotAuthorizedFooter" = "Screen Time authorization is required before shielding can actually block apps.";
-"settings.shieldingRequiresDataSource" = "Connect Apple Health, Nightscout, or demo data first — shielding needs glucose or carb data to know when to block apps.";
+"settings.shieldingRequiresDataSource" = "Connect Apple Health, Nightscout, or demo data first — shielding needs glucose data to know when to block apps.";
 
 /* Passphrase Prompt */
 "passphrase.title" = "Settings Locked";
@@ -147,6 +147,11 @@
 "settings.glucoseBadge.always" = "Always";
 "settings.glucoseBadge.onlyWhenAttention" = "When Attention";
 "settings.glucoseBadgeFooter" = "Show the current glucose value as a badge on the app icon.";
+
+/* Track Carbs */
+"settings.carbsEnabled" = "Track carbs";
+"settings.carbsEnabledFooter" = "Turn off if you don't log meals or use a glucose-only sensor like LibreLinkUp.";
+"settings.noCarbsHint" = "Not logging carbs? Turn off carb tracking under Settings → Track carbs.";
 
 /* Nightscout */
 "settings.nightscout" = "Nightscout";
