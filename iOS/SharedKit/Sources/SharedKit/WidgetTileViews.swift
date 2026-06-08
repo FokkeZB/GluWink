@@ -429,13 +429,6 @@ public struct AccessoryRectangularTile: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                if !c.carbsEnabled {
-                    Spacer(minLength: 0)
-                    Text(content.glucoseDate ?? Date(), style: .time)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
             }
 
             if c.carbsEnabled {

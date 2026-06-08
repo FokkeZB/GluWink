@@ -85,4 +85,4 @@
 /* Carbs-disabled placeholders for carbs-only widgets/complications */
 "widget.carbsDisabled" = "KH uit";
 "widget.carbsDisabledShort" = "uit";
-"widget.carbsLabel" = "koolh.";
+"widget.carbsLabel" = "kh";
