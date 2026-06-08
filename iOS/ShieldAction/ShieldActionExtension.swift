@@ -77,7 +77,8 @@ class ShieldActionExtension: ShieldActionDelegate {
         } else {
             needsAttention = true
         }
-        if !isMorningGrace, let cDate = carbDate, now.timeIntervalSince(cDate) / 3600 > 4 {
+        let carbsEnabled = defaults?.object(forKey: "carbsEnabled") as? Bool ?? true
+        if carbsEnabled && !isMorningGrace, let cDate = carbDate, now.timeIntervalSince(cDate) / 3600 > 4 {
             needsAttention = true
         }
 

@@ -73,6 +73,7 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
             "carbGraceHour": data.carbGraceHour ?? SettingsDefaults.carbGraceHour,
             "carbGraceMinute": data.carbGraceMinute ?? SettingsDefaults.carbGraceMinute,
             "glucoseUnit": data.glucoseUnit.rawValue,
+            "carbsEnabled": data.carbsEnabled,
             "customChecks": customChecks,
             "mockModeEnabled": data.isMockModeEnabled,
             "nightscoutEnabled": data.nightscoutEnabled,

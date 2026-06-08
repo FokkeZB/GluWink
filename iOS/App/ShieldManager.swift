@@ -83,7 +83,7 @@ final class ShieldManager {
         let minute = cal.component(.minute, from: now)
         let isMorningGrace = hour < graceHour || (hour == graceHour && minute < graceMinute)
 
-        if !isMorningGrace {
+        if !isMorningGrace && data.carbsEnabled {
             if let carbsReading = data.currentCarbsReading {
                 if now.timeIntervalSince(carbsReading.sampleAt) / 3600 > 4 { return true }
             } else {

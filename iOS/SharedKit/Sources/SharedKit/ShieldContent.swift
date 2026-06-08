@@ -46,6 +46,12 @@ public struct ShieldContent: Sendable {
     public let activeScenarios: [AttentionScenario]
     public let glucoseUnit: GlucoseUnit
     public let glucoseUnitLabel: String
+    /// Whether carb tracking is enabled. When `false`, all carb-related
+    /// scenarios, data lines, and UI surfaces are suppressed. Stored here
+    /// so every rendering surface (tiles, complications, home screen) can
+    /// read the flag from the same model object rather than fetching it
+    /// separately.
+    public let carbsEnabled: Bool
 
     public init(
         glucose: Double,
@@ -59,6 +65,7 @@ public struct ShieldContent: Sendable {
         glucoseStaleMinutes: Int,
         carbGraceHour: Int,
         carbGraceMinute: Int,
+        carbsEnabled: Bool = true,
         glucoseUnit: GlucoseUnit = .mmolL,
         customChecks: [AttentionScenario: [String]] = [:],
         strings: Strings,
@@ -66,6 +73,7 @@ public struct ShieldContent: Sendable {
     ) {
         self.glucoseUnit = glucoseUnit
         glucoseUnitLabel = glucoseUnit.label
+        self.carbsEnabled = carbsEnabled
         let hasGlucose = glucose > 0
         var dataLines: [String] = []
         var scenarios: [AttentionScenario] = []
@@ -124,29 +132,33 @@ public struct ShieldContent: Sendable {
         let isMorningGrace = currentHour < carbGraceHour
             || (currentHour == carbGraceHour && currentMinute < carbGraceMinute)
 
-        if let carbDate = lastCarbEntryAt {
-            let cMins = Int(now.timeIntervalSince(carbDate) / 60)
-            self.carbs = Carbs(
-                grams: lastCarbGrams.map { Int($0) },
-                label: lastCarbLabel,
-                sampleDate: carbDate,
-                agoMinutes: cMins
-            )
-            let timeStr = timeFormatter.string(from: carbDate)
-            let agoStr = Self.shortAgo(cMins, strings: strings)
-            if let grams = lastCarbGrams {
-                dataLines.append(String(format: strings.carbsEntry, Int(grams), timeStr, agoStr))
+        if carbsEnabled {
+            if let carbDate = lastCarbEntryAt {
+                let cMins = Int(now.timeIntervalSince(carbDate) / 60)
+                self.carbs = Carbs(
+                    grams: lastCarbGrams.map { Int($0) },
+                    label: lastCarbLabel,
+                    sampleDate: carbDate,
+                    agoMinutes: cMins
+                )
+                let timeStr = timeFormatter.string(from: carbDate)
+                let agoStr = Self.shortAgo(cMins, strings: strings)
+                if let grams = lastCarbGrams {
+                    dataLines.append(String(format: strings.carbsEntry, Int(grams), timeStr, agoStr))
+                } else {
+                    let displayLabel = lastCarbLabel ?? strings.mealLabel
+                    dataLines.append(String(format: strings.carbsMealOnly, displayLabel, timeStr, agoStr))
+                }
+                if !isMorningGrace && now.timeIntervalSince(carbDate) / 3600 > 4 {
+                    scenarios.append(.carbGap)
+                }
             } else {
-                let displayLabel = lastCarbLabel ?? strings.mealLabel
-                dataLines.append(String(format: strings.carbsMealOnly, displayLabel, timeStr, agoStr))
-            }
-            if !isMorningGrace && now.timeIntervalSince(carbDate) / 3600 > 4 {
-                scenarios.append(.carbGap)
+                self.carbs = nil
+                dataLines.append(strings.carbsNoData)
+                scenarios.append(.noCarbData)
             }
         } else {
             self.carbs = nil
-            dataLines.append(strings.carbsNoData)
-            scenarios.append(.noCarbData)
         }
 
         activeScenarios = scenarios
@@ -171,7 +183,7 @@ public struct ShieldContent: Sendable {
         }
         attentionItems = allChecks
         needsAttention = !scenarios.isEmpty
-        hasNoData = !hasGlucose && lastCarbEntryAt == nil
+        hasNoData = !hasGlucose && (!carbsEnabled || lastCarbEntryAt == nil)
 
         if needsAttention {
             title = strings.attentionTitles.randomElement() ?? strings.attentionTitles[0]

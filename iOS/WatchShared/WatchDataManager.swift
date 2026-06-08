@@ -58,6 +58,9 @@ enum WatchDataManager {
             ?? ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: fallbackCarbGraceMinute)
         let customChecks = customChecks(from: bridgeContext) ?? AttentionScenario.loadCustomChecks(from: defaults)
 
+        let carbsEnabled = (bridgeContext?["carbsEnabled"] as? Bool)
+            ?? defaults?.object(forKey: "carbsEnabled") as? Bool ?? true
+
         return ShieldContent(
             glucose: glucose,
             glucoseFetchedAt: glucoseFetchedAt,
@@ -70,6 +73,7 @@ enum WatchDataManager {
             glucoseStaleMinutes: stale,
             carbGraceHour: graceHour,
             carbGraceMinute: graceMinute,
+            carbsEnabled: carbsEnabled,
             glucoseUnit: unit,
             customChecks: customChecks,
             strings: .fromPackage(),
@@ -192,6 +196,8 @@ enum WatchDataManager {
         if let rawUnit = context["glucoseUnit"] as? String {
             defaults?.set(rawUnit, forKey: "glucoseUnit")
         }
+
+        defaults?.set(context["carbsEnabled"] as? Bool ?? true, forKey: "carbsEnabled")
 
         let nightscoutEnabled = context["nightscoutEnabled"] as? Bool ?? false
         defaults?.set(nightscoutEnabled, forKey: "nightscoutEnabled")

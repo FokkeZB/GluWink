@@ -109,7 +109,9 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         let isMorningGrace = hour < graceHour
             || (hour == graceHour && minute < graceMinute)
 
-        if !isMorningGrace {
+        let carbsEnabled = defaults?.object(forKey: "carbsEnabled") as? Bool ?? true
+
+        if !isMorningGrace && carbsEnabled {
             if let carbsReading {
                 if now.timeIntervalSince(carbsReading.sampleAt) / 3600 > 4 {
                     return true

@@ -82,3 +82,7 @@
 /* Unit labels for the meal-only carb age displayed in the circular/inline lock screen widget */
 "widget.carbsMeal.minuteUnit" = "min";
 "widget.carbsMeal.hourUnit" = "uur";
+/* Carbs-disabled placeholders for carbs-only widgets/complications */
+"widget.carbsDisabled" = "KH uit";
+"widget.carbsDisabledShort" = "uit";
+"widget.carbsLabel" = "koolh.";
