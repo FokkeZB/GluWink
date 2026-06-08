@@ -762,7 +762,8 @@ The app's marketing message lives in **three surfaces** that must stay aligned. 
 2. Search the other surfaces for the same phrasing (`Grep` for the old text in EN and NL) and update each match — both languages.
 3. If a surface uses a slightly different phrasing or length budget (e.g. App Store promo text is capped at 170 chars), adapt while preserving the same meaning and key terms.
 4. After editing App Store copy, recount and update the `*(N / max)*` annotation under each block.
-5. Mention which surfaces you touched in your reply so the user can verify.
+5. **Run `make appstore-sync` to validate character limits.** This runs in under 5 seconds, catches any overruns immediately, and generates the `iOS/fastlane/metadata/` files. The same check runs 10 minutes into `make release` after the build is archived — catching it here is far cheaper.
+6. Mention which surfaces you touched in your reply so the user can verify.
 
 ### Pushing App Store copy to App Store Connect
 

@@ -233,9 +233,20 @@ platform :ios do
     deliver_options[:app_review_information] = review_info if review_info
     deliver(**deliver_options)
 
-    # 7. Tag the version-bump commit and push branch + tag together.
+    # 7. Tag and push. Branch-protection prevents direct pushes to main, so
+    #    publish the bump commit on a release/vX.Y.Z branch and open a PR.
+    #    The tag is pushed separately (tags bypass branch-protection rules).
     add_git_tag(tag: "v#{version}")
-    push_to_git_remote(tags: true)
+    release_branch = "release/v#{version}"
+    sh("git", "push", "origin", "HEAD:#{release_branch}")
+    sh("git", "push", "origin", "--tags")
+    pr_body = "Version bump commit from `make release VERSION=#{version}#{do_submit ? " SUBMIT=1" : ""}`." \
+              " The binary has already been uploaded to App Store Connect" \
+              "#{do_submit ? " and submitted for review" : " (staged — not yet submitted)"}."
+    sh("gh", "pr", "create",
+       "--head", release_branch,
+       "--title", "chore: bump to v#{version} (#{next_build_number})",
+       "--body", pr_body)
 
     if do_submit
       UI.success("v#{version} (#{next_build_number}) submitted for review with phased release.")
