@@ -107,6 +107,7 @@ struct HomeView: View {
             glucoseStaleMinutes: staleMinutes,
             carbGraceHour: graceHour,
             carbGraceMinute: graceMinute,
+            carbsEnabled: data.carbsEnabled,
             glucoseUnit: data.glucoseUnit,
             strings: strings,
             now: now
@@ -126,6 +127,7 @@ struct HomeView: View {
             glucoseStaleMinutes: staleMinutes,
             carbGraceHour: graceHour,
             carbGraceMinute: graceMinute,
+            carbsEnabled: data.carbsEnabled,
             glucoseUnit: data.glucoseUnit,
             customChecks: data.allCustomChecks(),
             strings: strings
