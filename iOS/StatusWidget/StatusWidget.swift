@@ -49,6 +49,8 @@ private enum EntryBuilder {
         let unit: GlucoseUnit = defaults?.string(forKey: "glucoseUnit")
             .flatMap { GlucoseUnit(rawValue: $0) } ?? .mmolL
 
+        let carbsEnabled = defaults?.object(forKey: "carbsEnabled") as? Bool ?? true
+
         let strings = ShieldContent.Strings.fromPackage()
 
         let content = ShieldContent(
@@ -63,6 +65,7 @@ private enum EntryBuilder {
             glucoseStaleMinutes: ThresholdResolver.staleMinutes(defaults: defaults, fallback: fallbackStaleMinutes),
             carbGraceHour: ThresholdResolver.carbGraceHour(defaults: defaults, fallback: fallbackCarbGraceHour),
             carbGraceMinute: ThresholdResolver.carbGraceMinute(defaults: defaults, fallback: fallbackCarbGraceMinute),
+            carbsEnabled: carbsEnabled,
             glucoseUnit: unit,
             strings: strings,
             now: now

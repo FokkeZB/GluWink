@@ -31,6 +31,9 @@ private func metricValue(_ entry: WatchEntry) -> String {
     case .glucose:
         return entry.content.glucose?.formatted ?? "--"
     case .carbs:
+        guard entry.content.carbsEnabled else {
+            return String(localized: "watch.widget.carbsDisabledShort")
+        }
         guard let carbs = entry.content.carbs else { return "--" }
         if let grams = carbs.grams { return String(grams) }
         return carbs.label ?? "·"
@@ -42,6 +45,9 @@ private func metricUnit(_ entry: WatchEntry) -> String {
     case .glucose:
         return entry.content.glucoseUnit.shortLabel
     case .carbs:
+        guard entry.content.carbsEnabled else {
+            return String(localized: "watch.widget.carbsLabel")
+        }
         return entry.content.carbs?.grams != nil ? "g" : ""
     }
 }
@@ -155,24 +161,26 @@ struct WatchRectangularEntryView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 4) {
                 Image(systemName: content.glucoseNeedsAttention ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
-                    .font(.caption.bold())
+                    .font(content.carbsEnabled ? .caption.bold() : .body.bold())
                 Text("\(glucoseText) \(content.glucoseUnit.shortLabel)")
-                    .font(.system(.headline, design: .rounded).bold())
+                    .font(.system(content.carbsEnabled ? .headline : .title3, design: .rounded).bold())
                 Spacer(minLength: 4)
                 relativeAgoText(from: content.glucose?.sampleDate)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
 
-            HStack(spacing: 4) {
-                Image(systemName: content.carbsNeedsAttention ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
-                    .font(.caption.bold())
-                Text(carbsUnit.isEmpty ? carbsText : "\(carbsText) \(carbsUnit)")
-                    .font(.system(.headline, design: .rounded).bold())
-                Spacer(minLength: 4)
-                relativeAgoText(from: content.carbs?.sampleDate)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+            if content.carbsEnabled {
+                HStack(spacing: 4) {
+                    Image(systemName: content.carbsNeedsAttention ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                        .font(.caption.bold())
+                    Text(carbsUnit.isEmpty ? carbsText : "\(carbsText) \(carbsUnit)")
+                        .font(.system(.headline, design: .rounded).bold())
+                    Spacer(minLength: 4)
+                    relativeAgoText(from: content.carbs?.sampleDate)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .containerBackground(for: .widget) {
@@ -248,7 +256,7 @@ struct WatchAccessoryCornerView: View {
         }
         .foregroundStyle(tint)
         .widgetLabel {
-            Text(metricHasData(entry)
+            Text(metricHasData(entry) || (!entry.content.carbsEnabled && entry.metric == .carbs)
                 ? "\(metricValue(entry)) \(metricUnit(entry))"
                 : String(localized: "watch.widget.noData"))
         }
