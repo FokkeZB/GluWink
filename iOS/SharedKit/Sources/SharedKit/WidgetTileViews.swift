@@ -364,7 +364,7 @@ public struct AccessoryCircularTile: View {
     public var body: some View {
         let c = content.shieldContent
         // Carbs-only widget with carb tracking disabled: show a clear
-        // "N/A" + "carbs" placeholder so the complication slot doesn't
+        // "off" + "carbs" placeholder so the complication slot doesn't
         // look broken. The attention level stays `.clear` (no tint).
         if !forGlucose && !c.carbsEnabled {
             VStack(spacing: -2) {
@@ -376,25 +376,25 @@ public struct AccessoryCircularTile: View {
                     .font(.system(.caption, design: .rounded))
             }
             .multilineTextAlignment(.center)
-            return
+        } else {
+            // For a meal-only carb entry (grams == nil, but a reading exists)
+            // the label is not glanceable in the tight circular frame — show
+            // how long ago the meal was recorded instead, split across the
+            // two-line value/unit layout the tile uses for glucose.
+            let isCarbMealOnly = !forGlucose && c.carbs != nil && c.carbs?.grams == nil
+            let (agoValue, agoUnit) = isCarbMealOnly
+                ? widgetCarbsMealAgoComponents(from: content.carbDate, relativeTo: content.referenceDate)
+                : ("", "")
+            VStack(spacing: -2) {
+                Text(isCarbMealOnly ? agoValue : (forGlucose ? widgetGlucoseValue(c) : widgetCarbsValue(c)))
+                    .font(.system(.title2, design: .rounded).bold())
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                Text(isCarbMealOnly ? agoUnit : (forGlucose ? c.glucoseUnit.shortLabel : widgetCarbsUnit(c)))
+                    .font(.system(.caption, design: .rounded))
+            }
+            .multilineTextAlignment(.center)
         }
-        // For a meal-only carb entry (grams == nil, but a reading exists)
-        // the label is not glanceable in the tight circular frame — show
-        // how long ago the meal was recorded instead, split across the
-        // two-line value/unit layout the tile uses for glucose.
-        let isCarbMealOnly = !forGlucose && c.carbs != nil && c.carbs?.grams == nil
-        let (agoValue, agoUnit) = isCarbMealOnly
-            ? widgetCarbsMealAgoComponents(from: content.carbDate, relativeTo: content.referenceDate)
-            : ("", "")
-        VStack(spacing: -2) {
-            Text(isCarbMealOnly ? agoValue : (forGlucose ? widgetGlucoseValue(c) : widgetCarbsValue(c)))
-                .font(.system(.title2, design: .rounded).bold())
-                .minimumScaleFactor(0.6)
-                .lineLimit(1)
-            Text(isCarbMealOnly ? agoUnit : (forGlucose ? c.glucoseUnit.shortLabel : widgetCarbsUnit(c)))
-                .font(.system(.caption, design: .rounded))
-        }
-        .multilineTextAlignment(.center)
     }
 }
 
@@ -431,7 +431,7 @@ public struct AccessoryRectangularTile: View {
                     .lineLimit(1)
                 if !c.carbsEnabled {
                     Spacer(minLength: 0)
-                    Text(content.glucoseDate, style: .time)
+                    Text(content.glucoseDate ?? Date(), style: .time)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -481,8 +481,7 @@ public struct AccessoryInlineTile: View {
                 String(localized: "widget.carbsDisabled", bundle: .module),
                 systemImage: "fork.knife"
             )
-            return
-        }
+        } else {
         let needsAttention = forGlucose ? c.glucoseNeedsAttention : c.carbsNeedsAttention
         let icon = needsAttention ? "exclamationmark.triangle" : "checkmark.circle"
         // Inline is space-constrained on the Lock Screen so we drop the
@@ -492,6 +491,7 @@ public struct AccessoryInlineTile: View {
         // the age ("5 min", "2 h") — the label is not glanceable here.
         let text: String = widgetInlineCarbsText(c, content: content, forGlucose: forGlucose)
         Label(text, systemImage: icon)
+        }
     }
 }
 
