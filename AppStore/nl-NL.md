@@ -25,7 +25,7 @@ Van afleider naar bondgenoot
 ## Promotional text (170)
 
 ```
-Verander je iPhone en Apple Watch van je grootste afleider in je beste hulpmiddel. Glucose en koolhydraten overal zichtbaar. Apps blokkeren als iets je aandacht vraagt.
+Verander je iPhone en Apple Watch van je grootste afleider in je beste hulpmiddel. Glucose overal — koolhydraten bijhouden optioneel. Apps blokkeren als iets je aandacht vraagt.
 ```
 *(168 / 170)*
 
@@ -36,9 +36,9 @@ Maak van je iPhone en Apple Watch een hulpmiddel voor diabetes — niet een afle
 
 GluWink doet drie dingen, en niets meer:
 
-1. Glucose en koolhydraten overal zichtbaar. Widgets voor beginscherm, toegangsscherm en StandBy in alle formaten. Complicaties op elke Apple Watch-wijzerplaat. Optioneel de glucosewaarde als badge op het app-icoon.
+1. Glucose overal zichtbaar — koolhydraten bijhouden optioneel. Widgets voor beginscherm, toegangsscherm en StandBy in alle formaten. Complicaties op elke Apple Watch-wijzerplaat. Optioneel de glucosewaarde als badge op het app-icoon. Zet koolhydraatfuncties uit in de instellingen als je geen koolhydraten bijhoudt.
 
-2. Status in één oogopslag. Groen = alles ziet er goed uit. Oranje = er is iets dat aandacht vraagt: glucose te hoog of te laag, sensor verouderd, of koolhydraten nog niet ingevoerd. Rood is voorbehouden aan een kritieke hoge waarde: glucose is boven de door jou ingestelde drempel uitgekomen en het schild kan pas weer als die waarde daalt. Overal dezelfde taal in drie kleuren.
+2. Status in één oogopslag. Groen = alles ziet er goed uit. Oranje = er is iets dat aandacht vraagt: glucose te hoog of te laag, sensor verouderd, of (als koolhydraten bijhouden aanstaat) koolhydraten nog niet ingevoerd. Rood is voorbehouden aan een kritieke hoge waarde: glucose is boven de door jou ingestelde drempel uitgekomen en het schild kan pas weer als die waarde daalt. Overal dezelfde taal in drie kleuren.
 
 3. Apps blokkeren is optioneel — jij bepaalt. Kies om andere apps op instelbare intervallen te blokkeren: altijd, of alleen als iets je aandacht vraagt. Bij oranje houdt GluWink andere apps op slot tot de check-in is gedaan. Bij rood is de check-in niet beschikbaar tot de glucose weer zakt — geen wachtwoord-override, geen disarm. Bij groen is je telefoon gewoon je telefoon.
 
@@ -68,11 +68,11 @@ Eerst even proberen? In de demo-modus zie je realistische glucose- en koolhydrat
 
 — Wat je krijgt —
 
-• Vriendelijk check-in-schild met actiepunten op basis van de huidige glucose en laatste koolhydraten.
+• Vriendelijk check-in-schild met actiepunten op basis van de huidige glucose en (optioneel) laatste koolhydraten.
 • Drie-kleuren-signaal: groen (alles oké), oranje (check-in nodig), rood (kritiek hoog — schild blijft tot glucose daalt). Drempels stel je zelf in.
 • Widgets voor beginscherm, toegangsscherm en StandBy in alle formaten, met dezelfde drie aandachtskleuren.
-• Apple Watch-app en complicaties — glucose en koolhydraten op elke wijzerplaat.
-• Instelbare drempels, intervallen en een dagelijkse koolhydraten-coulance (zodat ontbijtgranen om 7 uur 's ochtends geen alarm worden).
+• Apple Watch-app en complicaties — glucose op elke wijzerplaat, met optioneel koolhydraten.
+• Instelbare drempels, intervallen en (als koolhydraten bijhouden aanstaat) een dagelijkse koolhydraten-coulance.
 • Apps altijd blokkeren, alleen bij aandacht, of helemaal niet — jij bepaalt.
 • Volledig in het Nederlands en Engels.
 
