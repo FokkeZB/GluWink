@@ -45,6 +45,7 @@ final class ShieldContentAttentionTests: XCTestCase {
         lastCarbGrams: Double? = 20,
         lastCarbLabel: String? = nil,
         lastCarbEntryAt: Date?,
+        carbsEnabled: Bool = true,
         now: Date
     ) -> ShieldContent {
         ShieldContent(
@@ -59,6 +60,7 @@ final class ShieldContentAttentionTests: XCTestCase {
             glucoseStaleMinutes: 30,
             carbGraceHour: 9,
             carbGraceMinute: 30,
+            carbsEnabled: carbsEnabled,
             glucoseUnit: .mmolL,
             strings: strings,
             now: now
@@ -171,5 +173,84 @@ final class ShieldContentAttentionTests: XCTestCase {
         XCTAssertTrue(content.needsAttention)
         XCTAssertTrue(content.isCriticalGlucose)
         XCTAssertEqual(content.attentionLevel, .critical)
+    }
+
+    // MARK: - carbsEnabled = false
+
+    func testCarbsDisabledNoCarbGap() {
+        var comps = DateComponents()
+        comps.year = 2026; comps.month = 4; comps.day = 25
+        comps.hour = 14; comps.minute = 0
+        let afternoon = Calendar.current.date(from: comps)!
+
+        let content = make(
+            glucoseFetchedAt: afternoon.addingTimeInterval(-5 * 60),
+            lastCarbEntryAt: afternoon.addingTimeInterval(-5 * 3600),
+            carbsEnabled: false,
+            now: afternoon
+        )
+        XCTAssertFalse(content.needsAttention, "carbGap must not fire when carbsEnabled = false")
+        XCTAssertEqual(content.attentionLevel, .clear)
+    }
+
+    func testCarbsDisabledNoNoCarbData() {
+        let now = morning
+        let content = make(
+            glucoseFetchedAt: now.addingTimeInterval(-5 * 60),
+            lastCarbGrams: nil,
+            lastCarbEntryAt: nil,
+            carbsEnabled: false,
+            now: now
+        )
+        XCTAssertFalse(content.needsAttention, "noCarbData must not fire when carbsEnabled = false")
+        XCTAssertEqual(content.attentionLevel, .clear)
+        XCTAssertNil(content.carbs, "carbs must be nil when carbsEnabled = false")
+    }
+
+    func testCarbsDisabledCarbsAlwaysNil() {
+        let now = morning
+        let content = make(
+            glucoseFetchedAt: now.addingTimeInterval(-5 * 60),
+            lastCarbGrams: 40,
+            lastCarbEntryAt: now.addingTimeInterval(-30 * 60),
+            carbsEnabled: false,
+            now: now
+        )
+        XCTAssertNil(content.carbs, "carbs must be nil regardless of input when carbsEnabled = false")
+        XCTAssertFalse(content.carbsNeedsAttention)
+    }
+
+    func testCarbsDisabledGlucoseAttentionStillFires() {
+        let now = morning
+        let content = make(
+            glucose: 15.0,
+            glucoseFetchedAt: now.addingTimeInterval(-5 * 60),
+            lastCarbEntryAt: nil,
+            carbsEnabled: false,
+            now: now
+        )
+        XCTAssertTrue(content.needsAttention, "glucose attention must still fire when carbsEnabled = false")
+        XCTAssertEqual(content.attentionLevel, .attention)
+        XCTAssertFalse(content.carbsNeedsAttention, "carbsNeedsAttention must stay false when carbsEnabled = false")
+    }
+
+    func testCarbsDisabledHasNoDataOnlyWhenNoGlucose() {
+        let now = morning
+        let withGlucose = make(
+            glucoseFetchedAt: now.addingTimeInterval(-5 * 60),
+            lastCarbEntryAt: nil,
+            carbsEnabled: false,
+            now: now
+        )
+        XCTAssertFalse(withGlucose.hasNoData, "hasNoData must be false when glucose is available, even with no carbs")
+
+        let noGlucose = make(
+            glucose: 0,
+            glucoseFetchedAt: nil,
+            lastCarbEntryAt: nil,
+            carbsEnabled: false,
+            now: now
+        )
+        XCTAssertTrue(noGlucose.hasNoData, "hasNoData must be true when glucose is also absent")
     }
 }
