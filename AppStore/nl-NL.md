@@ -101,13 +101,14 @@ Opmerkingen:
 - `koolhydraten` is bewust alleen als meervoud opgenomen: dat wordt het meest gezocht.
 - `health` / `gezondheid` zijn al gedekt door de categorie.
 
-## What's New (4000) — 1.1 (binnenkort)
+## What's New (4000) — v1.1
 
 ```
 Nieuw in deze release:
 • LibreLinkUp-ondersteuning: verbind je FreeStyle Libre-volgersaccount als glucosebron — leest rechtstreeks uit Abbott's cloud.
+• Koolhydraten bijhouden is nu optioneel — schakel het uit in de instellingen als je geen koolhydraten bijhoudt en houd het schild gefocust op glucose.
 ```
-*(~148 / 4000)*
+*(~311 / 4000)*
 
 ## What's New (4000) — 1.0-release
 
