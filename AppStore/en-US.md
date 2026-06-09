@@ -99,13 +99,20 @@ Notes:
 - The plural / singular forms (`carb` vs `carbs`) are also indexed when one is present, so the shorter form is preferred.
 - `loop`, `iaps`, `camaps`, `xdrip` are intentionally omitted to avoid trademark friction; they're mentioned in the description instead.
 
-## What's New (4000) — v1.1 (upcoming)
+## What's New (4000) — v1.2
+
+```
+```
+*(placeholder)*
+
+## What's New (4000) — v1.1
 
 ```
 New in this release:
 • LibreLinkUp support: connect your FreeStyle Libre follower account as a glucose data source — reads direct from Abbott's cloud.
+• Carb tracking is now optional — disable it in settings if you don't log carbs and keep the shield focused on glucose.
 ```
-*(~148 / 4000)*
+*(~296 / 4000)*
 
 ## What's New (4000) — v1.0 launch
 

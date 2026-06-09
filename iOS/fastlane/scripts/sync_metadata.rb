@@ -91,7 +91,7 @@ def normalize_heading(raw)
   s = raw.dup
   loop do
     before = s
-    s = s.sub(/\s*\(\d+\)\s*$/, "").sub(/\s*[—–-]\s*[^()]*$/, "")
+    s = s.sub(/\s*\(\d+\)\s*$/, "").sub(/\s*[—–-]\s*.*$/, "")
     break if s == before
   end
   s.strip.downcase
@@ -101,6 +101,7 @@ def flush(fields, heading, buffer)
   return unless heading && !buffer.empty?
   filename = FIELD_MAP[heading]
   return unless filename
+  return if fields.key?(filename) # first-wins: earlier blocks take precedence
   fields[filename] = buffer.join.strip
 end
 
