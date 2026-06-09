@@ -82,6 +82,8 @@ If it reports limit violations, fix `AppStore/en-US.md` and `AppStore/nl-NL.md` 
 
 Also check that **What's New** for the upcoming version is filled in for both locales in the per-locale `.md` files. Users see it in the App Store update prompt.
 
+**Convention:** the upcoming block must be the **first** `## What's New` heading in each file — `sync_metadata.rb` uses first-wins, so whichever block appears first becomes `release_notes.txt`. Older blocks are kept below as history. The heading format is `## What's New (4000) — vX.Y`; do **not** put parenthesised labels like `(upcoming)` in the heading — the parser strips everything after `—` but only handles simple suffixes cleanly.
+
 Commit any copy fixes before proceeding:
 
 ```bash
@@ -163,7 +165,14 @@ After the lane succeeds:
    ```bash
    gh project item-edit --id <item-id> --field-id PVTSSF_lAHOACkwkc4BVH4yzhQl0Wc --single-select-option-id a17042c6 --project-id PVT_kwHOACkwkc4BVH4y
    ```
-4. **Update `AppStore/<locale>.md`** — move the "What's New — upcoming" block to "What's New — vX.Y" and add a fresh "upcoming" placeholder for next time.
+4. **Update `AppStore/<locale>.md`** — the shipped block is already titled `## What's New (4000) — vX.Y`. Add a new empty placeholder **above it** for the next release:
+   ```
+   ## What's New (4000) — vX.Z
+   
+   ```
+   *(placeholder — fill in before next release)*
+   
+   This keeps the first-wins convention intact: the topmost block is always the one `sync_metadata.rb` will pick up.
 
 ---
 
