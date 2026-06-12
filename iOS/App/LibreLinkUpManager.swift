@@ -1,5 +1,4 @@
 import BackgroundTasks
-import CryptoKit
 import Foundation
 import os
 import SharedKit
@@ -76,7 +75,17 @@ final class LibreLinkUpManager {
 
     func disable() {
         stopPolling()
+        SharedDataManager.shared.clearLibreLinkUpAuthMirror()
         SharedDataManager.shared.handleSourceDisabled(.libreLinkUp)
+    }
+
+    /// Copy the Keychain-held auth token + expiry into the App Group so the
+    /// widget extension can use them. The email/password stay Keychain-only —
+    /// only the short-lived bearer token is mirrored (same trade-off as
+    /// EasyView's session cookie).
+    private func mirrorAuthToAppGroup() {
+        SharedDataManager.shared.librelinkupToken = KeychainManager.shared.libreLinkUpToken
+        SharedDataManager.shared.librelinkupTokenExpiry = KeychainManager.shared.libreLinkUpTokenExpiry
     }
 
     // MARK: - Fetching
@@ -93,6 +102,11 @@ final class LibreLinkUpManager {
 
         do {
             let token = try await validToken()
+            // Mirror the freshly-validated token into the App Group so the
+            // widget extension (no Keychain access) can fetch on its own when
+            // the app is closed — closes the "widgets stale until you open the
+            // app" gap. See `WidgetLibreLinkUpRefresh`.
+            mirrorAuthToAppGroup()
             let region = SharedDataManager.shared.librelinkupRegion
             let userId = SharedDataManager.shared.librelinkupUserId
             let connections = try await Self.fetchConnections(token: token, region: region, userId: userId)
@@ -146,6 +160,7 @@ final class LibreLinkUpManager {
         KeychainManager.shared.libreLinkUpTokenExpiry = nil
 
         let token = try await authenticate(email: email, password: password)
+        mirrorAuthToAppGroup()
         let region = SharedDataManager.shared.librelinkupRegion
         let connections = try await Self.fetchConnections(token: token, region: region, userId: SharedDataManager.shared.librelinkupUserId)
 
@@ -232,7 +247,7 @@ final class LibreLinkUpManager {
         var currentRegion = SharedDataManager.shared.librelinkupRegion
 
         for _ in 0..<3 {
-            let baseURL = Self.baseURL(for: currentRegion)
+            let baseURL = LibreLinkUpClient.baseURL(for: currentRegion)
             let response = try await Self.postLogin(email: email, password: password, baseURL: baseURL)
 
             switch response {
@@ -262,28 +277,6 @@ final class LibreLinkUpManager {
 
     // MARK: - HTTP
 
-    private static func baseURL(for region: String?) -> String {
-        if let region, !region.isEmpty {
-            return "https://api-\(region).libreview.io"
-        }
-        return "https://api.libreview.io"
-    }
-
-    private static let commonHeaders: [String: String] = [
-        "product": "llu.ios",
-        "version": "5.0.1",
-        "content-type": "application/json",
-        "accept-encoding": "gzip",
-        "cache-control": "no-cache",
-        "connection": "Keep-Alive",
-    ]
-
-    private static func accountIDHeader(for userId: String) -> String {
-        let data = Data(userId.utf8)
-        let digest = SHA256.hash(data: data)
-        return digest.map { String(format: "%02x", $0) }.joined()
-    }
-
     enum LoginResponse {
         case redirect(region: String)
         case touRequired(stepType: String, ticketToken: String)
@@ -296,7 +289,7 @@ final class LibreLinkUpManager {
         }
         var request = URLRequest(url: url, timeoutInterval: 15)
         request.httpMethod = "POST"
-        for (key, value) in commonHeaders { request.setValue(value, forHTTPHeaderField: key) }
+        for (key, value) in LibreLinkUpClient.commonHeaders { request.setValue(value, forHTTPHeaderField: key) }
         request.httpBody = try JSONSerialization.data(withJSONObject: ["email": email, "password": password])
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -351,10 +344,10 @@ final class LibreLinkUpManager {
         }
         var request = URLRequest(url: url, timeoutInterval: 15)
         request.httpMethod = "POST"
-        for (key, value) in commonHeaders { request.setValue(value, forHTTPHeaderField: key) }
+        for (key, value) in LibreLinkUpClient.commonHeaders { request.setValue(value, forHTTPHeaderField: key) }
         request.setValue("Bearer \(token)", forHTTPHeaderField: "authorization")
         if let userId {
-            request.setValue(accountIDHeader(for: userId), forHTTPHeaderField: "account-id")
+            request.setValue(LibreLinkUpClient.accountIDHeader(for: userId), forHTTPHeaderField: "account-id")
         }
 
         let (_, response) = try await URLSession.shared.data(for: request)
@@ -363,68 +356,26 @@ final class LibreLinkUpManager {
         }
     }
 
-    struct Connection {
-        let patientId: String
-        let firstName: String
-        let lastName: String
-        let glucoseMeasurement: GlucoseMeasurement
-    }
-
-    struct GlucoseMeasurement {
-        let valueInMgPerDl: Double
-        let timestamp: Date
-    }
-
-    private static let factoryTimestampFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "M/d/yyyy h:mm:ss a z"
-        f.locale = Locale(identifier: "en_US_POSIX")
-        return f
-    }()
-
-    private static func fetchConnections(token: String, region: String?, userId: String?) async throws -> [Connection] {
-        guard let url = URL(string: "\(baseURL(for: region))/llu/connections") else {
+    /// Authenticated read of the account's follower connections. Delegates the
+    /// request + parsing to the shared `LibreLinkUpClient` (so the widget
+    /// extension can reuse the exact same code), mapping the client's
+    /// transport-level errors back onto the app's localized `LibreLinkUpError`
+    /// cases for display in the settings UI.
+    private static func fetchConnections(
+        token: String,
+        region: String?,
+        userId: String?
+    ) async throws -> [LibreLinkUpClient.Connection] {
+        do {
+            return try await LibreLinkUpClient.fetchConnections(token: token, region: region, userId: userId)
+        } catch LibreLinkUpClient.ClientError.tokenExpired {
+            throw LibreLinkUpError.tokenExpired
+        } catch LibreLinkUpClient.ClientError.httpError(let code) {
+            throw LibreLinkUpError.httpError(code)
+        } catch LibreLinkUpClient.ClientError.invalidURL {
             throw LibreLinkUpError.invalidURL
-        }
-        var request = URLRequest(url: url, timeoutInterval: 15)
-        request.httpMethod = "GET"
-        for (key, value) in commonHeaders { request.setValue(value, forHTTPHeaderField: key) }
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "authorization")
-        if let userId {
-            request.setValue(accountIDHeader(for: userId), forHTTPHeaderField: "account-id")
-        }
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw LibreLinkUpError.invalidResponse }
-
-        if http.statusCode == 401 { throw LibreLinkUpError.tokenExpired }
-        guard http.statusCode == 200 else { throw LibreLinkUpError.httpError(http.statusCode) }
-
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let status = json["status"] as? Int, status == 0,
-              let dataArray = json["data"] as? [[String: Any]] else {
+        } catch LibreLinkUpClient.ClientError.invalidResponse {
             throw LibreLinkUpError.invalidResponse
-        }
-
-        return dataArray.compactMap { entry -> Connection? in
-            guard let patientId = entry["patientId"] as? String,
-                  let firstName = entry["firstName"] as? String,
-                  let lastName = entry["lastName"] as? String,
-                  let measurement = entry["glucoseMeasurement"] as? [String: Any],
-                  let valueMgdl = measurement["ValueInMgPerDl"] as? Double,
-                  let factoryTimestamp = measurement["FactoryTimestamp"] as? String else { return nil }
-
-            let timestampString = factoryTimestamp.hasSuffix(" UTC")
-                ? factoryTimestamp
-                : factoryTimestamp + " UTC"
-
-            guard let date = factoryTimestampFormatter.date(from: timestampString) else { return nil }
-
-            return Connection(
-                patientId: patientId,
-                firstName: firstName,
-                lastName: lastName,
-                glucoseMeasurement: GlucoseMeasurement(valueInMgPerDl: valueMgdl, timestamp: date)
-            )
         }
     }
 }
