@@ -8,7 +8,7 @@ body:
       value: |
         Thanks for taking the time to report a bug. The more concrete this is, the faster it gets fixed.
 
-        For security issues (shielding bypass, passphrase / Keychain handling, App Group data exposure, anything that could let a child circumvent the shield without the configured passphrase), please use the security policy in [`SECURITY.md`](../../SECURITY.md) instead — those go through GitHub's private vulnerability reporting, not this public form.
+        For security issues (shielding bypass, passphrase / Keychain handling, App Group data exposure, anything that could let a child circumvent the shield without the configured passphrase), please use the security policy in [`SECURITY.md`](../SECURITY.md) instead — those go through GitHub's private vulnerability reporting, not this public form.
 
   - type: textarea
     id: summary
@@ -96,5 +96,5 @@ body:
       options:
         - label: I have searched [existing issues](https://github.com/FokkeZB/GluWink/issues?q=is%3Aissue) and this is not a duplicate.
           required: true
-        - label: This is not a security issue (those go through [`SECURITY.md`](../../SECURITY.md)).
+        - label: This is not a security issue (those go through [`SECURITY.md`](../SECURITY.md)).
           required: true
