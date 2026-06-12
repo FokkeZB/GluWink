@@ -99,6 +99,12 @@ Notes:
 - The plural / singular forms (`carb` vs `carbs`) are also indexed when one is present, so the shorter form is preferred.
 - `loop`, `iaps`, `camaps`, `xdrip` are intentionally omitted to avoid trademark friction; they're mentioned in the description instead.
 
+## What's New (4000) — v1.2
+
+```
+```
+*(placeholder)*
+
 ## What's New (4000) — v1.1.1
 
 ```
