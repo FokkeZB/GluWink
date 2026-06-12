@@ -101,11 +101,12 @@ Opmerkingen:
 - `koolhydraten` is bewust alleen als meervoud opgenomen: dat wordt het meest gezocht.
 - `health` / `gezondheid` zijn al gedekt door de categorie.
 
-## What's New (4000) — v1.2
+## What's New (4000) — v1.1.1
 
 ```
+• LibreLinkUp-widgets werden niet bijgewerkt zolang de app gesloten was. Opgelost — je beginscherm en toegangsscherm blijven nu actueel zonder dat je GluWink hoeft te openen.
 ```
-*(placeholder)*
+*(~178 / 4000)*
 
 ## What's New (4000) — v1.1
 

@@ -99,11 +99,12 @@ Notes:
 - The plural / singular forms (`carb` vs `carbs`) are also indexed when one is present, so the shorter form is preferred.
 - `loop`, `iaps`, `camaps`, `xdrip` are intentionally omitted to avoid trademark friction; they're mentioned in the description instead.
 
-## What's New (4000) — v1.2
+## What's New (4000) — v1.1.1
 
 ```
+• Fixed LibreLinkUp widgets not updating while the app was closed — your Home Screen and Lock Screen now stay current without having to open GluWink first.
 ```
-*(placeholder)*
+*(~155 / 4000)*
 
 ## What's New (4000) — v1.1
 
