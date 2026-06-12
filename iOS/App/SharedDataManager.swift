@@ -502,6 +502,7 @@ final class SharedDataManager {
             "easyViewPatientUID", "easyViewLastFetchedAt", "easyViewLastError",
             "librelinkupRegion", "librelinkupUserId", "librelinkupPatientId",
             "librelinkupLastFetchedAt", "librelinkupLastError",
+            "librelinkupToken", "librelinkupTokenExpiry",
             "setupTipsHidden",
         ]
         for key in settingsKeys {
@@ -722,6 +723,43 @@ final class SharedDataManager {
                 defaults?.removeObject(forKey: "librelinkupUserId")
             }
         }
+    }
+
+    /// Auth token mirrored from the Keychain so the widget extension — which
+    /// has no Keychain access — can fetch LibreLinkUp glucose on its own when
+    /// the app is closed (see `WidgetLibreLinkUpRefresh`). Only the short-lived
+    /// bearer token is mirrored; the email/password stay Keychain-only.
+    var librelinkupToken: String? {
+        get { defaults?.string(forKey: "librelinkupToken") }
+        set {
+            if let value = newValue, !value.isEmpty {
+                defaults?.set(value, forKey: "librelinkupToken")
+            } else {
+                defaults?.removeObject(forKey: "librelinkupToken")
+            }
+        }
+    }
+
+    var librelinkupTokenExpiry: Date? {
+        get {
+            guard let iso = defaults?.string(forKey: "librelinkupTokenExpiry") else { return nil }
+            return ISO8601DateFormatter().date(from: iso)
+        }
+        set {
+            if let date = newValue {
+                defaults?.set(date.ISO8601Format(), forKey: "librelinkupTokenExpiry")
+            } else {
+                defaults?.removeObject(forKey: "librelinkupTokenExpiry")
+            }
+        }
+    }
+
+    /// Remove the mirrored LibreLinkUp auth token + expiry from the App Group.
+    /// Called when the source is disabled so a stale token can't drive widget
+    /// fetches for a source the user has turned off.
+    func clearLibreLinkUpAuthMirror() {
+        defaults?.removeObject(forKey: "librelinkupToken")
+        defaults?.removeObject(forKey: "librelinkupTokenExpiry")
     }
 
     // MARK: - Authorization Mode
