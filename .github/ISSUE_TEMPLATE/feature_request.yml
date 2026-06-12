@@ -52,5 +52,5 @@ body:
       options:
         - label: I have searched [existing issues](https://github.com/FokkeZB/GluWink/issues?q=is%3Aissue) and [discussions](https://github.com/FokkeZB/GluWink/discussions) and this is not already on the table.
           required: true
-        - label: I've read the [security model](../../AGENTS.md#security-design-philosophy) and this proposal does not weaken the passphrase gate or give the child a bypass route.
+        - label: I've read the [security model](../AGENTS.md#security-design-philosophy) and this proposal does not weaken the passphrase gate or give the child a bypass route.
           required: true
