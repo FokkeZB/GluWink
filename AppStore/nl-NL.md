@@ -101,6 +101,12 @@ Opmerkingen:
 - `koolhydraten` is bewust alleen als meervoud opgenomen: dat wordt het meest gezocht.
 - `health` / `gezondheid` zijn al gedekt door de categorie.
 
+## What's New (4000) — v1.2
+
+```
+```
+*(placeholder)*
+
 ## What's New (4000) — v1.1.1
 
 ```
