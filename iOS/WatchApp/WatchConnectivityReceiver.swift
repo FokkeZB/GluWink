@@ -49,6 +49,7 @@ final class WatchConnectivityReceiver: NSObject, WCSessionDelegate {
                 await MainActor.run {
                     WatchNightscoutManager.shared.configurationDidChange()
                     WatchEasyViewManager.shared.configurationDidChange()
+                    WatchLibreLinkUpManager.shared.configurationDidChange()
                 }
             }
         }

@@ -211,8 +211,6 @@
 		};
 		332AE5BAE4BDC6CED8A8BAB5 /* WatchShared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = WatchShared;
 			sourceTree = "<group>";
 		};

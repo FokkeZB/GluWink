@@ -159,6 +159,43 @@ enum WatchDataManager {
         defaults?.object(forKey: "easyViewPatientUID") as? Int
     }
 
+    // MARK: - LibreLinkUp config (synced from phone)
+
+    static var librelinkupEnabled: Bool {
+        defaults?.bool(forKey: "librelinkupEnabled") ?? false
+    }
+
+    /// Auth token mirrored from the phone. The watch has no Keychain access, so
+    /// it can only read with this already-issued token — it never logs in.
+    static var librelinkupToken: String? {
+        guard let value = defaults?.string(forKey: "librelinkupToken"),
+              !value.isEmpty else { return nil }
+        return value
+    }
+
+    static var librelinkupTokenExpiry: Date? {
+        guard let iso = defaults?.string(forKey: "librelinkupTokenExpiry") else { return nil }
+        return ISO8601DateFormatter().date(from: iso)
+    }
+
+    static var librelinkupRegion: String? {
+        guard let value = defaults?.string(forKey: "librelinkupRegion"),
+              !value.isEmpty else { return nil }
+        return value
+    }
+
+    static var librelinkupUserId: String? {
+        guard let value = defaults?.string(forKey: "librelinkupUserId"),
+              !value.isEmpty else { return nil }
+        return value
+    }
+
+    static var librelinkupPatientId: String? {
+        guard let value = defaults?.string(forKey: "librelinkupPatientId"),
+              !value.isEmpty else { return nil }
+        return value
+    }
+
     // MARK: - Nightscout config (synced from phone)
 
     static var nightscoutEnabled: Bool {
@@ -227,6 +264,17 @@ enum WatchDataManager {
             defaults?.set(uid, forKey: "easyViewPatientUID")
         } else {
             defaults?.removeObject(forKey: "easyViewPatientUID")
+        }
+
+        let librelinkupEnabled = context["librelinkupEnabled"] as? Bool ?? false
+        defaults?.set(librelinkupEnabled, forKey: "librelinkupEnabled")
+
+        for key in ["librelinkupToken", "librelinkupTokenExpiry", "librelinkupRegion", "librelinkupUserId", "librelinkupPatientId"] {
+            if let value = context[key] as? String, !value.isEmpty {
+                defaults?.set(value, forKey: key)
+            } else {
+                defaults?.removeObject(forKey: key)
+            }
         }
 
         let isMockModeEnabled = context["mockModeEnabled"] as? Bool ?? false
