@@ -99,18 +99,13 @@ Notes:
 - The plural / singular forms (`carb` vs `carbs`) are also indexed when one is present, so the shorter form is preferred.
 - `loop`, `iaps`, `camaps`, `xdrip` are intentionally omitted to avoid trademark friction; they're mentioned in the description instead.
 
-## What's New (4000) — v1.2
-
-```
-```
-*(placeholder)*
-
 ## What's New (4000) — v1.1.2
 
 ```
 • The Apple Watch app and complications are now included in the App Store download — install GluWink on your Apple Watch to see your glucose at a glance.
+• LibreLinkUp now works on Apple Watch — when LibreLinkUp is your data source, your glucose and complications stay current on the watch.
 ```
-*(~150 / 4000)*
+*(~300 / 4000)*
 
 ## What's New (4000) — v1.1.1
 

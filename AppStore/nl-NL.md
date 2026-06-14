@@ -101,18 +101,13 @@ Opmerkingen:
 - `koolhydraten` is bewust alleen als meervoud opgenomen: dat wordt het meest gezocht.
 - `health` / `gezondheid` zijn al gedekt door de categorie.
 
-## What's New (4000) — v1.2
-
-```
-```
-*(placeholder)*
-
 ## What's New (4000) — v1.1.2
 
 ```
 • De Apple Watch-app en complicaties zitten nu in de App Store-download — installeer GluWink op je Apple Watch om je glucose in één oogopslag te zien.
+• LibreLinkUp werkt nu op Apple Watch — als LibreLinkUp je gegevensbron is, blijven je glucose en complicaties op de watch actueel.
 ```
-*(~148 / 4000)*
+*(~300 / 4000)*
 
 ## What's New (4000) — v1.1.1
 
