@@ -87,6 +87,18 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
         if let session = data.easyViewSession { context["easyViewSession"] = session }
         if let uid = data.easyViewPatientUID { context["easyViewPatientUID"] = uid }
 
+        // LibreLinkUp: sync the mirrored auth token (not the Keychain
+        // credentials), region, userId, and patientId so the watch can fetch
+        // independently — same trade-off as EasyView's session cookie. The
+        // watch never re-authenticates; it serves stale on token expiry until
+        // the phone pushes a fresh token.
+        context["librelinkupEnabled"] = data.librelinkupEnabled
+        if let token = data.librelinkupToken, !token.isEmpty { context["librelinkupToken"] = token }
+        if let expiry = data.librelinkupTokenExpiry { context["librelinkupTokenExpiry"] = expiry.ISO8601Format() }
+        if let region = data.librelinkupRegion { context["librelinkupRegion"] = region }
+        if let userId = data.librelinkupUserId { context["librelinkupUserId"] = userId }
+        if let patientId = data.librelinkupPatientId { context["librelinkupPatientId"] = patientId }
+
         if data.isMockModeEnabled {
             if let glucoseReading = data.currentGlucoseReading {
                 context["currentGlucose"] = glucoseReading.mmol

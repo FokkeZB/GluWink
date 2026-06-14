@@ -52,6 +52,10 @@ struct CompanionWatchApp: App {
                     WatchEasyViewManager.shared.startPolling()
                     await WatchEasyViewManager.shared.fetchAll()
                     WatchEasyViewManager.shared.scheduleBackgroundRefresh()
+
+                    WatchLibreLinkUpManager.shared.startPolling()
+                    await WatchLibreLinkUpManager.shared.fetchAll()
+                    WatchLibreLinkUpManager.shared.scheduleBackgroundRefresh()
                 }
                 .onChange(of: scenePhase) {
                     #if targetEnvironment(simulator)
@@ -63,10 +67,12 @@ struct CompanionWatchApp: App {
                             await WatchHealthKitManager.shared.fetchLatestCarbs()
                             await WatchNightscoutManager.shared.fetchAll()
                             await WatchEasyViewManager.shared.fetchAll()
+                            await WatchLibreLinkUpManager.shared.fetchAll()
                         }
                     } else if scenePhase == .background {
                         WatchNightscoutManager.shared.scheduleBackgroundRefresh()
                         WatchEasyViewManager.shared.scheduleBackgroundRefresh()
+                        WatchLibreLinkUpManager.shared.scheduleBackgroundRefresh()
                     }
                 }
         }
@@ -81,6 +87,13 @@ struct CompanionWatchApp: App {
             await WatchEasyViewManager.shared.fetchAll()
             await MainActor.run {
                 WatchEasyViewManager.shared.scheduleBackgroundRefresh()
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        }
+        .backgroundTask(.appRefresh("librelinkup")) {
+            await WatchLibreLinkUpManager.shared.fetchAll()
+            await MainActor.run {
+                WatchLibreLinkUpManager.shared.scheduleBackgroundRefresh()
                 WidgetCenter.shared.reloadAllTimelines()
             }
         }
