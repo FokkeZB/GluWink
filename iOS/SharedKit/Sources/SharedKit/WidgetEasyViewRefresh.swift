@@ -25,7 +25,8 @@ public enum WidgetEasyViewRefresh {
     /// "save if newer" semantics. Always returns; never throws.
     ///
     /// - Parameter defaults: the App Group `UserDefaults` the widget reads from.
-    public static func refreshIfDue(defaults: UserDefaults?) async {
+    /// - Parameter force: skip the throttle window (manual refresh button).
+    public static func refreshIfDue(defaults: UserDefaults?, force: Bool = false) async {
         guard let defaults else { return }
         guard defaults.bool(forKey: DataSourceKeys.easyViewEnabled) else { return }
         guard !defaults.bool(forKey: DataSourceKeys.mockModeEnabled) else { return }
@@ -35,7 +36,7 @@ public enum WidgetEasyViewRefresh {
               let patientUID = defaults.object(forKey: "easyViewPatientUID") as? Int
         else { return }
 
-        if let lastIso = defaults.string(forKey: "easyViewLastFetchedAt"),
+        if !force, let lastIso = defaults.string(forKey: "easyViewLastFetchedAt"),
            let last = ISO8601DateFormatter().date(from: lastIso),
            Date().timeIntervalSince(last) < throttleInterval {
             return
