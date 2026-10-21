@@ -310,9 +310,9 @@ struct HomeView: View {
         isRefreshing = true
         // Keep the spinner up long enough to be seen when every source
         // answers instantly (demo data, nothing enabled).
-        async let minimumSpin: () = try? await Task.sleep(for: .seconds(1))
+        let startedAt = Date()
         await DataRefresher.refreshAll()
-        await minimumSpin
+        try? await Task.sleep(for: .seconds(max(0, 1 - Date().timeIntervalSince(startedAt))))
         checklistRefreshToken &+= 1
         isRefreshing = false
     }
