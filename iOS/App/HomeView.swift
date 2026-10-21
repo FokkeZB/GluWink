@@ -308,7 +308,11 @@ struct HomeView: View {
     private func refresh() async {
         guard !isRefreshing else { return }
         isRefreshing = true
+        // Keep the spinner up long enough to be seen when every source
+        // answers instantly (demo data, nothing enabled).
+        async let minimumSpin: () = try? await Task.sleep(for: .seconds(1))
         await DataRefresher.refreshAll()
+        await minimumSpin
         checklistRefreshToken &+= 1
         isRefreshing = false
     }

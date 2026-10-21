@@ -103,7 +103,9 @@ struct WatchContentView: View {
                         guard !isRefreshing else { return }
                         isRefreshing = true
                         Task {
+                            async let minimumSpin: () = try? await Task.sleep(for: .seconds(1))
                             await WatchDataRefresher.refreshAll()
+                            await minimumSpin
                             tick = Date()
                             isRefreshing = false
                         }
