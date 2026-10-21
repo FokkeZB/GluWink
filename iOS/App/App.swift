@@ -166,27 +166,7 @@ struct MainApp: App {
                 }
                 .onChange(of: scenePhase) {
                     if scenePhase == .active {
-                        Task { @MainActor in
-                            if SharedDataManager.shared.healthKitEnabled {
-                                await HealthKitManager.shared.fetchLatestGlucose()
-                                await HealthKitManager.shared.fetchLatestCarbs()
-                            }
-                            if SharedDataManager.shared.nightscoutEnabled {
-                                await NightscoutManager.shared.fetchAll()
-                            }
-                            if SharedDataManager.shared.easyViewEnabled {
-                                await EasyViewManager.shared.fetchAll()
-                            }
-                            if SharedDataManager.shared.librelinkupEnabled {
-                                await LibreLinkUpManager.shared.fetchLatestGlucose()
-                            }
-                            // Always reconcile on foreground — staleness and
-                            // carb-grace transitions cross thresholds on
-                            // wall-clock time alone, with no fetch event to
-                            // ride. Without this the badge only updates on
-                            // actual data changes.
-                            SharedDataManager.shared.refreshAttentionBadge()
-                        }
+                        Task { await DataRefresher.refreshAll() }
                     } else if scenePhase == .background {
                         if SharedDataManager.shared.nightscoutEnabled {
                             NightscoutManager.shared.scheduleBackgroundRefresh()

@@ -13,6 +13,7 @@ import SwiftUI
 ///   next-step setup until the user configures or dismisses each item.
 struct HomeView: View {
     @State private var showSettings = false
+    @State private var isRefreshing = false
 
     #if targetEnvironment(simulator)
     @State private var glucose: Double = 6.4
@@ -233,6 +234,26 @@ struct HomeView: View {
                 shieldsArmed: shieldsArmed
             )
         }
+        .overlay(alignment: .topLeading) {
+            if !showsWelcome {
+                Button {
+                    Task { await refresh() }
+                } label: {
+                    Group {
+                        if isRefreshing {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                    }
+                    .font(.title2)
+                    .frame(width: 28, height: 28)
+                    .padding(12)
+                }
+                .disabled(isRefreshing)
+                .accessibilityLabel(String(localized: "home.refresh.accessibility"))
+            }
+        }
         .overlay(alignment: .topTrailing) {
             Button {
                 showSettings = true
@@ -284,6 +305,18 @@ struct HomeView: View {
     /// `headerHeight` so the scroll view's top padding reserves space for it.
     /// Uses the same icon + shield badge the panels used to render inline.
     @ViewBuilder
+    private func refresh() async {
+        guard !isRefreshing else { return }
+        isRefreshing = true
+        // Keep the spinner up long enough to be seen when every source
+        // answers instantly (demo data, nothing enabled).
+        let startedAt = Date()
+        await DataRefresher.refreshAll()
+        try? await Task.sleep(for: .seconds(max(0, 1 - Date().timeIntervalSince(startedAt))))
+        checklistRefreshToken &+= 1
+        isRefreshing = false
+    }
+
     private func iconHeader(content: ShieldContent, shieldingEnabled: Bool, shieldsArmed: Bool) -> some View {
         ZStack(alignment: .bottom) {
             Image(iconName(for: content))

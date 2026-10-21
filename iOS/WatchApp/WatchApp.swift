@@ -62,13 +62,7 @@ struct CompanionWatchApp: App {
                     if WatchScreenshotHarness.isActive { return }
                     #endif
                     if scenePhase == .active {
-                        Task {
-                            await WatchHealthKitManager.shared.fetchLatestGlucose()
-                            await WatchHealthKitManager.shared.fetchLatestCarbs()
-                            await WatchNightscoutManager.shared.fetchAll()
-                            await WatchEasyViewManager.shared.fetchAll()
-                            await WatchLibreLinkUpManager.shared.fetchAll()
-                        }
+                        Task { await WatchDataRefresher.refreshAll() }
                     } else if scenePhase == .background {
                         WatchNightscoutManager.shared.scheduleBackgroundRefresh()
                         WatchEasyViewManager.shared.scheduleBackgroundRefresh()

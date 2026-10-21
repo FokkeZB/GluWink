@@ -7,6 +7,7 @@ import WidgetKit
 
 struct WatchContentView: View {
     @State private var tick = Date()
+    @State private var isRefreshing = false
 
     #if targetEnvironment(simulator)
     /// Last `syncToken` value observed in the simulator bridge file.
@@ -71,30 +72,55 @@ struct WatchContentView: View {
     var body: some View {
         let current = content
 
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(glucoseValueText(for: current))
-                    .font(current.carbsEnabled ? valueFont : .system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-                relativeTimeText(from: current.glucose?.sampleDate)
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.85))
-            }
-
-            if current.carbsEnabled {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 14) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(carbsValueText(for: current))
-                        .font(valueFont)
-                        .foregroundStyle(.white.opacity(0.95))
-                    relativeTimeText(from: current.carbs?.sampleDate)
+                    Text(glucoseValueText(for: current))
+                        .font(current.carbsEnabled ? valueFont : .system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                    relativeTimeText(from: current.glucose?.sampleDate)
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.85))
                 }
+
+                if current.carbsEnabled {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(carbsValueText(for: current))
+                            .font(valueFont)
+                            .foregroundStyle(.white.opacity(0.95))
+                        relativeTimeText(from: current.carbs?.sampleDate)
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.85))
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .padding()
+            .background(current.attentionLevel.tint)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        guard !isRefreshing else { return }
+                        isRefreshing = true
+                        Task {
+                            let startedAt = Date()
+                            await WatchDataRefresher.refreshAll()
+                            try? await Task.sleep(for: .seconds(max(0, 1 - Date().timeIntervalSince(startedAt))))
+                            tick = Date()
+                            isRefreshing = false
+                        }
+                    } label: {
+                        if isRefreshing {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                    }
+                    .disabled(isRefreshing)
+                    .accessibilityLabel(String(localized: "watch.app.refresh"))
+                }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding()
-        .background(current.attentionLevel.tint)
         .onReceive(timer) { newTick in
             tick = newTick
             #if targetEnvironment(simulator)

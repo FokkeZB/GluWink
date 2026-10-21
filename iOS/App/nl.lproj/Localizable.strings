@@ -3,6 +3,9 @@
 "setup.passphraseConfirmField" = "Bevestig wachtwoord";
 "setup.passphraseMismatch" = "Wachtwoorden komen niet overeen.";
 
+/* Home - Refresh */
+"home.refresh.accessibility" = "Gegevens vernieuwen";
+
 /* Home - Status */
 "home.carbsMealOnly" = "Maaltijd";
 
