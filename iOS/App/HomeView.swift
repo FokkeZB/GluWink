@@ -14,6 +14,10 @@ import SwiftUI
 struct HomeView: View {
     @State private var showSettings = false
     @State private var isRefreshing = false
+    /// Mirrors `ProcessInfo.isLowPowerModeEnabled`. iOS throttles background
+    /// work in Low Power Mode, so a stale reading is often just "not
+    /// refreshed yet" rather than a broken source.
+    @State private var isLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
 
     #if targetEnvironment(simulator)
     @State private var glucose: Double = 6.4
@@ -194,6 +198,10 @@ struct HomeView: View {
                         )
                     }
 
+                    if !showsWelcome, isLowPowerMode, isGlucoseStale {
+                        lowPowerModeNotice
+                    }
+
                     SetupChecklistCard(refreshToken: $checklistRefreshToken)
                 }
                 .frame(maxWidth: .infinity)
@@ -297,6 +305,29 @@ struct HomeView: View {
             tick = $0
             refreshDisarmedState()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .NSProcessInfoPowerStateDidChange)) { _ in
+            let wasLowPower = isLowPowerMode
+            isLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
+            // Catch up right away when Low Power Mode ends instead of
+            // waiting for the next poll.
+            if wasLowPower, !isLowPowerMode {
+                Task { await refresh() }
+            }
+        }
+    }
+
+    private var isGlucoseStale: Bool {
+        guard let glucoseDate else { return true }
+        let staleMinutes = SharedDataManager.shared.effectiveGlucoseStaleMinutes
+        return tick.timeIntervalSince(glucoseDate) > TimeInterval(staleMinutes * 60)
+    }
+
+    private var lowPowerModeNotice: some View {
+        Label(String(localized: "home.lowPower.notice"), systemImage: "battery.25percent")
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.leading)
+            .padding(.horizontal, 32)
     }
 
     // MARK: - Icon Header

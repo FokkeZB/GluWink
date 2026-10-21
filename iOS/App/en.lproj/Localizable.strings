@@ -4,6 +4,7 @@
 "setup.passphraseMismatch" = "Passphrases do not match.";
 
 /* Home - Refresh */
+"home.lowPower.notice" = "Low Power Mode is on, so data may update late. Turn it off or tap refresh.";
 "home.refresh.accessibility" = "Refresh data";
 
 /* Home - Status */

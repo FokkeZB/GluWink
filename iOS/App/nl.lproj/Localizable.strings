@@ -4,6 +4,7 @@
 "setup.passphraseMismatch" = "Wachtwoorden komen niet overeen.";
 
 /* Home - Refresh */
+"home.lowPower.notice" = "Stroomsparen staat aan, dus gegevens worden mogelijk later bijgewerkt. Zet het uit of tik op vernieuwen.";
 "home.refresh.accessibility" = "Gegevens vernieuwen";
 
 /* Home - Status */
