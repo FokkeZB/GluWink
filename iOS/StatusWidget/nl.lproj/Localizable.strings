@@ -6,3 +6,4 @@
 "widget.carbsDescription" = "Laatste koolhydraateninvoer.";
 
 "widget.noData" = "Geen data";
+"widget.refresh" = "Gegevens vernieuwen";

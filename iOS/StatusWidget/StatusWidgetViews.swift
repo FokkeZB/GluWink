@@ -1,3 +1,4 @@
+import AppIntents
 import SharedKit
 import SwiftUI
 import WidgetKit
@@ -83,6 +84,7 @@ struct SmallWidgetView: View {
 
     var body: some View {
         SmallWidgetTile(content: tileContent(for: entry))
+            .overlay(alignment: .topTrailing) { WidgetRefreshButton() }
             .containerBackground(for: .widget) {
                 entry.content.attentionLevel.tint
             }
@@ -94,6 +96,7 @@ struct MediumWidgetView: View {
 
     var body: some View {
         MediumWidgetTile(content: tileContent(for: entry))
+            .overlay(alignment: .topTrailing) { WidgetRefreshButton() }
             .containerBackground(for: .widget) {
                 entry.content.attentionLevel.tint
             }
@@ -105,8 +108,23 @@ struct LargeWidgetView: View {
 
     var body: some View {
         LargeWidgetTile(content: tileContent(for: entry))
+            .overlay(alignment: .topTrailing) { WidgetRefreshButton() }
             .containerBackground(for: .widget) {
                 entry.content.attentionLevel.tint
             }
+    }
+}
+
+/// Tap-to-refresh control for the Home Screen widgets (see `RefreshWidgetIntent`).
+struct WidgetRefreshButton: View {
+    var body: some View {
+        Button(intent: RefreshWidgetIntent()) {
+            Image(systemName: "arrow.clockwise")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.85))
+                .padding(6)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(String(localized: "widget.refresh"))
     }
 }
