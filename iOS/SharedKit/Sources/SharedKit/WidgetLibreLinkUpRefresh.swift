@@ -36,8 +36,7 @@ public enum WidgetLibreLinkUpRefresh {
     /// persist it with "save if newer" semantics. Always returns; never throws.
     ///
     /// - Parameter defaults: the App Group `UserDefaults` the widget reads from.
-    /// - Parameter force: skip the throttle window (manual refresh button).
-    public static func refreshIfDue(defaults: UserDefaults?, force: Bool = false) async {
+    public static func refreshIfDue(defaults: UserDefaults?) async {
         guard let defaults else { return }
         guard defaults.bool(forKey: DataSourceKeys.libreLinkUpEnabled) else { return }
         guard !defaults.bool(forKey: DataSourceKeys.mockModeEnabled) else { return }
@@ -54,7 +53,7 @@ public enum WidgetLibreLinkUpRefresh {
             return
         }
 
-        if !force, let lastIso = defaults.string(forKey: "librelinkupLastFetchedAt"),
+        if let lastIso = defaults.string(forKey: "librelinkupLastFetchedAt"),
            let last = ISO8601DateFormatter().date(from: lastIso),
            Date().timeIntervalSince(last) < throttleInterval {
             return

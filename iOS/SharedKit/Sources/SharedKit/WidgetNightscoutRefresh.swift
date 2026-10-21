@@ -46,15 +46,14 @@ public enum WidgetNightscoutRefresh {
     ///
     /// - Parameter defaults: the App Group `UserDefaults` the widget reads
     ///   from. Pass the same suite the widget's `EntryBuilder` uses.
-    /// - Parameter force: skip the throttle window (manual refresh button).
-    public static func refreshIfDue(defaults: UserDefaults?, force: Bool = false) async {
+    public static func refreshIfDue(defaults: UserDefaults?) async {
         guard let defaults else { return }
         guard defaults.bool(forKey: DataSourceKeys.nightscoutEnabled) else { return }
         guard !defaults.bool(forKey: DataSourceKeys.mockModeEnabled) else { return }
         guard let urlString = defaults.string(forKey: "nightscoutBaseURL"),
               !urlString.isEmpty else { return }
 
-        if !force, let lastIso = defaults.string(forKey: "nightscoutLastFetchedAt"),
+        if let lastIso = defaults.string(forKey: "nightscoutLastFetchedAt"),
            let last = ISO8601DateFormatter().date(from: lastIso),
            Date().timeIntervalSince(last) < throttleInterval {
             return
