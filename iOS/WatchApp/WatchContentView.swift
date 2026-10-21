@@ -7,6 +7,7 @@ import WidgetKit
 
 struct WatchContentView: View {
     @State private var tick = Date()
+    @State private var isRefreshing = false
 
     #if targetEnvironment(simulator)
     /// Last `syncToken` value observed in the simulator bridge file.
@@ -95,6 +96,29 @@ struct WatchContentView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding()
         .background(current.attentionLevel.tint)
+        .overlay(alignment: .topTrailing) {
+            Button {
+                guard !isRefreshing else { return }
+                isRefreshing = true
+                Task {
+                    await WatchDataRefresher.refreshAll()
+                    tick = Date()
+                    isRefreshing = false
+                }
+            } label: {
+                if isRefreshing {
+                    ProgressView()
+                } else {
+                    Image(systemName: "arrow.clockwise")
+                }
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.white)
+            .frame(width: 32, height: 32)
+            .background(.black.opacity(0.25), in: Circle())
+            .disabled(isRefreshing)
+            .accessibilityLabel(String(localized: "watch.app.refresh"))
+        }
         .onReceive(timer) { newTick in
             tick = newTick
             #if targetEnvironment(simulator)
