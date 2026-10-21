@@ -14,6 +14,9 @@ import SwiftUI
 struct HomeView: View {
     @State private var showSettings = false
     @State private var isRefreshing = false
+    /// How far the scroll view is pulled past its top edge, in points.
+    @State private var pullDistance: CGFloat = 0
+    private static let pullRefreshThreshold: CGFloat = 80
 
     #if targetEnvironment(simulator)
     @State private var glucose: Double = 6.4
@@ -201,7 +204,12 @@ struct HomeView: View {
                 .padding(.bottom, Self.bottomFadeHeight)
             }
             .scrollIndicators(.hidden)
-            .refreshable { await DataRefresher.refreshAll() }
+            .refreshable { await refresh() }
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                max(0, -(geometry.contentOffset.y + geometry.contentInsets.top))
+            } action: { _, newValue in
+                pullDistance = newValue
+            }
             .ignoresSafeArea(edges: .bottom)
             .mask(
                 VStack(spacing: 0) {
@@ -235,15 +243,19 @@ struct HomeView: View {
                 shieldsArmed: shieldsArmed
             )
         }
+        .overlay(alignment: .top) {
+            if pullDistance > 8 && !isRefreshing {
+                Text(pullDistance >= Self.pullRefreshThreshold
+                     ? String(localized: "home.refresh.release")
+                     : String(localized: "home.refresh.pull"))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
+            }
+        }
         .overlay(alignment: .topLeading) {
             Button {
-                guard !isRefreshing else { return }
-                isRefreshing = true
-                Task {
-                    await DataRefresher.refreshAll()
-                    checklistRefreshToken &+= 1
-                    isRefreshing = false
-                }
+                Task { await refresh() }
             } label: {
                 Group {
                     if isRefreshing {
@@ -310,6 +322,16 @@ struct HomeView: View {
     /// `headerHeight` so the scroll view's top padding reserves space for it.
     /// Uses the same icon + shield badge the panels used to render inline.
     @ViewBuilder
+    /// Shared by the refresh button and pull-to-refresh so both drive the
+    /// same spinner state.
+    private func refresh() async {
+        guard !isRefreshing else { return }
+        isRefreshing = true
+        await DataRefresher.refreshAll()
+        checklistRefreshToken &+= 1
+        isRefreshing = false
+    }
+
     private func iconHeader(content: ShieldContent, shieldingEnabled: Bool, shieldsArmed: Bool) -> some View {
         ZStack(alignment: .bottom) {
             Image(iconName(for: content))

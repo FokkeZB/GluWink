@@ -4,6 +4,8 @@
 "setup.passphraseMismatch" = "Wachtwoorden komen niet overeen.";
 
 /* Home - Refresh */
+"home.refresh.pull" = "Trek omlaag om te vernieuwen";
+"home.refresh.release" = "Laat los om te vernieuwen";
 "home.refresh.accessibility" = "Gegevens vernieuwen";
 
 /* Home - Status */

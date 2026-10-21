@@ -4,6 +4,8 @@
 "setup.passphraseMismatch" = "Passphrases do not match.";
 
 /* Home - Refresh */
+"home.refresh.pull" = "Pull to refresh";
+"home.refresh.release" = "Release to refresh";
 "home.refresh.accessibility" = "Refresh data";
 
 /* Home - Status */
