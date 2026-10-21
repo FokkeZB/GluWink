@@ -72,52 +72,52 @@ struct WatchContentView: View {
     var body: some View {
         let current = content
 
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(glucoseValueText(for: current))
-                    .font(current.carbsEnabled ? valueFont : .system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-                relativeTimeText(from: current.glucose?.sampleDate)
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.85))
-            }
-
-            if current.carbsEnabled {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 14) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(carbsValueText(for: current))
-                        .font(valueFont)
-                        .foregroundStyle(.white.opacity(0.95))
-                    relativeTimeText(from: current.carbs?.sampleDate)
+                    Text(glucoseValueText(for: current))
+                        .font(current.carbsEnabled ? valueFont : .system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                    relativeTimeText(from: current.glucose?.sampleDate)
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.85))
                 }
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding()
-        .background(current.attentionLevel.tint)
-        .overlay(alignment: .topTrailing) {
-            Button {
-                guard !isRefreshing else { return }
-                isRefreshing = true
-                Task {
-                    await WatchDataRefresher.refreshAll()
-                    tick = Date()
-                    isRefreshing = false
-                }
-            } label: {
-                if isRefreshing {
-                    ProgressView()
-                } else {
-                    Image(systemName: "arrow.clockwise")
+
+                if current.carbsEnabled {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(carbsValueText(for: current))
+                            .font(valueFont)
+                            .foregroundStyle(.white.opacity(0.95))
+                        relativeTimeText(from: current.carbs?.sampleDate)
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.85))
+                    }
                 }
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.white)
-            .frame(width: 32, height: 32)
-            .background(.black.opacity(0.25), in: Circle())
-            .disabled(isRefreshing)
-            .accessibilityLabel(String(localized: "watch.app.refresh"))
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .padding()
+            .background(current.attentionLevel.tint)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        guard !isRefreshing else { return }
+                        isRefreshing = true
+                        Task {
+                            await WatchDataRefresher.refreshAll()
+                            tick = Date()
+                            isRefreshing = false
+                        }
+                    } label: {
+                        if isRefreshing {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                    }
+                    .disabled(isRefreshing)
+                    .accessibilityLabel(String(localized: "watch.app.refresh"))
+                }
+            }
         }
         .onReceive(timer) { newTick in
             tick = newTick
