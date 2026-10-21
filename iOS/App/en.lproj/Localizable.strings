@@ -3,6 +3,9 @@
 "setup.passphraseConfirmField" = "Confirm passphrase";
 "setup.passphraseMismatch" = "Passphrases do not match.";
 
+/* Home - Refresh */
+"home.refresh.accessibility" = "Refresh data";
+
 /* Home - Status */
 "home.carbsMealOnly" = "Meal";
 

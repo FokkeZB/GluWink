@@ -13,6 +13,7 @@ import SwiftUI
 ///   next-step setup until the user configures or dismisses each item.
 struct HomeView: View {
     @State private var showSettings = false
+    @State private var isRefreshing = false
 
     #if targetEnvironment(simulator)
     @State private var glucose: Double = 6.4
@@ -200,6 +201,7 @@ struct HomeView: View {
                 .padding(.bottom, Self.bottomFadeHeight)
             }
             .scrollIndicators(.hidden)
+            .refreshable { await DataRefresher.refreshAll() }
             .ignoresSafeArea(edges: .bottom)
             .mask(
                 VStack(spacing: 0) {
@@ -232,6 +234,30 @@ struct HomeView: View {
                 shieldingEnabled: effectiveShieldingEnabled,
                 shieldsArmed: shieldsArmed
             )
+        }
+        .overlay(alignment: .topLeading) {
+            Button {
+                guard !isRefreshing else { return }
+                isRefreshing = true
+                Task {
+                    await DataRefresher.refreshAll()
+                    checklistRefreshToken &+= 1
+                    isRefreshing = false
+                }
+            } label: {
+                Group {
+                    if isRefreshing {
+                        ProgressView()
+                    } else {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+                .font(.title2)
+                .frame(width: 28, height: 28)
+                .padding(12)
+            }
+            .disabled(isRefreshing)
+            .accessibilityLabel(String(localized: "home.refresh.accessibility"))
         }
         .overlay(alignment: .topTrailing) {
             Button {
