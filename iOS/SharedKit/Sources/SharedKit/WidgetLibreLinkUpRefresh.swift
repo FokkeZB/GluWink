@@ -24,7 +24,7 @@ public enum WidgetLibreLinkUpRefresh {
     public static let throttleInterval: TimeInterval = 60
 
     /// Per-request timeout, kept well under the WidgetKit timeline budget.
-    public static let requestTimeout: TimeInterval = 5
+    public static let requestTimeout: TimeInterval = 10
 
     /// mg/dL → mmol/L divisor (matches `LibreLinkUpManager`).
     private static let mgdlPerMmol = 18.01559

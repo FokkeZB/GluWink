@@ -34,7 +34,7 @@ public enum WidgetNightscoutRefresh {
 
     /// Per-request timeout. Kept well under the WidgetKit timeline budget so
     /// a stalled Nightscout server never blocks the widget render.
-    public static let requestTimeout: TimeInterval = 5
+    public static let requestTimeout: TimeInterval = 10
 
     private static let logger = Logger(subsystem: "SharedKit", category: "WidgetNightscoutRefresh")
 
@@ -76,7 +76,7 @@ public enum WidgetNightscoutRefresh {
         ) else { return }
 
         // Run the two requests concurrently — both are short and bounded by
-        // requestTimeout, so worst-case wall clock is ~5s rather than ~10s.
+        // requestTimeout, so worst-case wall clock is ~10s rather than ~20s.
         async let glucoseTask: NightscoutClient.GlucoseSample? = {
             do {
                 return try await client.fetchLatestGlucose()

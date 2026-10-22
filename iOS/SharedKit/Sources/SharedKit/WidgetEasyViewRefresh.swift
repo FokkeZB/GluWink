@@ -16,7 +16,7 @@ import os
 /// DeviceActivityMonitor — see QUIRKS.md), so fetching here is safe.
 public enum WidgetEasyViewRefresh {
     public static let throttleInterval: TimeInterval = 60
-    public static let requestTimeout: TimeInterval = 5
+    public static let requestTimeout: TimeInterval = 10
 
     private static let logger = Logger(subsystem: "SharedKit", category: "WidgetEasyViewRefresh")
 
