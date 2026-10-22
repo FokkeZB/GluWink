@@ -53,6 +53,7 @@ final class EasyViewManager {
         guard isConfigured else { return }
         let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
+                RefreshLog.record("easyview", "poll fired")
                 await self?.fetchAll()
             }
         }
@@ -127,13 +128,16 @@ final class EasyViewManager {
                 }
             }
             data.easyViewLastError = nil
+            RefreshLog.record("easyview", "fetch ok (glucose sample \(glucose.map { $0.date.formatted(date: .omitted, time: .shortened) } ?? "none"))")
         } catch EasyViewClient.ClientError.sessionExpired where retryOnExpiry {
             logger.info("EasyView session expired — re-logging in")
+            RefreshLog.record("easyview", "session expired, re-login")
             guard await reLogin() else { return }
             await performFetch(retryOnExpiry: false)
             return
         } catch {
             logger.error("EasyView fetch failed: \(error.localizedDescription)")
+            RefreshLog.record("easyview", "fetch failed: \(error.localizedDescription)")
             data.easyViewLastError = error.localizedDescription
         }
 
@@ -232,16 +236,19 @@ final class EasyViewManager {
 
     func handleBackgroundRefresh(_ task: BGAppRefreshTask) {
         logger.info("EasyView background refresh task started")
+        RefreshLog.record("easyview", "background task started")
         scheduleBackgroundRefresh()
 
         let work = Task { @MainActor in
             await fetchAll()
             logger.info("EasyView background refresh task completed")
+            RefreshLog.record("easyview", "background task completed")
             task.setTaskCompleted(success: true)
         }
 
         task.expirationHandler = {
             self.logger.warning("EasyView background refresh task expired")
+            RefreshLog.record("easyview", "background task expired")
             work.cancel()
             task.setTaskCompleted(success: false)
         }

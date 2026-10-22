@@ -1,3 +1,4 @@
+import SharedKit
 import BackgroundTasks
 import FamilyControls
 import HealthKit
@@ -166,6 +167,7 @@ struct MainApp: App {
                 }
                 .onChange(of: scenePhase) {
                     if scenePhase == .active {
+                        RefreshLog.record("app", "foreground")
                         Task { await DataRefresher.refreshAll() }
                     } else if scenePhase == .background {
                         if SharedDataManager.shared.nightscoutEnabled {

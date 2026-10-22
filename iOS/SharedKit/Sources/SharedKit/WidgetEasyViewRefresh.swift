@@ -41,6 +41,7 @@ public enum WidgetEasyViewRefresh {
             return
         }
 
+        RefreshLog.record("widget", "EasyView fetch started")
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = requestTimeout
         config.timeoutIntervalForResource = requestTimeout
@@ -62,10 +63,12 @@ public enum WidgetEasyViewRefresh {
             carbs = latest.carbs
         } catch EasyViewClient.ClientError.sessionExpired {
             logger.warning("Widget EasyView session expired — serving stale cached values")
+            RefreshLog.record("widget", "Widget EasyView session expired — serving stale cached values")
             glucose = nil
             carbs = nil
         } catch {
             logger.error("Widget EasyView fetch failed: \(error.localizedDescription, privacy: .public)")
+            RefreshLog.record("widget", "Widget EasyView fetch failed: \(error.localizedDescription)")
             glucose = nil
             carbs = nil
         }

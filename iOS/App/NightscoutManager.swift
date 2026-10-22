@@ -60,6 +60,7 @@ final class NightscoutManager {
         guard isConfigured else { return }
         let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
+                RefreshLog.record("nightscout", "poll fired")
                 await self?.fetchAll()
             }
         }
@@ -115,10 +116,12 @@ final class NightscoutManager {
             if let sample = try await client.fetchLatestGlucose() {
                 SharedDataManager.shared.saveNightscoutGlucose(mmol: sample.mmol, at: sample.date)
                 logger.info("Nightscout glucose: \(String(format: "%.1f", sample.mmol)) mmol/L at \(sample.date)")
+                RefreshLog.record("nightscout", "fetch ok (glucose sample \(sample.date.formatted(date: .omitted, time: .shortened)))")
             }
             SharedDataManager.shared.nightscoutLastError = nil
         } catch {
             logger.error("Nightscout glucose fetch failed: \(error.localizedDescription)")
+            RefreshLog.record("nightscout", "fetch failed: \(error.localizedDescription)")
             SharedDataManager.shared.nightscoutLastError = error.localizedDescription
         }
     }
@@ -180,16 +183,19 @@ final class NightscoutManager {
     /// Run a Nightscout fetch as part of a `BGAppRefreshTask`.
     func handleBackgroundRefresh(_ task: BGAppRefreshTask) {
         logger.info("Nightscout background refresh task started")
+        RefreshLog.record("nightscout", "background task started")
         scheduleBackgroundRefresh()
 
         let work = Task { @MainActor in
             await fetchAll()
             logger.info("Nightscout background refresh task completed")
+            RefreshLog.record("nightscout", "background task completed")
             task.setTaskCompleted(success: true)
         }
 
         task.expirationHandler = {
             self.logger.warning("Nightscout background refresh task expired")
+            RefreshLog.record("nightscout", "background task expired")
             work.cancel()
             task.setTaskCompleted(success: false)
         }

@@ -61,6 +61,7 @@ public enum WidgetNightscoutRefresh {
 
         let token = defaults.string(forKey: "nightscoutToken")
 
+        RefreshLog.record("widget", "Nightscout fetch started")
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = requestTimeout
         config.timeoutIntervalForResource = requestTimeout
@@ -81,6 +82,7 @@ public enum WidgetNightscoutRefresh {
                 return try await client.fetchLatestGlucose()
             } catch {
                 logger.error("Widget Nightscout glucose fetch failed: \(error.localizedDescription, privacy: .public)")
+                RefreshLog.record("widget", "Widget Nightscout glucose fetch failed: \(error.localizedDescription)")
                 return nil
             }
         }()
@@ -89,6 +91,7 @@ public enum WidgetNightscoutRefresh {
                 return try await client.fetchLatestCarbs()
             } catch {
                 logger.error("Widget Nightscout carbs fetch failed: \(error.localizedDescription, privacy: .public)")
+                RefreshLog.record("widget", "Widget Nightscout carbs fetch failed: \(error.localizedDescription)")
                 return nil
             }
         }()

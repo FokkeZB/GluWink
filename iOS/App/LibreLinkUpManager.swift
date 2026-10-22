@@ -44,6 +44,7 @@ final class LibreLinkUpManager {
         guard isConfigured else { return }
         let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
+                RefreshLog.record("librelinkup", "poll fired")
                 await self?.fetchLatestGlucose()
             }
         }
@@ -128,6 +129,7 @@ final class LibreLinkUpManager {
             SharedDataManager.shared.librelinkupLastError = nil
 
             logger.info("LibreLinkUp glucose: \(String(format: "%.1f", mmol)) mmol/L at \(sampleAt)")
+            RefreshLog.record("librelinkup", "fetch ok (glucose sample \(sampleAt.formatted(date: .omitted, time: .shortened)))")
 
             SharedDataManager.shared.refreshAttentionBadge()
             ShieldManager.shared.reevaluateShields()
@@ -136,6 +138,7 @@ final class LibreLinkUpManager {
             scheduleBackgroundRefresh()
         } catch {
             logger.error("LibreLinkUp fetch failed: \(error.localizedDescription)")
+            RefreshLog.record("librelinkup", "fetch failed: \(error.localizedDescription)")
             SharedDataManager.shared.librelinkupLastError = error.localizedDescription
         }
     }
@@ -208,16 +211,19 @@ final class LibreLinkUpManager {
 
     func handleBackgroundRefresh(_ task: BGAppRefreshTask) {
         logger.info("LibreLinkUp background refresh task started")
+        RefreshLog.record("librelinkup", "background task started")
         scheduleBackgroundRefresh()
 
         let work = Task { @MainActor in
             await fetchLatestGlucose()
             logger.info("LibreLinkUp background refresh task completed")
+            RefreshLog.record("librelinkup", "background task completed")
             task.setTaskCompleted(success: true)
         }
 
         task.expirationHandler = {
             self.logger.warning("LibreLinkUp background refresh task expired")
+            RefreshLog.record("librelinkup", "background task expired")
             work.cancel()
             task.setTaskCompleted(success: false)
         }

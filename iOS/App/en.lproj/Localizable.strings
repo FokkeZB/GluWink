@@ -264,3 +264,9 @@
 "checkin.disarmCountdown %lld" = "Wait (%llds)";
 "checkin.cooldownHelper" = "This is your moment to actually do what you just checked off — and anything else that comes to mind.";
 "checkin.acknowledgedDescription" = "You've already checked in. Shields will return soon.";
+
+/* Refresh log */
+"settings.refreshLogRow" = "Refresh log";
+"refreshLog.empty" = "No refresh events yet.";
+"refreshLog.lowPower" = "Low Power Mode was on";
+"refreshLog.clear" = "Clear log";
