@@ -74,6 +74,7 @@ public enum WidgetEasyViewRefresh {
         }
 
         if let glucose {
+            RefreshLog.record("widget", "EasyView fetch ok (glucose sample \(glucose.date.formatted(date: .omitted, time: .shortened)))")
             saveIfNewer(
                 defaults: defaults,
                 valueKey: UnifiedDataReader.glucoseValueKey(for: .easyView),

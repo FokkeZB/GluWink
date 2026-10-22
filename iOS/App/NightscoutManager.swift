@@ -93,9 +93,13 @@ final class NightscoutManager {
             logger.info("Mock mode active — skipping Nightscout fetch")
             return
         }
-        guard !inFlight else { return }
+        guard !inFlight else {
+            RefreshLog.record("nightscout", "fetch skipped (already in flight)")
+            return
+        }
         inFlight = true
         defer { inFlight = false }
+        RefreshLog.record("nightscout", "fetch started")
 
         await fetchGlucose(using: client)
         await fetchCarbs(using: client)

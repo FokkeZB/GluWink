@@ -84,9 +84,13 @@ final class EasyViewManager {
             logger.info("Mock mode active — skipping EasyView fetch")
             return
         }
-        guard !inFlight else { return }
+        guard !inFlight else {
+            RefreshLog.record("easyview", "fetch skipped (already in flight)")
+            return
+        }
         inFlight = true
         defer { inFlight = false }
+        RefreshLog.record("easyview", "fetch started")
 
         // If we have no session yet, try to get one first.
         if SharedDataManager.shared.easyViewSession == nil {
@@ -158,6 +162,7 @@ final class EasyViewManager {
               let password = KeychainManager.shared.easyViewPassword
         else {
             logger.error("EasyView re-login failed — missing credentials")
+            RefreshLog.record("easyview", "re-login failed: missing credentials")
             data.easyViewLastError = "Missing credentials"
             return false
         }
@@ -172,6 +177,7 @@ final class EasyViewManager {
             return true
         } catch {
             logger.error("EasyView re-login failed: \(error.localizedDescription)")
+            RefreshLog.record("easyview", "re-login failed: \(error.localizedDescription)")
             data.easyViewLastError = error.localizedDescription
             return false
         }

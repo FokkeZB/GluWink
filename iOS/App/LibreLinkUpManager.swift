@@ -97,9 +97,13 @@ final class LibreLinkUpManager {
             logger.info("Mock mode active — skipping LibreLinkUp fetch")
             return
         }
-        guard !inFlight else { return }
+        guard !inFlight else {
+            RefreshLog.record("librelinkup", "fetch skipped (already in flight)")
+            return
+        }
         inFlight = true
         defer { inFlight = false }
+        RefreshLog.record("librelinkup", "fetch started")
 
         do {
             let token = try await validToken()
