@@ -26,7 +26,7 @@ final class LibreLinkUpManager {
     private let logger = Logger(subsystem: Constants.bundlePrefix, category: "LibreLinkUpManager")
 
     private var pollTimer: Timer?
-    private var inFlight = false
+    private let coalescer = FetchCoalescer()
 
     private init() {}
 
@@ -92,17 +92,18 @@ final class LibreLinkUpManager {
     // MARK: - Fetching
 
     func fetchLatestGlucose() async {
+        await coalescer.run(
+            joined: { RefreshLog.record("librelinkup", "fetch joined in-flight request") },
+            replaced: { RefreshLog.record("librelinkup", "abandoned stuck fetch") }
+        ) { [self] in await runFetch() }
+    }
+
+    private func runFetch() async {
         guard isConfigured else { return }
         guard !SharedDataManager.shared.isMockModeEnabled else {
             logger.info("Mock mode active — skipping LibreLinkUp fetch")
             return
         }
-        guard !inFlight else {
-            RefreshLog.record("librelinkup", "fetch skipped (already in flight)")
-            return
-        }
-        inFlight = true
-        defer { inFlight = false }
         RefreshLog.record("librelinkup", "fetch started")
 
         do {

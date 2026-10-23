@@ -22,7 +22,7 @@ final class EasyViewManager {
     private let logger = Logger(subsystem: Constants.bundlePrefix, category: "EasyViewManager")
 
     private var pollTimer: Timer?
-    private var inFlight = false
+    private let coalescer = FetchCoalescer()
 
     private init() {}
 
@@ -79,17 +79,18 @@ final class EasyViewManager {
     // MARK: - Fetching
 
     func fetchAll() async {
+        await coalescer.run(
+            joined: { RefreshLog.record("easyview", "fetch joined in-flight request") },
+            replaced: { RefreshLog.record("easyview", "abandoned stuck fetch") }
+        ) { [self] in await runFetch() }
+    }
+
+    private func runFetch() async {
         guard isConfigured else { return }
         guard !SharedDataManager.shared.isMockModeEnabled else {
             logger.info("Mock mode active — skipping EasyView fetch")
             return
         }
-        guard !inFlight else {
-            RefreshLog.record("easyview", "fetch skipped (already in flight)")
-            return
-        }
-        inFlight = true
-        defer { inFlight = false }
         RefreshLog.record("easyview", "fetch started")
 
         // If we have no session yet, try to get one first.

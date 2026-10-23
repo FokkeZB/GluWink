@@ -28,7 +28,7 @@ final class NightscoutManager {
     private let logger = Logger(subsystem: Constants.bundlePrefix, category: "NightscoutManager")
 
     private var pollTimer: Timer?
-    private var inFlight = false
+    private let coalescer = FetchCoalescer()
 
     private init() {}
 
@@ -88,17 +88,18 @@ final class NightscoutManager {
 
     /// Fetch glucose + carbs and persist via SharedDataManager.
     func fetchAll() async {
+        await coalescer.run(
+            joined: { RefreshLog.record("nightscout", "fetch joined in-flight request") },
+            replaced: { RefreshLog.record("nightscout", "abandoned stuck fetch") }
+        ) { [self] in await runFetch() }
+    }
+
+    private func runFetch() async {
         guard let client = currentClient() else { return }
         guard !SharedDataManager.shared.isMockModeEnabled else {
             logger.info("Mock mode active — skipping Nightscout fetch")
             return
         }
-        guard !inFlight else {
-            RefreshLog.record("nightscout", "fetch skipped (already in flight)")
-            return
-        }
-        inFlight = true
-        defer { inFlight = false }
         RefreshLog.record("nightscout", "fetch started")
 
         await fetchGlucose(using: client)
