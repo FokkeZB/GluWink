@@ -58,7 +58,7 @@ public enum WidgetEasyViewRefresh {
         let glucose: EasyViewClient.GlucoseSample?
         let carbs: EasyViewClient.CarbEntry?
         do {
-            let latest = try await client.fetchLatest(patientUID: patientUID)
+            let latest = try await WidgetFetchRetry.run("EasyView") { try await client.fetchLatest(patientUID: patientUID) }
             glucose = latest.glucose
             carbs = latest.carbs
         } catch EasyViewClient.ClientError.sessionExpired {

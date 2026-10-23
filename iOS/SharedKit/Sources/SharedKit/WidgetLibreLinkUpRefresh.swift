@@ -72,13 +72,15 @@ public enum WidgetLibreLinkUpRefresh {
         let session = URLSession(configuration: config)
 
         do {
-            let connections = try await LibreLinkUpClient.fetchConnections(
-                token: token,
-                region: region,
-                userId: userId,
-                session: session,
-                requestTimeout: requestTimeout
-            )
+            let connections = try await WidgetFetchRetry.run("LibreLinkUp") {
+                try await LibreLinkUpClient.fetchConnections(
+                    token: token,
+                    region: region,
+                    userId: userId,
+                    session: session,
+                    requestTimeout: requestTimeout
+                )
+            }
             guard !connections.isEmpty else {
                 logger.warning("Widget LibreLinkUp: no connections in account")
                 RefreshLog.record("widget", "Widget LibreLinkUp: no connections in account")

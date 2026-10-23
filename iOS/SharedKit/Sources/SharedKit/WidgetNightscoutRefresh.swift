@@ -79,7 +79,7 @@ public enum WidgetNightscoutRefresh {
         // requestTimeout, so worst-case wall clock is ~10s rather than ~20s.
         async let glucoseTask: NightscoutClient.GlucoseSample? = {
             do {
-                return try await client.fetchLatestGlucose()
+                return try await WidgetFetchRetry.run("Nightscout glucose") { try await client.fetchLatestGlucose() }
             } catch {
                 logger.error("Widget Nightscout glucose fetch failed: \(error.localizedDescription, privacy: .public)")
                 RefreshLog.record("widget", "Widget Nightscout glucose fetch failed: \(error.localizedDescription)")
@@ -88,7 +88,7 @@ public enum WidgetNightscoutRefresh {
         }()
         async let carbsTask: NightscoutClient.CarbEntry? = {
             do {
-                return try await client.fetchLatestCarbs()
+                return try await WidgetFetchRetry.run("Nightscout carbs") { try await client.fetchLatestCarbs() }
             } catch {
                 logger.error("Widget Nightscout carbs fetch failed: \(error.localizedDescription, privacy: .public)")
                 RefreshLog.record("widget", "Widget Nightscout carbs fetch failed: \(error.localizedDescription)")
