@@ -266,7 +266,7 @@
 "checkin.acknowledgedDescription" = "You've already checked in. Shields will return soon.";
 
 /* Refresh log */
-"settings.refreshLogRow" = "Refresh log";
+"settings.refreshLogRow" = "Logs";
 "refreshLog.empty" = "No refresh events yet.";
 "refreshLog.lowPower" = "Low Power Mode was on";
-"refreshLog.clear" = "Clear log";
+"refreshLog.clear" = "Clear logs";

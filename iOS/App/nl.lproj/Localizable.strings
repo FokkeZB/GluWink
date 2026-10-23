@@ -266,7 +266,7 @@
 "checkin.acknowledgedDescription" = "Je hebt al ingecheckt. Afscherming keert binnenkort terug.";
 
 /* Refresh log */
-"settings.refreshLogRow" = "Vernieuwlogboek";
+"settings.refreshLogRow" = "Logboek";
 "refreshLog.empty" = "Nog geen vernieuwgebeurtenissen.";
 "refreshLog.lowPower" = "Stroomsparen stond aan";
 "refreshLog.clear" = "Logboek wissen";
