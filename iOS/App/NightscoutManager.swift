@@ -118,7 +118,7 @@ final class NightscoutManager {
 
     private func fetchGlucose(using client: NightscoutClient) async {
         do {
-            if let sample = try await client.fetchLatestGlucose() {
+            if let sample = try await TransientRetry.run("nightscout", "glucose fetch") { try await client.fetchLatestGlucose() } {
                 SharedDataManager.shared.saveNightscoutGlucose(mmol: sample.mmol, at: sample.date)
                 logger.info("Nightscout glucose: \(String(format: "%.1f", sample.mmol)) mmol/L at \(sample.date)")
                 RefreshLog.record("nightscout", "fetch ok (glucose sample \(sample.date.formatted(date: .omitted, time: .shortened)))")
@@ -133,7 +133,7 @@ final class NightscoutManager {
 
     private func fetchCarbs(using client: NightscoutClient) async {
         do {
-            if let entry = try await client.fetchLatestCarbs() {
+            if let entry = try await TransientRetry.run("nightscout", "carbs fetch") { try await client.fetchLatestCarbs() } {
                 SharedDataManager.shared.saveNightscoutCarbs(grams: entry.grams, at: entry.date)
                 logger.info("Nightscout carbs: \(String(format: "%.0f", entry.grams))g at \(entry.date)")
             }

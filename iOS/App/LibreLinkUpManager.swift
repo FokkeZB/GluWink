@@ -115,7 +115,7 @@ final class LibreLinkUpManager {
             mirrorAuthToAppGroup()
             let region = SharedDataManager.shared.librelinkupRegion
             let userId = SharedDataManager.shared.librelinkupUserId
-            let connections = try await Self.fetchConnections(token: token, region: region, userId: userId)
+            let connections = try await TransientRetry.run("librelinkup", "fetch") { try await Self.fetchConnections(token: token, region: region, userId: userId) }
 
             guard !connections.isEmpty else {
                 logger.warning("LibreLinkUp: no connections in account")

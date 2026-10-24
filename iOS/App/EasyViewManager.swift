@@ -116,7 +116,7 @@ final class EasyViewManager {
 
         do {
             // One `ds` request returns both glucose and carbs.
-            let latest = try await client.fetchLatest(patientUID: patientUID)
+            let latest = try await TransientRetry.run("easyview", "fetch") { try await client.fetchLatest(patientUID: patientUID) }
             let glucose = latest.glucose
             let carbs = latest.carbs
 

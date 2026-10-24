@@ -72,7 +72,7 @@ public enum WidgetLibreLinkUpRefresh {
         let session = URLSession(configuration: config)
 
         do {
-            let connections = try await WidgetFetchRetry.run("LibreLinkUp") {
+            let connections = try await TransientRetry.run("widget", "LibreLinkUp") {
                 try await LibreLinkUpClient.fetchConnections(
                     token: token,
                     region: region,
