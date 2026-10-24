@@ -40,6 +40,13 @@ public final class FetchCoalescer {
             if self?.current?.id == id { self?.current = nil }
         }
         current = (id, Date(), task)
-        await task.value
+        // The caller that started the fetch owns it: cancelling that caller
+        // (e.g. an expired background task) cancels the request. Joiners
+        // don't, so they can't kill a fetch someone else is waiting on.
+        await withTaskCancellationHandler {
+            await task.value
+        } onCancel: {
+            task.cancel()
+        }
     }
 }

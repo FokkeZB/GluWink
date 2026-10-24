@@ -35,7 +35,7 @@ final class EasyViewManager {
         guard data.easyViewEnabled,
               let session = data.easyViewSession
         else { return nil }
-        return EasyViewClient(sessionCookie: session)
+        return EasyViewClient(sessionCookie: session, requestTimeout: NetworkBudget.requestTimeout)
     }
 
     var isConfigured: Bool {
@@ -243,21 +243,7 @@ final class EasyViewManager {
 
     func handleBackgroundRefresh(_ task: BGAppRefreshTask) {
         logger.info("EasyView background refresh task started")
-        RefreshLog.record("easyview", "background task started")
         scheduleBackgroundRefresh()
-
-        let work = Task { @MainActor in
-            await fetchAll()
-            logger.info("EasyView background refresh task completed")
-            RefreshLog.record("easyview", "background task completed")
-            task.setTaskCompleted(success: true)
-        }
-
-        task.expirationHandler = {
-            self.logger.warning("EasyView background refresh task expired")
-            RefreshLog.record("easyview", "background task expired")
-            work.cancel()
-            task.setTaskCompleted(success: false)
-        }
+        BackgroundRefreshHandler.run(task, source: "easyview") { [self] in await fetchAll() }
     }
 }

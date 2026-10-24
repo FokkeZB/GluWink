@@ -40,7 +40,7 @@ final class NightscoutManager {
         let data = SharedDataManager.shared
         guard data.nightscoutEnabled,
               let urlString = data.nightscoutBaseURL,
-              let client = NightscoutClient(baseURLString: urlString, token: data.nightscoutToken)
+              let client = NightscoutClient(baseURLString: urlString, token: data.nightscoutToken, requestTimeout: NetworkBudget.requestTimeout)
         else {
             return nil
         }
@@ -188,21 +188,7 @@ final class NightscoutManager {
     /// Run a Nightscout fetch as part of a `BGAppRefreshTask`.
     func handleBackgroundRefresh(_ task: BGAppRefreshTask) {
         logger.info("Nightscout background refresh task started")
-        RefreshLog.record("nightscout", "background task started")
         scheduleBackgroundRefresh()
-
-        let work = Task { @MainActor in
-            await fetchAll()
-            logger.info("Nightscout background refresh task completed")
-            RefreshLog.record("nightscout", "background task completed")
-            task.setTaskCompleted(success: true)
-        }
-
-        task.expirationHandler = {
-            self.logger.warning("Nightscout background refresh task expired")
-            RefreshLog.record("nightscout", "background task expired")
-            work.cancel()
-            task.setTaskCompleted(success: false)
-        }
+        BackgroundRefreshHandler.run(task, source: "nightscout") { [self] in await fetchAll() }
     }
 }

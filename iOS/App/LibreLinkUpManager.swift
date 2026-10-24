@@ -216,22 +216,8 @@ final class LibreLinkUpManager {
 
     func handleBackgroundRefresh(_ task: BGAppRefreshTask) {
         logger.info("LibreLinkUp background refresh task started")
-        RefreshLog.record("librelinkup", "background task started")
         scheduleBackgroundRefresh()
-
-        let work = Task { @MainActor in
-            await fetchLatestGlucose()
-            logger.info("LibreLinkUp background refresh task completed")
-            RefreshLog.record("librelinkup", "background task completed")
-            task.setTaskCompleted(success: true)
-        }
-
-        task.expirationHandler = {
-            self.logger.warning("LibreLinkUp background refresh task expired")
-            RefreshLog.record("librelinkup", "background task expired")
-            work.cancel()
-            task.setTaskCompleted(success: false)
-        }
+        BackgroundRefreshHandler.run(task, source: "librelinkup") { [self] in await fetchLatestGlucose() }
     }
 
     // MARK: - Auth
@@ -378,7 +364,7 @@ final class LibreLinkUpManager {
         userId: String?
     ) async throws -> [LibreLinkUpClient.Connection] {
         do {
-            return try await LibreLinkUpClient.fetchConnections(token: token, region: region, userId: userId)
+            return try await LibreLinkUpClient.fetchConnections(token: token, region: region, userId: userId, requestTimeout: NetworkBudget.requestTimeout)
         } catch LibreLinkUpClient.ClientError.tokenExpired {
             throw LibreLinkUpError.tokenExpired
         } catch LibreLinkUpClient.ClientError.httpError(let code) {
