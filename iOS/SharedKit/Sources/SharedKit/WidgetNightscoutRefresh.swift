@@ -34,7 +34,7 @@ public enum WidgetNightscoutRefresh {
 
     /// Per-request timeout. Kept well under the WidgetKit timeline budget so
     /// a stalled Nightscout server never blocks the widget render.
-    public static let requestTimeout: TimeInterval = 5
+    public static let requestTimeout: TimeInterval = 10
 
     private static let logger = Logger(subsystem: "SharedKit", category: "WidgetNightscoutRefresh")
 
@@ -61,6 +61,7 @@ public enum WidgetNightscoutRefresh {
 
         let token = defaults.string(forKey: "nightscoutToken")
 
+        RefreshLog.record("widget", "Nightscout fetch started")
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = requestTimeout
         config.timeoutIntervalForResource = requestTimeout
@@ -75,20 +76,22 @@ public enum WidgetNightscoutRefresh {
         ) else { return }
 
         // Run the two requests concurrently — both are short and bounded by
-        // requestTimeout, so worst-case wall clock is ~5s rather than ~10s.
+        // requestTimeout, so worst-case wall clock is ~10s rather than ~20s.
         async let glucoseTask: NightscoutClient.GlucoseSample? = {
             do {
-                return try await client.fetchLatestGlucose()
+                return try await TransientRetry.run("widget", "Nightscout glucose") { try await client.fetchLatestGlucose() }
             } catch {
                 logger.error("Widget Nightscout glucose fetch failed: \(error.localizedDescription, privacy: .public)")
+                RefreshLog.record("widget", "Widget Nightscout glucose fetch failed: \(error.localizedDescription)")
                 return nil
             }
         }()
         async let carbsTask: NightscoutClient.CarbEntry? = {
             do {
-                return try await client.fetchLatestCarbs()
+                return try await TransientRetry.run("widget", "Nightscout carbs") { try await client.fetchLatestCarbs() }
             } catch {
                 logger.error("Widget Nightscout carbs fetch failed: \(error.localizedDescription, privacy: .public)")
+                RefreshLog.record("widget", "Widget Nightscout carbs fetch failed: \(error.localizedDescription)")
                 return nil
             }
         }()

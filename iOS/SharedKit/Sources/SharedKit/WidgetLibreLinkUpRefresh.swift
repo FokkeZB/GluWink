@@ -24,7 +24,7 @@ public enum WidgetLibreLinkUpRefresh {
     public static let throttleInterval: TimeInterval = 60
 
     /// Per-request timeout, kept well under the WidgetKit timeline budget.
-    public static let requestTimeout: TimeInterval = 5
+    public static let requestTimeout: TimeInterval = 10
 
     /// mg/dL → mmol/L divisor (matches `LibreLinkUpManager`).
     private static let mgdlPerMmol = 18.01559
@@ -50,6 +50,7 @@ public enum WidgetLibreLinkUpRefresh {
            let expiry = ISO8601DateFormatter().date(from: expiryIso),
            expiry.timeIntervalSinceNow < 60 {
             logger.warning("Widget LibreLinkUp token expired — serving stale cached values")
+            RefreshLog.record("widget", "Widget LibreLinkUp token expired — serving stale cached values")
             return
         }
 
@@ -63,6 +64,7 @@ public enum WidgetLibreLinkUpRefresh {
         let userId = defaults.string(forKey: "librelinkupUserId")
         let storedPatientId = defaults.string(forKey: "librelinkupPatientId")
 
+        RefreshLog.record("widget", "LibreLinkUp fetch started")
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = requestTimeout
         config.timeoutIntervalForResource = requestTimeout
@@ -70,15 +72,18 @@ public enum WidgetLibreLinkUpRefresh {
         let session = URLSession(configuration: config)
 
         do {
-            let connections = try await LibreLinkUpClient.fetchConnections(
-                token: token,
-                region: region,
-                userId: userId,
-                session: session,
-                requestTimeout: requestTimeout
-            )
+            let connections = try await TransientRetry.run("widget", "LibreLinkUp") {
+                try await LibreLinkUpClient.fetchConnections(
+                    token: token,
+                    region: region,
+                    userId: userId,
+                    session: session,
+                    requestTimeout: requestTimeout
+                )
+            }
             guard !connections.isEmpty else {
                 logger.warning("Widget LibreLinkUp: no connections in account")
+                RefreshLog.record("widget", "Widget LibreLinkUp: no connections in account")
                 defaults.set(Date().ISO8601Format(), forKey: "librelinkupLastFetchedAt")
                 return
             }
@@ -96,8 +101,10 @@ public enum WidgetLibreLinkUpRefresh {
             )
         } catch LibreLinkUpClient.ClientError.tokenExpired {
             logger.warning("Widget LibreLinkUp token rejected (401) — serving stale cached values")
+            RefreshLog.record("widget", "Widget LibreLinkUp token rejected (401) — serving stale cached values")
         } catch {
             logger.error("Widget LibreLinkUp fetch failed: \(error.localizedDescription, privacy: .public)")
+            RefreshLog.record("widget", "Widget LibreLinkUp fetch failed: \(error.localizedDescription)")
         }
 
         // Always bump the throttle timestamp so a flapping server can't make us

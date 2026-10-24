@@ -22,7 +22,7 @@ final class EasyViewManager {
     private let logger = Logger(subsystem: Constants.bundlePrefix, category: "EasyViewManager")
 
     private var pollTimer: Timer?
-    private var inFlight = false
+    private let coalescer = FetchCoalescer()
 
     private init() {}
 
@@ -30,12 +30,12 @@ final class EasyViewManager {
 
     /// Build a client from current user configuration. Returns nil when
     /// EasyView is disabled or there is no session cookie yet.
-    private func currentClient() -> EasyViewClient? {
+    private func currentClient(urlSession: URLSession = .shared) -> EasyViewClient? {
         let data = SharedDataManager.shared
         guard data.easyViewEnabled,
               let session = data.easyViewSession
         else { return nil }
-        return EasyViewClient(sessionCookie: session)
+        return EasyViewClient(sessionCookie: session, urlSession: urlSession, requestTimeout: NetworkBudget.requestTimeout)
     }
 
     var isConfigured: Bool {
@@ -53,6 +53,7 @@ final class EasyViewManager {
         guard isConfigured else { return }
         let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
+                RefreshLog.record("easyview", "poll fired")
                 await self?.fetchAll()
             }
         }
@@ -78,14 +79,19 @@ final class EasyViewManager {
     // MARK: - Fetching
 
     func fetchAll() async {
+        await coalescer.run(
+            joined: { RefreshLog.record("easyview", "fetch joined in-flight request") },
+            replaced: { RefreshLog.record("easyview", "abandoned stuck fetch") }
+        ) { [self] in await runFetch() }
+    }
+
+    private func runFetch() async {
         guard isConfigured else { return }
         guard !SharedDataManager.shared.isMockModeEnabled else {
             logger.info("Mock mode active — skipping EasyView fetch")
             return
         }
-        guard !inFlight else { return }
-        inFlight = true
-        defer { inFlight = false }
+        RefreshLog.record("easyview", "fetch started")
 
         // If we have no session yet, try to get one first.
         if SharedDataManager.shared.easyViewSession == nil {
@@ -110,7 +116,12 @@ final class EasyViewManager {
 
         do {
             // One `ds` request returns both glucose and carbs.
-            let latest = try await client.fetchLatest(patientUID: patientUID)
+            let latest = try await TransientRetry.run("easyview", "fetch") {
+                try await FreshSession.use { session in
+                    guard let fresh = currentClient(urlSession: session) else { throw CancellationError() }
+                    return try await fresh.fetchLatest(patientUID: patientUID)
+                }
+            }
             let glucose = latest.glucose
             let carbs = latest.carbs
 
@@ -127,13 +138,20 @@ final class EasyViewManager {
                 }
             }
             data.easyViewLastError = nil
+            RefreshLog.record("easyview", "fetch ok (glucose sample \(glucose.map { $0.date.formatted(date: .omitted, time: .shortened) } ?? "none"))")
         } catch EasyViewClient.ClientError.sessionExpired where retryOnExpiry {
             logger.info("EasyView session expired — re-logging in")
+            RefreshLog.record("easyview", "session expired, re-login")
             guard await reLogin() else { return }
             await performFetch(retryOnExpiry: false)
             return
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
             logger.error("EasyView fetch failed: \(error.localizedDescription)")
+            RefreshLog.record("easyview", "fetch failed: \(error.localizedDescription)")
             data.easyViewLastError = error.localizedDescription
         }
 
@@ -154,6 +172,7 @@ final class EasyViewManager {
               let password = KeychainManager.shared.easyViewPassword
         else {
             logger.error("EasyView re-login failed — missing credentials")
+            RefreshLog.record("easyview", "re-login failed: missing credentials")
             data.easyViewLastError = "Missing credentials"
             return false
         }
@@ -168,6 +187,7 @@ final class EasyViewManager {
             return true
         } catch {
             logger.error("EasyView re-login failed: \(error.localizedDescription)")
+            RefreshLog.record("easyview", "re-login failed: \(error.localizedDescription)")
             data.easyViewLastError = error.localizedDescription
             return false
         }
@@ -233,17 +253,6 @@ final class EasyViewManager {
     func handleBackgroundRefresh(_ task: BGAppRefreshTask) {
         logger.info("EasyView background refresh task started")
         scheduleBackgroundRefresh()
-
-        let work = Task { @MainActor in
-            await fetchAll()
-            logger.info("EasyView background refresh task completed")
-            task.setTaskCompleted(success: true)
-        }
-
-        task.expirationHandler = {
-            self.logger.warning("EasyView background refresh task expired")
-            work.cancel()
-            task.setTaskCompleted(success: false)
-        }
+        BackgroundRefreshHandler.run(task, source: "easyview") { [self] in await fetchAll() }
     }
 }
