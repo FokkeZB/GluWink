@@ -13,14 +13,14 @@ public enum TransientRetry {
     public static func run<T>(
         _ source: String,
         _ label: String,
-        pause: Duration = .seconds(1),
+        pause: Duration = .seconds(2),
         _ operation: () async throws -> T
     ) async throws -> T {
         do {
             return try await operation()
         } catch let error as URLError where retryable.contains(error.code) {
             RefreshLog.record(source, "\(label) failed (\(error.localizedDescription)) — retrying once")
-            try? await Task.sleep(for: pause)
+            try await Task.sleep(for: pause)
             return try await operation()
         }
     }

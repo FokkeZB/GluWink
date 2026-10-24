@@ -14,3 +14,21 @@ public enum NetworkBudget {
         isBackgroundTask ? backgroundTimeout : foregroundTimeout
     }
 }
+
+/// A throwaway ephemeral `URLSession` per attempt.
+///
+/// `URLSession.shared` keeps pooled connections and TLS session state that go
+/// stale while the app is suspended; the first requests after resume then fail
+/// with TLS errors or time out, and a retry on the same session fails the same
+/// way. A fresh session always opens a new connection.
+public enum FreshSession {
+    public static func use<T>(_ body: (URLSession) async throws -> T) async rethrows -> T {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = NetworkBudget.requestTimeout
+        config.timeoutIntervalForResource = NetworkBudget.requestTimeout
+        config.waitsForConnectivity = false
+        let session = URLSession(configuration: config)
+        defer { session.finishTasksAndInvalidate() }
+        return try await body(session)
+    }
+}

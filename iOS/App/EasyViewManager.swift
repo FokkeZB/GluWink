@@ -30,12 +30,12 @@ final class EasyViewManager {
 
     /// Build a client from current user configuration. Returns nil when
     /// EasyView is disabled or there is no session cookie yet.
-    private func currentClient() -> EasyViewClient? {
+    private func currentClient(urlSession: URLSession = .shared) -> EasyViewClient? {
         let data = SharedDataManager.shared
         guard data.easyViewEnabled,
               let session = data.easyViewSession
         else { return nil }
-        return EasyViewClient(sessionCookie: session, requestTimeout: NetworkBudget.requestTimeout)
+        return EasyViewClient(sessionCookie: session, urlSession: urlSession, requestTimeout: NetworkBudget.requestTimeout)
     }
 
     var isConfigured: Bool {
@@ -116,7 +116,12 @@ final class EasyViewManager {
 
         do {
             // One `ds` request returns both glucose and carbs.
-            let latest = try await TransientRetry.run("easyview", "fetch") { try await client.fetchLatest(patientUID: patientUID) }
+            let latest = try await TransientRetry.run("easyview", "fetch") {
+                try await FreshSession.use { session in
+                    guard let fresh = currentClient(urlSession: session) else { throw CancellationError() }
+                    return try await fresh.fetchLatest(patientUID: patientUID)
+                }
+            }
             let glucose = latest.glucose
             let carbs = latest.carbs
 
@@ -139,6 +144,10 @@ final class EasyViewManager {
             RefreshLog.record("easyview", "session expired, re-login")
             guard await reLogin() else { return }
             await performFetch(retryOnExpiry: false)
+            return
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
             return
         } catch {
             logger.error("EasyView fetch failed: \(error.localizedDescription)")

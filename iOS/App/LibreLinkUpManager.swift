@@ -115,7 +115,11 @@ final class LibreLinkUpManager {
             mirrorAuthToAppGroup()
             let region = SharedDataManager.shared.librelinkupRegion
             let userId = SharedDataManager.shared.librelinkupUserId
-            let connections = try await TransientRetry.run("librelinkup", "fetch") { try await Self.fetchConnections(token: token, region: region, userId: userId) }
+            let connections = try await TransientRetry.run("librelinkup", "fetch") {
+                try await FreshSession.use { session in
+                    try await Self.fetchConnections(token: token, region: region, userId: userId, session: session)
+                }
+            }
 
             guard !connections.isEmpty else {
                 logger.warning("LibreLinkUp: no connections in account")
@@ -141,6 +145,10 @@ final class LibreLinkUpManager {
             WidgetCenter.shared.reloadAllTimelines()
             WatchSessionManager.shared.sendLatestContext()
             scheduleBackgroundRefresh()
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
             logger.error("LibreLinkUp fetch failed: \(error.localizedDescription)")
             RefreshLog.record("librelinkup", "fetch failed: \(error.localizedDescription)")
@@ -361,10 +369,11 @@ final class LibreLinkUpManager {
     private static func fetchConnections(
         token: String,
         region: String?,
-        userId: String?
+        userId: String?,
+        session: URLSession = .shared
     ) async throws -> [LibreLinkUpClient.Connection] {
         do {
-            return try await LibreLinkUpClient.fetchConnections(token: token, region: region, userId: userId, requestTimeout: NetworkBudget.requestTimeout)
+            return try await LibreLinkUpClient.fetchConnections(token: token, region: region, userId: userId, session: session, requestTimeout: NetworkBudget.requestTimeout)
         } catch LibreLinkUpClient.ClientError.tokenExpired {
             throw LibreLinkUpError.tokenExpired
         } catch LibreLinkUpClient.ClientError.httpError(let code) {
