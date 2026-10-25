@@ -272,6 +272,7 @@ If the passphrase is forgotten: delete and reinstall the app (requires the paren
 - Carb grace period (hour/minute)
 - Glucose badge (off / always / only when attention needed)
 - Passphrase change
+- Logs (read-only history of data refreshes for diagnosing late data; can be cleared)
 
 **Shields are NEVER removed during the settings flow.** Opening settings does not temporarily disable shielding.
 
