@@ -105,9 +105,12 @@ venv-clean:
 
 .PHONY: appstore-bootstrap appstore-sync appstore-push appstore-pull appstore-screenshots appstore-beta release watchface-prepare watchface-capture docs-sync-screenshots docs-bootstrap docs-serve docs-clean docs-build docs-publish-check docs-audit docs-check docs-og-images
 
-## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile)
+## One-time: install fastlane into iOS/vendor/bundle (uses iOS/Gemfile).
+## Re-run after Gemfile.lock changes (Dependabot bumps) or `make appstore-sync`
+## fails with Bundler::GemNotFound. SDKROOT pins Xcode's macOS SDK — see
+## QUIRKS.md → "Native gems fail to build against the Command Line Tools SDK".
 appstore-bootstrap:
-	cd iOS && $(RUN_RUBY) bundle config set --local path 'vendor/bundle' && $(RUN_RUBY) bundle install
+	cd iOS && $(RUN_RUBY) bundle config set --local path 'vendor/bundle' && SDKROOT="$$(xcrun --sdk macosx --show-sdk-path)" $(RUN_RUBY) bundle install
 
 ## Regenerate iOS/fastlane/metadata/ from AppStore/<locale>.md
 appstore-sync:
