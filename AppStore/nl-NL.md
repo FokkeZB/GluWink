@@ -104,8 +104,12 @@ Opmerkingen:
 ## What's New (4000) — v1.2
 
 ```
+• Direct verversen: tik op de nieuwe vernieuwknop op het beginscherm (en in de Apple Watch-app) om meteen je laatste glucose op te halen.
+• Melding bij Energiebesparingsmodus: als iOS achtergrondupdates beperkt en je glucosewaarde verouderd is, laat GluWink nu weten waarom. Het ververst ook vanzelf zodra je de Energiebesparingsmodus uitzet.
+• Betrouwbaardere updates: GluWink probeert het opnieuw na korte netwerkstoringen en blijft niet meer hangen op een verzoek dat iOS heeft onderbroken, waardoor gegevens sneller bijkomen op de achtergrond en als je de app weer opent.
+• Nieuw Logboek in Instellingen laat zien wanneer en waarom gegevens zijn ververst, zodat je makkelijker ziet waarom een waarde te laat is.
 ```
-*(placeholder)*
+*(~715 / 4000)*
 
 ## What's New (4000) — v1.1.2
 
