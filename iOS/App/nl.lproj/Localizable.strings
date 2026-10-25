@@ -4,7 +4,7 @@
 "setup.passphraseMismatch" = "Wachtwoorden komen niet overeen.";
 
 /* Home - Refresh */
-"home.lowPower.notice" = "Stroomsparen staat aan, dus gegevens worden mogelijk later bijgewerkt. Zet het uit of tik op vernieuwen.";
+"home.lowPower.notice" = "Energiebesparingsmodus staat aan, dus gegevens worden mogelijk later bijgewerkt. Zet het uit of tik op vernieuwen.";
 "home.refresh.accessibility" = "Gegevens vernieuwen";
 
 /* Home - Status */
@@ -268,5 +268,5 @@
 /* Refresh log */
 "settings.refreshLogRow" = "Logboek";
 "refreshLog.empty" = "Nog geen vernieuwgebeurtenissen.";
-"refreshLog.lowPower" = "Stroomsparen stond aan";
+"refreshLog.lowPower" = "Energiebesparingsmodus stond aan";
 "refreshLog.clear" = "Logboek wissen";
