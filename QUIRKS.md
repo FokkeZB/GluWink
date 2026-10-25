@@ -188,6 +188,10 @@ If the `--use-old-altool` approach ever stops working, the manual fallback is **
 
 `bundle update fastlane` does not fix either bug — they are in Xcode 26's bundled binaries, not in fastlane itself.
 
+### Native gems fail to build against the Command Line Tools SDK
+
+`make appstore-bootstrap` (`bundle install`) can fail on `cgi`, `erb`, `json`, `prism`, `io-console` with `ld: tapi error: malformed file … /Library/Developer/CommandLineTools/SDKs/MacOSX27.0.sdk/usr/lib/libSystem.B.tbd … unknown architecture arm64e.x1-macos` followed by "The compiler failed to generate an executable file". `clang` picks the Command Line Tools' newer SDK, whose `.tbd` stubs the linker bundled with the selected Xcode cannot parse, even though `xcode-select -p` points at Xcode. Pinning Xcode's own SDK fixes it, and the `appstore-bootstrap` target does that via `SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"`. When the symptom is `Bundler::GemNotFound … in locally installed gems` from `make appstore-sync` / `make release`, `Gemfile.lock` moved (usually a Dependabot bump) and `make appstore-bootstrap` needs re-running. Run it from the repo root: from `iOS/` the target does not exist.
+
 ### `Spaceship::ConnectAPI::AppStoreVersion.create` removed in fastlane 2.235
 
 The `AppStoreVersion.create` class method was removed from Spaceship in fastlane 2.235.x. The replacement is `app.ensure_version!(version, platform: Spaceship::ConnectAPI::Platform::IOS)`. Our `ensure_app_store_version!` helper in `Fastfile` was updated accordingly (2026-06-08). If you see `NoMethodError: undefined method 'create' for class Spaceship::ConnectAPI::AppStoreVersion`, the Fastfile has regressed — verify it uses `app.ensure_version!`.
