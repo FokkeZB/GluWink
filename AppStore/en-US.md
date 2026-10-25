@@ -102,8 +102,12 @@ Notes:
 ## What's New (4000) — v1.2
 
 ```
+• Refresh on demand: tap the new refresh button on the home screen (and in the Apple Watch app) to fetch your latest glucose right away.
+• Low Power Mode note: when iOS is limiting background updates and your glucose reading is out of date, GluWink now tells you why. It also refreshes by itself as soon as you switch Low Power Mode off.
+• More reliable updates: GluWink retries after short network hiccups and no longer gets stuck on a request that iOS suspended, so data catches up faster in the background and when you reopen the app.
+• New Logs screen in Settings shows when and why data refreshed, which makes it easier to figure out why a reading is late.
 ```
-*(placeholder)*
+*(~661 / 4000)*
 
 ## What's New (4000) — v1.1.2
 
