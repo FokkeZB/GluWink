@@ -221,6 +221,12 @@ struct SettingsView: View {
                     } label: {
                         Label(String(localized: "settings.medicalInfoRow"), systemImage: "cross.circle")
                     }
+
+                    NavigationLink {
+                        RefreshLogView()
+                    } label: {
+                        Label(String(localized: "settings.refreshLogRow"), systemImage: "clock.arrow.circlepath")
+                    }
                 }
 
                 Section {

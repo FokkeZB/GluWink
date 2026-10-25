@@ -144,6 +144,8 @@ support_page:
       a: "GluWink is on the App Store. Search for GluWink, or use the link on the home page."
     - q: "Does it work with my CGM?"
       a: "GluWink reads glucose and carb data from Apple Health. If your CGM app (Dexcom, Libre, CamAPS, xDrip, Loop, iAPS, and most others) writes to Apple Health, you're good. Alternatively, connect a Nightscout site, Medtrum's EasyView cloud, or a LibreLinkUp follower account — any of these can be on at the same time."
+    - q: "Why is my data late when my iPhone is in Low Power Mode?"
+      a: "Low Power Mode makes iOS pause most background activity, so GluWink and its widgets are refreshed less often and sometimes not for a while. When the glucose reading is out of date, the home screen says so. Tap the refresh button in the top-left corner (or the one on the Apple Watch app) to fetch fresh data right away. The app also refreshes by itself when you open it or switch Low Power Mode off. To see what happened, open Settings → Logs."
     - q: "What's the difference between the orange and red face?"
       a: "Orange means \"something needs attention\" — glucose is high or low, the sensor is stale, or carbs weren't entered. You run through the short check-in list, everything goes back to green. Red is reserved for a critical high: glucose has gone above a threshold you configure (the default is well into dangerous territory). At that point GluWink hides the check-in button — the shield cannot be dismissed until glucose drops below that threshold again. No passphrase override, no disarm. It's the one place in the app where the friction is deliberately absolute."
     - q: "Why doesn't shielding work in the iOS Simulator?"

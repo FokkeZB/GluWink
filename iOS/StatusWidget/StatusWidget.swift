@@ -124,6 +124,7 @@ struct StatusTimelineProvider: TimelineProvider {
 
     func getTimeline(in _: Context, completion: @escaping (Timeline<StatusEntry>) -> Void) {
         Task {
+            RefreshLog.record("widget", "timeline requested")
             await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
             await WidgetEasyViewRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
             await WidgetLibreLinkUpRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
@@ -159,6 +160,7 @@ struct StatusMetricTimelineProvider: TimelineProvider {
 
     func getTimeline(in _: Context, completion: @escaping (Timeline<StatusEntry>) -> Void) {
         Task {
+            RefreshLog.record("widget", "timeline requested")
             await WidgetNightscoutRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
             await WidgetEasyViewRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)
             await WidgetLibreLinkUpRefresh.refreshIfDue(defaults: EntryBuilder.appGroupDefaults)

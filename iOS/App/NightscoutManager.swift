@@ -28,7 +28,7 @@ final class NightscoutManager {
     private let logger = Logger(subsystem: Constants.bundlePrefix, category: "NightscoutManager")
 
     private var pollTimer: Timer?
-    private var inFlight = false
+    private let coalescer = FetchCoalescer()
 
     private init() {}
 
@@ -36,11 +36,11 @@ final class NightscoutManager {
 
     /// Build a client from current user configuration. Returns nil if
     /// Nightscout is disabled or misconfigured.
-    private func currentClient() -> NightscoutClient? {
+    private func currentClient(session: URLSession = .shared) -> NightscoutClient? {
         let data = SharedDataManager.shared
         guard data.nightscoutEnabled,
               let urlString = data.nightscoutBaseURL,
-              let client = NightscoutClient(baseURLString: urlString, token: data.nightscoutToken)
+              let client = NightscoutClient(baseURLString: urlString, token: data.nightscoutToken, session: session, requestTimeout: NetworkBudget.requestTimeout)
         else {
             return nil
         }
@@ -60,6 +60,7 @@ final class NightscoutManager {
         guard isConfigured else { return }
         let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
+                RefreshLog.record("nightscout", "poll fired")
                 await self?.fetchAll()
             }
         }
@@ -87,17 +88,23 @@ final class NightscoutManager {
 
     /// Fetch glucose + carbs and persist via SharedDataManager.
     func fetchAll() async {
-        guard let client = currentClient() else { return }
+        await coalescer.run(
+            joined: { RefreshLog.record("nightscout", "fetch joined in-flight request") },
+            replaced: { RefreshLog.record("nightscout", "abandoned stuck fetch") }
+        ) { [self] in await runFetch() }
+    }
+
+    private func runFetch() async {
+        guard currentClient() != nil else { return }
         guard !SharedDataManager.shared.isMockModeEnabled else {
             logger.info("Mock mode active — skipping Nightscout fetch")
             return
         }
-        guard !inFlight else { return }
-        inFlight = true
-        defer { inFlight = false }
+        RefreshLog.record("nightscout", "fetch started")
 
-        await fetchGlucose(using: client)
-        await fetchCarbs(using: client)
+        await fetchGlucose()
+        await fetchCarbs()
+        guard !Task.isCancelled else { return }
         SharedDataManager.shared.refreshAttentionBadge()
         ShieldManager.shared.reevaluateShields()
         WidgetCenter.shared.reloadAllTimelines()
@@ -110,25 +117,41 @@ final class NightscoutManager {
         scheduleBackgroundRefresh()
     }
 
-    private func fetchGlucose(using client: NightscoutClient) async {
+    private func fetchGlucose() async {
         do {
-            if let sample = try await client.fetchLatestGlucose() {
+            let latest = try await TransientRetry.run("nightscout", "glucose fetch") {
+                try await FreshSession.use { session in try await currentClient(session: session)?.fetchLatestGlucose() }
+            }
+            if let sample = latest {
                 SharedDataManager.shared.saveNightscoutGlucose(mmol: sample.mmol, at: sample.date)
                 logger.info("Nightscout glucose: \(String(format: "%.1f", sample.mmol)) mmol/L at \(sample.date)")
+                RefreshLog.record("nightscout", "fetch ok (glucose sample \(sample.date.formatted(date: .omitted, time: .shortened)))")
             }
             SharedDataManager.shared.nightscoutLastError = nil
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
             logger.error("Nightscout glucose fetch failed: \(error.localizedDescription)")
+            RefreshLog.record("nightscout", "fetch failed: \(error.localizedDescription)")
             SharedDataManager.shared.nightscoutLastError = error.localizedDescription
         }
     }
 
-    private func fetchCarbs(using client: NightscoutClient) async {
+    private func fetchCarbs() async {
         do {
-            if let entry = try await client.fetchLatestCarbs() {
+            let latest = try await TransientRetry.run("nightscout", "carbs fetch") {
+                try await FreshSession.use { session in try await currentClient(session: session)?.fetchLatestCarbs() }
+            }
+            if let entry = latest {
                 SharedDataManager.shared.saveNightscoutCarbs(grams: entry.grams, at: entry.date)
                 logger.info("Nightscout carbs: \(String(format: "%.0f", entry.grams))g at \(entry.date)")
             }
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
             logger.error("Nightscout carbs fetch failed: \(error.localizedDescription)")
             SharedDataManager.shared.nightscoutLastError = error.localizedDescription
@@ -181,17 +204,6 @@ final class NightscoutManager {
     func handleBackgroundRefresh(_ task: BGAppRefreshTask) {
         logger.info("Nightscout background refresh task started")
         scheduleBackgroundRefresh()
-
-        let work = Task { @MainActor in
-            await fetchAll()
-            logger.info("Nightscout background refresh task completed")
-            task.setTaskCompleted(success: true)
-        }
-
-        task.expirationHandler = {
-            self.logger.warning("Nightscout background refresh task expired")
-            work.cancel()
-            task.setTaskCompleted(success: false)
-        }
+        BackgroundRefreshHandler.run(task, source: "nightscout") { [self] in await fetchAll() }
     }
 }

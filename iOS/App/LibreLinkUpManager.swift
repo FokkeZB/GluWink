@@ -26,7 +26,7 @@ final class LibreLinkUpManager {
     private let logger = Logger(subsystem: Constants.bundlePrefix, category: "LibreLinkUpManager")
 
     private var pollTimer: Timer?
-    private var inFlight = false
+    private let coalescer = FetchCoalescer()
 
     private init() {}
 
@@ -44,6 +44,7 @@ final class LibreLinkUpManager {
         guard isConfigured else { return }
         let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
+                RefreshLog.record("librelinkup", "poll fired")
                 await self?.fetchLatestGlucose()
             }
         }
@@ -91,14 +92,19 @@ final class LibreLinkUpManager {
     // MARK: - Fetching
 
     func fetchLatestGlucose() async {
+        await coalescer.run(
+            joined: { RefreshLog.record("librelinkup", "fetch joined in-flight request") },
+            replaced: { RefreshLog.record("librelinkup", "abandoned stuck fetch") }
+        ) { [self] in await runFetch() }
+    }
+
+    private func runFetch() async {
         guard isConfigured else { return }
         guard !SharedDataManager.shared.isMockModeEnabled else {
             logger.info("Mock mode active — skipping LibreLinkUp fetch")
             return
         }
-        guard !inFlight else { return }
-        inFlight = true
-        defer { inFlight = false }
+        RefreshLog.record("librelinkup", "fetch started")
 
         do {
             let token = try await validToken()
@@ -109,7 +115,11 @@ final class LibreLinkUpManager {
             mirrorAuthToAppGroup()
             let region = SharedDataManager.shared.librelinkupRegion
             let userId = SharedDataManager.shared.librelinkupUserId
-            let connections = try await Self.fetchConnections(token: token, region: region, userId: userId)
+            let connections = try await TransientRetry.run("librelinkup", "fetch") {
+                try await FreshSession.use { session in
+                    try await Self.fetchConnections(token: token, region: region, userId: userId, session: session)
+                }
+            }
 
             guard !connections.isEmpty else {
                 logger.warning("LibreLinkUp: no connections in account")
@@ -128,14 +138,20 @@ final class LibreLinkUpManager {
             SharedDataManager.shared.librelinkupLastError = nil
 
             logger.info("LibreLinkUp glucose: \(String(format: "%.1f", mmol)) mmol/L at \(sampleAt)")
+            RefreshLog.record("librelinkup", "fetch ok (glucose sample \(sampleAt.formatted(date: .omitted, time: .shortened)))")
 
             SharedDataManager.shared.refreshAttentionBadge()
             ShieldManager.shared.reevaluateShields()
             WidgetCenter.shared.reloadAllTimelines()
             WatchSessionManager.shared.sendLatestContext()
             scheduleBackgroundRefresh()
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
             logger.error("LibreLinkUp fetch failed: \(error.localizedDescription)")
+            RefreshLog.record("librelinkup", "fetch failed: \(error.localizedDescription)")
             SharedDataManager.shared.librelinkupLastError = error.localizedDescription
         }
     }
@@ -209,18 +225,7 @@ final class LibreLinkUpManager {
     func handleBackgroundRefresh(_ task: BGAppRefreshTask) {
         logger.info("LibreLinkUp background refresh task started")
         scheduleBackgroundRefresh()
-
-        let work = Task { @MainActor in
-            await fetchLatestGlucose()
-            logger.info("LibreLinkUp background refresh task completed")
-            task.setTaskCompleted(success: true)
-        }
-
-        task.expirationHandler = {
-            self.logger.warning("LibreLinkUp background refresh task expired")
-            work.cancel()
-            task.setTaskCompleted(success: false)
-        }
+        BackgroundRefreshHandler.run(task, source: "librelinkup") { [self] in await fetchLatestGlucose() }
     }
 
     // MARK: - Auth
@@ -364,10 +369,11 @@ final class LibreLinkUpManager {
     private static func fetchConnections(
         token: String,
         region: String?,
-        userId: String?
+        userId: String?,
+        session: URLSession = .shared
     ) async throws -> [LibreLinkUpClient.Connection] {
         do {
-            return try await LibreLinkUpClient.fetchConnections(token: token, region: region, userId: userId)
+            return try await LibreLinkUpClient.fetchConnections(token: token, region: region, userId: userId, session: session, requestTimeout: NetworkBudget.requestTimeout)
         } catch LibreLinkUpClient.ClientError.tokenExpired {
             throw LibreLinkUpError.tokenExpired
         } catch LibreLinkUpClient.ClientError.httpError(let code) {

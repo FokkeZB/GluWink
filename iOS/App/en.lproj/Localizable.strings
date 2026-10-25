@@ -4,6 +4,7 @@
 "setup.passphraseMismatch" = "Passphrases do not match.";
 
 /* Home - Refresh */
+"home.lowPower.notice" = "Low Power Mode is on, so data may update late. Turn it off or tap refresh.";
 "home.refresh.accessibility" = "Refresh data";
 
 /* Home - Status */
@@ -263,3 +264,9 @@
 "checkin.disarmCountdown %lld" = "Wait (%llds)";
 "checkin.cooldownHelper" = "This is your moment to actually do what you just checked off — and anything else that comes to mind.";
 "checkin.acknowledgedDescription" = "You've already checked in. Shields will return soon.";
+
+/* Refresh log */
+"settings.refreshLogRow" = "Logs";
+"refreshLog.empty" = "No refresh events yet.";
+"refreshLog.lowPower" = "Low Power Mode was on";
+"refreshLog.clear" = "Clear logs";

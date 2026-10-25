@@ -16,7 +16,7 @@ import os
 /// DeviceActivityMonitor — see QUIRKS.md), so fetching here is safe.
 public enum WidgetEasyViewRefresh {
     public static let throttleInterval: TimeInterval = 60
-    public static let requestTimeout: TimeInterval = 5
+    public static let requestTimeout: TimeInterval = 10
 
     private static let logger = Logger(subsystem: "SharedKit", category: "WidgetEasyViewRefresh")
 
@@ -41,6 +41,7 @@ public enum WidgetEasyViewRefresh {
             return
         }
 
+        RefreshLog.record("widget", "EasyView fetch started")
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = requestTimeout
         config.timeoutIntervalForResource = requestTimeout
@@ -57,20 +58,23 @@ public enum WidgetEasyViewRefresh {
         let glucose: EasyViewClient.GlucoseSample?
         let carbs: EasyViewClient.CarbEntry?
         do {
-            let latest = try await client.fetchLatest(patientUID: patientUID)
+            let latest = try await TransientRetry.run("widget", "EasyView") { try await client.fetchLatest(patientUID: patientUID) }
             glucose = latest.glucose
             carbs = latest.carbs
         } catch EasyViewClient.ClientError.sessionExpired {
             logger.warning("Widget EasyView session expired — serving stale cached values")
+            RefreshLog.record("widget", "Widget EasyView session expired — serving stale cached values")
             glucose = nil
             carbs = nil
         } catch {
             logger.error("Widget EasyView fetch failed: \(error.localizedDescription, privacy: .public)")
+            RefreshLog.record("widget", "Widget EasyView fetch failed: \(error.localizedDescription)")
             glucose = nil
             carbs = nil
         }
 
         if let glucose {
+            RefreshLog.record("widget", "EasyView fetch ok (glucose sample \(glucose.date.formatted(date: .omitted, time: .shortened)))")
             saveIfNewer(
                 defaults: defaults,
                 valueKey: UnifiedDataReader.glucoseValueKey(for: .easyView),

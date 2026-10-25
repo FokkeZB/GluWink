@@ -119,6 +119,7 @@ final class HealthKitManager {
                 completionHandler()
                 return
             }
+            RefreshLog.record("healthkit", "observer wake (glucose)")
             Task {
                 await self?.fetchLatestGlucose()
                 completionHandler()
