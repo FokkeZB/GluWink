@@ -12,7 +12,7 @@
 # Marketing site (docs/) needs Ruby 3.3.x specifically: the github-pages
 # gem still depends on Liquid 4.0 calling Object#tainted?, which Ruby
 # 3.2 removed. GitHub Pages itself runs on 3.3, so local matches prod.
-ruby = "3.3.4"
+ruby = "3.3.13"
 
 # GitHub CLI. 2.80.0 was the first release that fixed the
 # "Projects (classic) is being deprecated" regression in `gh pr edit` /
